@@ -1,4 +1,6 @@
 import os
+from datetime import date
+
 import ee
 import geemap
 
@@ -63,6 +65,68 @@ def extrair_ndvi_ribeirao(lat: float, lon: float):
         "data_satelite": data_imagem,
         "ndvi_medio": valor_ndvi
     }
+
+
+def _adicionar_meses(data_base, quantidade_meses):
+    ano = data_base.year + (data_base.month - 1 + quantidade_meses) // 12
+    mes = (data_base.month - 1 + quantidade_meses) % 12 + 1
+    dia = min(data_base.day, [31, 29 if ano % 4 == 0 and (ano % 100 != 0 or ano % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mes - 1])
+    return date(ano, mes, dia)
+
+
+def extrair_ndvi_historico(lat: float, lon: float, start_date: str, end_date: str, cloud_cover_max: int = 70):
+    """Retorna uma série mensal de NDVI entre start_date e end_date."""
+    try:
+        project = os.environ.get('GOOGLE_CLOUD_PROJECT') or os.environ.get('EE_PROJECT') or 'sugarcanemle'
+        ee.Initialize(project=project)
+    except Exception as e:
+        print("Erro de inicialização. Rode 'earthengine authenticate' no terminal.")
+        print(str(e))
+        return []
+
+    ponto = ee.Geometry.Point([float(lon), float(lat)])
+    area_fazenda = ponto.buffer(2000)
+
+    inicio = date.fromisoformat(start_date)
+    fim = date.fromisoformat(end_date)
+
+    meses = []
+    mes_atual = date(inicio.year, inicio.month, 1)
+    mes_final = date(fim.year, fim.month, 1)
+    while mes_atual <= mes_final:
+        proximo_mes = _adicionar_meses(mes_atual, 1)
+        colecao = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(area_fazenda)
+            .filterDate(mes_atual.isoformat(), proximo_mes.isoformat())
+            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloud_cover_max))
+            .sort('system:time_start', False)
+        )
+
+        quantidade = colecao.size().getInfo()
+        if quantidade > 0:
+            imagem = colecao.median()
+            ndvi = imagem.normalizedDifference(['B8', 'B4']).rename('NDVI')
+            estatistica = ndvi.reduceRegion(
+                reducer=ee.Reducer.mean(),
+                geometry=area_fazenda,
+                scale=10,
+                maxPixels=1e9,
+            )
+            valor_ndvi = estatistica.get('NDVI').getInfo()
+        else:
+            valor_ndvi = None
+
+        meses.append({
+            "periodo": mes_atual.strftime('%Y-%m'),
+            "data_referencia": mes_atual.isoformat(),
+            "ndvi_medio": valor_ndvi,
+            "quantidade_imagens": quantidade,
+        })
+
+        mes_atual = proximo_mes
+
+    return meses
 
 # Executa o pipeline
 if __name__ == "__main__":

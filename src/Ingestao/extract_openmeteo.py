@@ -2,33 +2,41 @@ import requests
 import json
 from typing import Dict, Any
 
-def fetch_openmeteo_agro_data(lat: float, lon: float) -> Dict[str, Any]:
+
+def fetch_openmeteo_agro_data(
+    lat: float,
+    lon: float,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> Dict[str, Any]:
     """
     Busca dados agrometeorológicos da OpenMeteo para uma coordenada específica,
     focando em variáveis cruciais para o cultivo de cana-de-açúcar.
     """
     # Endpoint base da OpenMeteo
-    url = "https://api.open-meteo.com/v1/forecast"
-    
+    url = "https://archive-api.open-meteo.com/v1/archive"
+
     # Parâmetros da requisição montados especificamente para agronomia
     params = {
         "latitude": lat,
         "longitude": lon,
-        # Variáveis horárias focadas em balanço hídrico, solo e radiação
-        "hourly": [
+        "hourly": ",".join([
             "temperature_2m",           # Temperatura do ar
+            "relative_humidity_2m",     # Umidade relativa do ar
             "precipitation",            # Chuva (mm)
-            "evapotranspiration",       # Perda de água (solo + planta)
-            "soil_temperature_6cm",     # Temperatura do solo (rasa)
-            "soil_temperature_18cm",    # Temperatura do solo (profunda - brotação)
-            "soil_moisture_3_to_9cm",   # Umidade do solo (rasa)
-            "soil_moisture_9_to_27cm",  # Umidade do solo (profunda - raízes)
-            "shortwave_radiation"       # Radiação solar (fotossíntese/ATR)
-        ],
-        "timezone": "America/Sao_Paulo", # Ajuste para o fuso horário local
-        "past_days": 1,                  # Pega o dia anterior para histórico recente
-        "forecast_days": 3               # Previsão para os próximos 3 dias
+            "et0_fao_evapotranspiration", # Evapotranspiração de referência
+            "soil_temperature_7_to_28cm", # Temperatura do solo (profundidade próxima de 18 cm)
+            "soil_moisture_7_to_28cm",   # Umidade do solo (profundidade próxima de 9-27 cm)
+            "shortwave_radiation",      # Radiação solar (fotossíntese/ATR)
+            "wind_speed_10m",           # Vento histórico para EDA
+            "wind_gusts_10m"            # Rajada de vento histórica
+        ]),
+        "timezone": "America/Sao_Paulo",
     }
+
+    if start_date and end_date:
+        params["start_date"] = start_date
+        params["end_date"] = end_date
     
     try:
         # Fazendo a requisição GET

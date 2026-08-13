@@ -1,109 +1,163 @@
-import os
 import json
-from datetime import datetime
-# Importando as funções que criamos anteriormente
-from extract_openmeteo import fetch_openmeteo_agro_data
-from extract_openweather import fetch_openweather
-from extract_geemap import extrair_ndvi_ribeirao
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import pandas as pd
 from dotenv import load_dotenv
 
-# Carrega as chaves de API (OpenWeather)
+from extract_geemap import extrair_ndvi_historico
+from extract_openmeteo import fetch_openmeteo_agro_data
+from extract_openweather import fetch_openweather
+
 load_dotenv()
 
-class AgroDataAggregator:
-    def __init__(self, lat: float, lon: float, nome_talhao: str):
-        self.lat = lat
-        self.lon = lon
-        self.nome_talhao = nome_talhao
-        self.api_key = os.getenv("OPENWEATHER_API_KEY")
-        self.pasta_dados = "../SugarCaneMLE/data" # Define onde os arquivos serão salvos
-        
-        # Cria a pasta 'dados' automaticamente se ela não existir
-        if not os.path.exists(self.pasta_dados):
-            os.makedirs(self.pasta_dados)
 
-    def coletar_e_unificar(self):
-        """O Maestro: Chama todas as APIs, extrai o suco e junta tudo."""
-        print(f"Iniciando coleta para o talhão: {self.nome_talhao}...\n")
-        
-        # 1. Busca os Dados (O processamento pode levar alguns segundos devido ao satélite)
-        meteo_data = fetch_openmeteo_agro_data(self.lat, self.lon)
-        weather_data = fetch_openweather()
-        ndvi_data = extrair_ndvi_ribeirao(self.lat, self.lon) # Adapte a função GEE para receber lat/lon
-        
-        # 2. A Transformação (Filtragem e Limpeza)
-        
-        # OpenMeteo: Como ele retorna arrays por hora, pegamos o índice [0] (a hora mais recente)
-        dados_solo = {}
-        if meteo_data and 'hourly' in meteo_data:
-            hourly = meteo_data['hourly']
-            dados_solo = {
-                "evapotranspiracao_mm": hourly['evapotranspiration'][0],
-                "temp_solo_18cm": hourly['soil_temperature_18cm'][0],
-                "umidade_solo_raiz": hourly['soil_moisture_9_to_27cm'][0],
-                "radiacao_solar": hourly['shortwave_radiation'][0]
+def _five_years_ago(reference_date):
+    try:
+        return reference_date.replace(year=reference_date.year - 5)
+    except ValueError:
+        return reference_date.replace(month=2, day=28, year=reference_date.year - 5)
+
+
+def build_dataset(lat: float, lon: float, nome_talhao: str):
+    """Executa as 3 APIs e monta um dataset temporal consolidado para previsão."""
+    print(f"\n=== Coletando dados para {nome_talhao} ===")
+
+    today = datetime.now().date()
+    end_date = today - timedelta(days=1)
+    start_date = _five_years_ago(end_date)
+
+    meteo_data = fetch_openmeteo_agro_data(
+        lat,
+        lon,
+        start_date=start_date.isoformat(),
+        end_date=end_date.isoformat(),
+    )
+    weather_data = fetch_openweather(lat, lon)
+    ndvi_historico = extrair_ndvi_historico(
+        lat,
+        lon,
+        start_date=start_date.isoformat(),
+        end_date=end_date.isoformat(),
+    )
+
+    meteo_hourly = meteo_data.get("hourly", {}) if isinstance(meteo_data, dict) else {}
+    weather_main = weather_data.get("main", {}) if isinstance(weather_data, dict) else {}
+    weather_wind = weather_data.get("wind", {}) if isinstance(weather_data, dict) else {}
+    weather_condition = weather_data.get("weather", [{}])[0] if isinstance(weather_data, dict) else {}
+
+    ndvi_por_periodo = {
+        item["periodo"]: item
+        for item in ndvi_historico
+        if isinstance(item, dict)
+    }
+    ndvi_meses_com_valor = sum(1 for item in ndvi_historico if item.get("ndvi_medio") is not None)
+
+    horarios = meteo_hourly.get("time", []) if isinstance(meteo_hourly, dict) else []
+    total_registros = len(horarios)
+
+    registros = []
+    for indice, horario in enumerate(horarios):
+        periodo = horario[:7]
+        ndvi_mes = ndvi_por_periodo.get(periodo, {"data_referencia": None, "ndvi_medio": None, "quantidade_imagens": 0})
+        registros.append(
+            {
+                "talhao": nome_talhao,
+                "lat": lat,
+                "lon": lon,
+                "timestamp": horario,
+                "openmeteo": {
+                    "timezone": meteo_data.get("timezone"),
+                    "elevation": meteo_data.get("elevation"),
+                    "temperatura_2m": meteo_hourly.get("temperature_2m", [None])[indice],
+                    "umidade_relativa_2m": meteo_hourly.get("relative_humidity_2m", [None])[indice],
+                    "precipitacao_mm": meteo_hourly.get("precipitation", [None])[indice],
+                    "evapotranspiracao_mm": meteo_hourly.get("et0_fao_evapotranspiration", [None])[indice],
+                    "temperatura_solo_18cm_c": meteo_hourly.get("soil_temperature_7_to_28cm", [None])[indice],
+                    "umidade_solo_9_27cm": meteo_hourly.get("soil_moisture_7_to_28cm", [None])[indice],
+                    "radiacao_solar_wm2": meteo_hourly.get("shortwave_radiation", [None])[indice],
+                    "vento_velocidade_ms": meteo_hourly.get("wind_speed_10m", [None])[indice],
+                    "vento_rajada_ms": meteo_hourly.get("wind_gusts_10m", [None])[indice],
+                },
+                "ndvi_historico": {
+                    "periodo": ndvi_mes.get("periodo"),
+                    "data_referencia": ndvi_mes.get("data_referencia"),
+                    "ndvi_medio": ndvi_mes.get("ndvi_medio"),
+                    "quantidade_imagens": ndvi_mes.get("quantidade_imagens", 0),
+                },
             }
+        )
 
-        # OpenWeather: Focado na atmosfera imediata e ventos
-        dados_atmosfera = {}
-        if weather_data:
-            vento = weather_data.get('wind', {})
-            clima = weather_data.get('weather', [{}])[0]
-            dados_atmosfera = {
-                "condicao": clima.get('description'),
-                "vento_velocidade_kmh": round(vento.get('speed', 0) * 3.6, 1),
-                "vento_rajada_kmh": round(vento.get('gust', 0) * 3.6, 1),
-                "temp_ar_atual": weather_data.get('main', {}).get('temp')
+    dataset = {
+        "talhao": nome_talhao,
+        "lat": lat,
+        "lon": lon,
+        "data_hora_coleta": datetime.now().isoformat(timespec="seconds"),
+        "janela_meteo": {
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+            "total_horarios": total_registros,
+        },
+        "openweather_atual": weather_data if isinstance(weather_data, dict) else {},
+        "ndvi_historico_resumo": {
+            "periodos_encontrados": len(ndvi_historico),
+            "periodos_com_ndvi": ndvi_meses_com_valor,
+        },
+        "registros": registros,
+    }
+
+    return dataset
+
+
+def salvar_dataset(dataset: dict, nome_talhao: str):
+    """Salva o dataset consolidado em CSV dentro de data/Raw."""
+    project_root = Path(__file__).resolve().parents[2]
+    raw_dir = project_root / "data" / "Raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+
+
+    filename = f"Dataset_SugarCane_unified.csv"
+    path = raw_dir / filename
+
+    registros_flat = []
+    for registro in dataset["registros"]:
+        registros_flat.append(
+            {
+                "talhao": registro["talhao"],
+                "lat": registro["lat"],
+                "lon": registro["lon"],
+                "timestamp": registro["timestamp"],
+                "timezone": registro["openmeteo"]["timezone"],
+                "elevation": registro["openmeteo"]["elevation"],
+                "temperatura_2m": registro["openmeteo"]["temperatura_2m"],
+                "umidade_relativa_2m": registro["openmeteo"]["umidade_relativa_2m"],
+                "precipitacao_mm": registro["openmeteo"]["precipitacao_mm"],
+                "evapotranspiracao_mm": registro["openmeteo"]["evapotranspiracao_mm"],
+                "temperatura_solo_18cm_c": registro["openmeteo"]["temperatura_solo_18cm_c"],
+                "umidade_solo_9_27cm": registro["openmeteo"]["umidade_solo_9_27cm"],
+                "radiacao_solar_wm2": registro["openmeteo"]["radiacao_solar_wm2"],
+                "vento_velocidade_ms": registro["openmeteo"]["vento_velocidade_ms"],
+                "vento_rajada_ms": registro["openmeteo"]["vento_rajada_ms"],
+                "ndvi_periodo": registro["ndvi_historico"]["periodo"],
+                "ndvi_data_referencia": registro["ndvi_historico"]["data_referencia"],
+                "ndvi_medio": registro["ndvi_historico"]["ndvi_medio"],
+                "ndvi_quantidade_imagens": registro["ndvi_historico"]["quantidade_imagens"],
             }
+        )
 
-        # 3. O Modelo Unificado (O "Frankenstein" do bem)
-        horario_atual = datetime.now().isoformat()
-        
-        modelo_final = {
-            "id_coleta": f"{self.nome_talhao}_{horario_atual[:13]}", # Gera um ID único
-            "metadados": {
-                "talhao": self.nome_talhao,
-                "lat": self.lat,
-                "lon": self.lon,
-                "data_hora_extracao": horario_atual
-            },
-            "atmosfera": dados_atmosfera,
-            "solo_e_hidrico": dados_solo,
-            "saude_vegetativa": ndvi_data if ndvi_data else {"ndvi_medio": None, "data_satelite": None}
-        }
-        
-        return modelo_final
+    pd.DataFrame(registros_flat).to_csv(path, index=False, encoding="utf-8")
 
-    def salvar_na_pasta(self, dados_unificados):
-        """Salva o dicionário final como um arquivo .json na pasta de dados."""
-        # Cria um nome de arquivo seguro (ex: RP_Talhao_01_2026-08-11.json)
-        data_simples = datetime.now().strftime("%Y-%m-%d_%H%M")
-        nome_arquivo = f"{self.nome_talhao.replace(' ', '_')}_{data_simples}.json"
-        
-        caminho_completo = os.path.join(self.pasta_dados, nome_arquivo)
-        
-        # Escreve o arquivo no disco
-        with open(caminho_completo, 'w', encoding='utf-8') as f:
-            json.dump(dados_unificados, f, indent=4, ensure_ascii=False)
-            
-        print(f"\n✅ SUCESSO! Dados unificados salvos em: {caminho_completo}")
+    print(f"\n✅ Dataset salvo em: {path}")
+    return path
 
-# ==========================================
-# Execução
-# ==========================================
+
 if __name__ == "__main__":
-    # Instancia o adaptador para um talhão específico em Ribeirão Preto
-    orquestrador = AgroDataAggregator(
+    dataset = build_dataset(
         lat=-21.1775,
         lon=-47.8103,
-        nome_talhao="RP_Talhao_Central"
+        nome_talhao="RP_Talhao_Central",
     )
-    
-    # 1. Roda a máquina (Extrai e Unifica)
-    dados_limpos = orquestrador.coletar_e_unificar()
-    
-    # 2. Mostra no console para você validar se ficou bom
-    print(json.dumps(dados_limpos, indent=2, ensure_ascii=False))
-    
-    # 3. Salva na sua pasta /dados
-    orquestrador.salvar_na_pasta(dados_limpos)
+    print(f"Total de registros gerados: {len(dataset['registros'])}")
+    print(f"Intervalo: {dataset['janela_meteo']['start_date']} até {dataset['janela_meteo']['end_date']}")
+    print(f"NDVI com valor em {dataset['ndvi_historico_resumo']['periodos_com_ndvi']} de {dataset['ndvi_historico_resumo']['periodos_encontrados']} periodos")
+    salvar_dataset(dataset, "RP_Talhao_Central")
