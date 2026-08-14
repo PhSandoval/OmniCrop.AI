@@ -1,13 +1,10 @@
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-
 import pandas as pd
 from dotenv import load_dotenv
-
 from extract_geemap import extrair_ndvi_historico
 from extract_openmeteo import fetch_openmeteo_agro_data
-from extract_openweather import fetch_openweather
 
 load_dotenv()
 
@@ -19,8 +16,8 @@ def _five_years_ago(reference_date):
         return reference_date.replace(month=2, day=28, year=reference_date.year - 5)
 
 
-def build_dataset(lat: float, lon: float, nome_talhao: str):
-    """Executa as 3 APIs e monta um dataset temporal consolidado para previsão."""
+def build_dataset_historico(lat: float, lon: float, nome_talhao: str):
+    """Camada fria: monta dataset historico para EDA e treino de modelo."""
     print(f"\n=== Coletando dados para {nome_talhao} ===")
 
     today = datetime.now().date()
@@ -33,7 +30,6 @@ def build_dataset(lat: float, lon: float, nome_talhao: str):
         start_date=start_date.isoformat(),
         end_date=end_date.isoformat(),
     )
-    weather_data = fetch_openweather(lat, lon)
     ndvi_historico = extrair_ndvi_historico(
         lat,
         lon,
@@ -42,10 +38,6 @@ def build_dataset(lat: float, lon: float, nome_talhao: str):
     )
 
     meteo_hourly = meteo_data.get("hourly", {}) if isinstance(meteo_data, dict) else {}
-    weather_main = weather_data.get("main", {}) if isinstance(weather_data, dict) else {}
-    weather_wind = weather_data.get("wind", {}) if isinstance(weather_data, dict) else {}
-    weather_condition = weather_data.get("weather", [{}])[0] if isinstance(weather_data, dict) else {}
-
     ndvi_por_periodo = {
         item["periodo"]: item
         for item in ndvi_historico
@@ -98,7 +90,6 @@ def build_dataset(lat: float, lon: float, nome_talhao: str):
             "end_date": end_date.isoformat(),
             "total_horarios": total_registros,
         },
-        "openweather_atual": weather_data if isinstance(weather_data, dict) else {},
         "ndvi_historico_resumo": {
             "periodos_encontrados": len(ndvi_historico),
             "periodos_com_ndvi": ndvi_meses_com_valor,
@@ -109,14 +100,14 @@ def build_dataset(lat: float, lon: float, nome_talhao: str):
     return dataset
 
 
-def salvar_dataset(dataset: dict, nome_talhao: str):
-    """Salva o dataset consolidado em CSV dentro de data/Raw."""
+def salvar_dataset_historico(dataset: dict, nome_talhao: str):
+    """Salva o dataset historico em CSV dentro de data/Raw."""
     project_root = Path(__file__).resolve().parents[2]
     raw_dir = project_root / "data" / "Raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
 
-    filename = f"Dataset_SugarCane_unified.csv"
+    filename = "Dataset_SugarCane_historico.csv"
     path = raw_dir / filename
 
     registros_flat = []
@@ -152,7 +143,7 @@ def salvar_dataset(dataset: dict, nome_talhao: str):
 
 
 if __name__ == "__main__":
-    dataset = build_dataset(
+    dataset = build_dataset_historico(
         lat=-21.1775,
         lon=-47.8103,
         nome_talhao="RP_Talhao_Central",
@@ -160,4 +151,4 @@ if __name__ == "__main__":
     print(f"Total de registros gerados: {len(dataset['registros'])}")
     print(f"Intervalo: {dataset['janela_meteo']['start_date']} até {dataset['janela_meteo']['end_date']}")
     print(f"NDVI com valor em {dataset['ndvi_historico_resumo']['periodos_com_ndvi']} de {dataset['ndvi_historico_resumo']['periodos_encontrados']} periodos")
-    salvar_dataset(dataset, "RP_Talhao_Central")
+    salvar_dataset_historico(dataset, "RP_Talhao_Central")

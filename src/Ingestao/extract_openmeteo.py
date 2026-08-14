@@ -54,6 +54,35 @@ def fetch_openmeteo_agro_data(
         print(f"Erro ao buscar dados na OpenMeteo: {e}")
         return {}
 
+
+def fetch_openmeteo_forecast_data(lat: float, lon: float, forecast_days: int = 3) -> Dict[str, Any]:
+    """Busca previsão horária da OpenMeteo para a camada de tempo real."""
+    url = "https://api.open-meteo.com/v1/forecast"
+
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": ",".join([
+            "temperature_2m",
+            "relative_humidity_2m",
+            "precipitation",
+            "wind_speed_10m",
+            "wind_gusts_10m",
+            "shortwave_radiation",
+        ]),
+        "forecast_days": forecast_days,
+        "timezone": "America/Sao_Paulo",
+    }
+
+    try:
+        print(f"Buscando previsão de {forecast_days} dias para Lat: {lat}, Lon: {lon}...")
+        response = requests.get(url, params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar previsão na OpenMeteo: {e}")
+        return {}
+
 # ==========================================
 # Bloco de Execução (Teste Local)
 # ==========================================
@@ -79,8 +108,8 @@ if __name__ == "__main__":
         print(f"Horário: {hourly_data['time'][0]}")
         print(f"Temperatura do ar: {hourly_data['temperature_2m'][0]} °C")
         print(f"Precipitação: {hourly_data['precipitation'][0]} mm")
-        print(f"Evapotranspiração: {hourly_data['evapotranspiration'][0]} mm")
-        print(f"Umidade do solo (9-27cm): {hourly_data['soil_moisture_9_to_27cm'][0]} m³/m³")
+        print(f"Evapotranspiração ET0: {hourly_data['et0_fao_evapotranspiration'][0]} mm")
+        print(f"Umidade do solo (7-28cm): {hourly_data['soil_moisture_7_to_28cm'][0]} m³/m³")
         
         # Dica: Para ver o JSON inteiro formatado, descomente a linha abaixo:
         # print(json.dumps(dados_brutos, indent=2, ensure_ascii=False))
