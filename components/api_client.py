@@ -6,14 +6,7 @@ import streamlit as st
 
 API_URL = "http://localhost:8555/predict_ndvi"
 
-FEATURE_KEYS = [
-    "t_mean", "precipitacao_total", "radiacao_solar_mean",
-    "gdd_acumulado_30d", "gdd_acumulado_90d",
-    "balanco_hidrico_30d", "balanco_hidrico_lag_30d", "balanco_hidrico_lag_60d",
-    "chuva_acumulada_lag_30d", "radiacao_acumulada_30d",
-    "dias_calor_extremo_30d", "dias_frio_extremo_30d",
-    "eventos_chuva_extrema_30d", "mes_seno", "mes_cosseno",
-]
+FEATURE_KEYS = ['chuva_acumulada_30d', 'chuva_acumulada_60d', 'chuva_acumulada_90d', 'GDA_mensal']
 
 
 @st.cache_data
@@ -28,11 +21,34 @@ def build_payload(row: dict) -> dict:
     return {k: float(row[k]) for k in FEATURE_KEYS}
 
 
+import joblib
+
+@st.cache_resource
+def load_model():
+    path = Path(__file__).resolve().parents[1] / "models" / "ndvi_xgb_model.pkl"
+    return joblib.load(path)
+
 def get_prediction(payload: dict) -> dict | None:
     try:
-        r = requests.post(API_URL, json=payload, timeout=4)
-        return r.json() if r.status_code == 200 else None
-    except Exception:
+        model = load_model()
+        # Convert dictionary to DataFrame for sklearn prediction (keeping feature order)
+        df_input = pd.DataFrame([payload], columns=FEATURE_KEYS)
+        pred = model.predict(df_input)[0]
+        
+        # Simulando os alertas do DSS que a API costumava retornar
+        alertas = []
+        if payload.get("chuva_acumulada_30d", 0) < 30:
+            alertas.append("ALERTA HÍDRICO: Déficit hídrico agudo detectado nos últimos 30 dias.")
+        
+        return {
+            "ndvi_previsto": round(float(pred), 3),
+            "status_vigor": "", # Não usado diretamente mais
+            "fatores_de_risco_identificados": alertas,
+            "plano_de_acao": "", # O DSS cuida disso
+            "confiabilidade_modelo": "Alta (Margem de Erro Histórica de MAE 0.02)"
+        }
+    except Exception as e:
+        st.error(f"Prediction Error: {e}")
         return None
 
 

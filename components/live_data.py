@@ -89,35 +89,14 @@ def _fetch_openmeteo(lat: float, lon: float, past_days: int = 92) -> pd.DataFram
 def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
     df = daily.copy()
 
-    # GDD (base 18°C para cana)
-    df["gdd"] = (df["t_mean"] - 18.0).clip(lower=0)
-    df["gdd_acumulado_30d"] = df["gdd"].rolling(30, min_periods=1).sum()
-    df["gdd_acumulado_90d"] = df["gdd"].rolling(90, min_periods=1).sum()
+    # GDA Mensal (base 15°C para cana)
+    df["gdd"] = (df["t_mean"] - 15.0).clip(lower=0)
+    df["GDA_mensal"] = df["gdd"].rolling(30, min_periods=1).sum()
 
-    # Balanço hídrico
+    # Chuva acumulada
     df["chuva_acumulada_30d"]  = df["precipitacao_total"].rolling(30, min_periods=1).sum()
-    df["evapo_acumulada_30d"]  = df["evapotranspiracao_total"].rolling(30, min_periods=1).sum()
-    df["balanco_hidrico_30d"]  = df["chuva_acumulada_30d"] - df["evapo_acumulada_30d"]
-
-    # Lags
-    df["balanco_hidrico_lag_30d"]  = df["balanco_hidrico_30d"].shift(30)
-    df["balanco_hidrico_lag_60d"]  = df["balanco_hidrico_30d"].shift(60)
-    df["chuva_acumulada_lag_30d"]  = df["chuva_acumulada_30d"].shift(30)
-
-    # Radiação acumulada
-    df["radiacao_acumulada_30d"] = df["radiacao_solar_mean"].rolling(30, min_periods=1).sum()
-
-    # Estresse térmico
-    df["dias_calor_extremo_30d"] = (df["t_max"] > 35).rolling(30, min_periods=1).sum()
-    df["dias_frio_extremo_30d"]  = (df["t_min"] < 10).rolling(30, min_periods=1).sum()
-
-    # Eventos de chuva extrema
-    df["eventos_chuva_extrema_30d"] = (df["precipitacao_total"] > 50).rolling(30, min_periods=1).sum()
-
-    # Sazonalidade
-    mes = df["date"].dt.month
-    df["mes_seno"]    = np.sin(2 * np.pi * mes / 12)
-    df["mes_cosseno"] = np.cos(2 * np.pi * mes / 12)
+    df["chuva_acumulada_60d"]  = df["precipitacao_total"].rolling(60, min_periods=1).sum()
+    df["chuva_acumulada_90d"]  = df["precipitacao_total"].rolling(90, min_periods=1).sum()
 
     # NDVI placeholder (não temos real, mas o modelo não usa NDVI como input)
     df["ndvi_medio"] = np.nan
