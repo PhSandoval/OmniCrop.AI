@@ -103,7 +103,7 @@ def build_dataset_historico(lat: float, lon: float, nome_talhao: str):
 def salvar_dataset_historico(dataset: dict, nome_talhao: str):
     """Salva o dataset historico em CSV dentro de data/Raw."""
     project_root = Path(__file__).resolve().parents[2]
-    raw_dir = project_root / "data" / "Raw"
+    raw_dir = project_root / "data" / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
 

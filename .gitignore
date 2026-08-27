@@ -1,5 +1,15 @@
+# Ambientes
 .venv/
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
 .env
+
+# Lixo do Mac
+.DS_Store
+
+# Banco de Dados
+data/raw/
+data/interim/
+# data/processed SObe pro git!
+
+# Jupyter
+.ipynb_checkpoints/
