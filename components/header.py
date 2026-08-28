@@ -20,19 +20,19 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
         st.markdown("---")
 
-        # Navigation links (Streamlit renders page links natively, 
+        # Navegação links (Streamlit renders page links natively, 
         # but we add a label for context)
         st.markdown("""
 <div style="font-size:10px;font-weight:700;color:rgba(105,240,174,.7);
             text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;">
-    Navigation
+    Navegação
 </div>
 """, unsafe_allow_html=True)
 
-        st.page_link("app.py",                    label="Dashboard")
-        st.page_link("pages/2_Simulator.py",      label="Simulator")
-        st.page_link("pages/3_Analytics.py",      label="Analytics")
-        st.page_link("pages/4_Settings.py",       label="Settings")
+        st.page_link("app.py",                    label="Painel Geral")
+        st.page_link("pages/2_Simulador.py",      label="Simulador")
+        st.page_link("pages/3_Historico.py",      label="Histórico")
+        st.page_link("pages/4_Configuracoes.py",       label="Configurações")
 
         st.markdown("---")
 
