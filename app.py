@@ -30,13 +30,26 @@ def render_onboarding():
         </style>
     """, unsafe_allow_html=True)
     
-    st.title('🌱 Bem-vindo ao SugarCane Copilot')
-    st.write('Sua IA particular para gestão de canaviais. Insira sua localização para começarmos.')
+    # Espaçamento vertical para alinhar ao centro da tela
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("")
     
-    with st.form('onboarding_form'):
-        fazenda = st.text_input('Nome do Talhão/Fazenda')
-        local = st.text_input('Cidade ou Coordenadas (Lat, Lon)')
-        submit = st.form_submit_button('Iniciar Análise 🚀')
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("<h1 style='text-align: center;'>🌱 Bem-vindo ao SugarCane Copilot</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 16px; margin-bottom: 30px;'>"
+                    "Sua IA particular para gestão de canaviais. Insira sua localização para começarmos.</p>", unsafe_allow_html=True)
+        
+        with st.form('onboarding_form'):
+            fazenda = st.text_input('Nome do Talhão/Fazenda', placeholder='Ex: Fazenda Santa Maria')
+            local = st.text_input('Localização (Cidade/Estado ou Lat/Lon)', placeholder='Ex: Ribeirão Preto, SP ou -21.17, -47.81')
+            
+            # Botão de destaque com type='primary' e largura total
+            submit = st.form_submit_button('Iniciar Análise 🚀', type='primary', use_container_width=True)
         
         if submit:
             if not fazenda or not local:
