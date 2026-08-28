@@ -39,7 +39,7 @@ st.markdown(
     "</div>", unsafe_allow_html=True)
 
 cenario = st.radio("Cenario de Intervencao:",
-                   ["Irrigacao de Salvamento", "Onda de Calor / Veranico", "Periodo Chuvoso Intenso"],
+                   ["🌱 Planejamento de Plantio", "💧 Irrigacao de Salvamento", "🧪 Aplicacao de Adubacao", "🌾 Manejo de Colheita / Maturador"],
                    horizontal=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -52,25 +52,40 @@ with col_ctrl:
                f"GDA atual: **{today.get('GDA_mensal', 0):.1f}**")
     st.markdown("<br>", unsafe_allow_html=True)
 
-    if "Irrigacao" in cenario:
+    if "Plantio" in cenario:
+        chuva_plantio = st.slider("Previsao de Chuva para a Quinzena (mm)", 0, 150, 40)
+        gda_plantio   = st.slider("Previsao de GDA (Termometro de Brotacao)", 0, 200, 95)
+        payload_sim["chuva_acumulada_30d"] = chuva_plantio
+        payload_sim["GDA_mensal"] = gda_plantio
+        
+    elif "Irrigacao" in cenario:
         lame    = st.slider("Lamina de Irrigacao (mm/dia)", 0, 100, 40, help="Milimetros aplicados por dia")
         duracao = st.slider("Duracao do Programa (dias)", 1, 30, 10)
         vol_total = lame * duracao
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_total)
         st.caption(f"Chuva 30d projetada: {today.get('chuva_acumulada_30d',0):.0f} → **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
 
-    elif "Calor" in cenario:
-        aumento_gda = st.slider("Aumento no GDA (Graus-Dia)", 0, 150, 60, help="Dias mais quentes acumulam mais graus-dia na planta.")
-        red_chuva_pct = st.slider("Reducao na precipitacao mensal (%)", 0, 100, 60)
-        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + aumento_gda)
-        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) * (1 - red_chuva_pct / 100))
-        st.caption(f"GDA projetado: {today.get('GDA_mensal',0):.1f} → **{payload_sim['GDA_mensal']:.1f}**")
-
-    elif "Chuvoso" in cenario:
-        vol_extra     = st.slider("Volume extra de chuva no mes (mm)", 0, 300, 120)
-        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_extra)
-        payload_sim["chuva_acumulada_60d"] = float(today.get("chuva_acumulada_60d", 0) + vol_extra)
-        st.caption(f"Chuva 30d projetada: **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
+    elif "Adubacao" in cenario:
+        eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polimero)", "Nitrato (Alta Absorcao)"])
+        chuva_prev = st.slider("Previsao de Chuva pos-aplicacao (mm)", 0, 150, 15)
+        
+        bonus_ndvi = 0
+        if "Comum" in eficiencia and chuva_prev > 15:
+            bonus_ndvi = 0.05
+        elif "Protegida" in eficiencia:
+            bonus_ndvi = 0.08
+        elif "Nitrato" in eficiencia:
+            bonus_ndvi = 0.12
+            
+        payload_sim["chuva_acumulada_30d"] = chuva_prev
+        
+    elif "Colheita" in cenario:
+        dias_antecip = st.slider("Dias para Antecipacao de Corte / Aplicacao de Maturador", 0, 45, 15)
+        # O maturador trava o crescimento vegetativo para acumular açucar.
+        # Entao o NDVI vai artificialmente "cair" ou estabilizar, e a planta precisa de estresse hidrico.
+        chuva_colheita = st.slider("Previsao de Chuva (Atrapalha colheita)", 0, 150, 5)
+        payload_sim["chuva_acumulada_30d"] = chuva_colheita
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + (dias_antecip * 4)) # aumenta calor
 
 with col_out:
     st.markdown('<div class="sec-header">Projecao Pos-Intervencao</div>', unsafe_allow_html=True)
@@ -78,7 +93,10 @@ with col_out:
 
     if resultado_sim and resultado_hoje:
         ndvi_base = resultado_hoje["ndvi_previsto"]
-        ndvi_proj = resultado_sim["ndvi_previsto"]
+        bonus_ndvi_val = bonus_ndvi if "Adubacao" in cenario else 0
+    ndvi_proj = resultado_sim["ndvi_previsto"]
+    if "Adubacao" in cenario:
+        ndvi_proj = min(0.95, ndvi_proj + bonus_ndvi_val)
         delta     = ndvi_proj - ndvi_base
         delta_pct = (delta / ndvi_base * 100) if ndvi_base else 0
 
@@ -101,7 +119,7 @@ with col_out:
         st.markdown("<br>", unsafe_allow_html=True)
         
         mes_atual = today["date"].month if hasattr(today.get("date", ""), "month") else 8
-        dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj)
+        dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario, chuva_projetada=payload_sim["chuva_acumulada_30d"], gda_projetado=payload_sim["GDA_mensal"])
         
         if delta > 0:
             st.success(f"Intervencao benefica — melhora de {abs(delta_pct):.1f}% no vigor.")

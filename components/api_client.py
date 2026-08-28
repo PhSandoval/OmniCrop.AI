@@ -62,7 +62,7 @@ def badge_html(status: str) -> str:
     return f'<span class="badge {cls}">{status}</span>'
 
 
-def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None) -> dict:
+def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None, cenario: str = "", chuva_projetada: float = 0, gda_projetado: float = 0) -> dict:
     """
     Matriz de decisão cruzando biologia da planta (fase do ano) com o impacto da simulação.
     Crescimento: Nov a Mar (Meses 11, 12, 1, 2, 3)
@@ -85,6 +85,48 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
             "mensagem_recomendacao": "A intervencao simulada reduziu ou nao alterou o vigor projetado. Estrategia nao recomendada (desperdicio de recursos)."
         }
         
+    # Regras especificas de novos cenarios (ignoram fase do ano)
+    if "Colheita" in cenario:
+        if chuva_projetada > 50:
+            return {
+                "status_title": "🔴 Risco Operacional",
+                "mensagem_recomendacao": "Alerta: Previsao de chuva forte. Risco altíssimo de atolamento de maquinas e pisoteio de soqueira. Interromper operacoes de corte."
+            }
+        elif gda_projetado > 100 and chuva_projetada < 20:
+            return {
+                "status_title": "🟢 Corte Liberado",
+                "mensagem_recomendacao": "Cenario ideal. GDA alto para maturação e solo seco para trafegabilidade. Liberado para Corte Mecanizado."
+            }
+        else:
+            return {
+                "status_title": "🟡 Janela Sub-otima",
+                "mensagem_recomendacao": "Condicao aceitavel, porem avaliar maturador para acelerar acumulo de ATR antes de eventuais chuvas."
+            }
+            
+    if "Plantio" in cenario:
+        if chuva_projetada < 20:
+            return {
+                "status_title": "🔴 Risco de Falha",
+                "mensagem_recomendacao": "Chuva projetada muito baixa. O plantio agora apresenta altissimo risco de falha na brotacao dos toletes."
+            }
+        elif gda_projetado > 90 and chuva_projetada >= 40:
+            return {
+                "status_title": "🟢 Plantio Liberado",
+                "mensagem_recomendacao": "Condicao termohidrica excelente (GDA e Umidade) para brotacao rapida e uniforme dos toletes."
+            }
+            
+    if "Adubacao" in cenario:
+        if chuva_projetada < 10:
+            return {
+                "status_title": "🔴 Desperdicio",
+                "mensagem_recomendacao": "Nao aplicar ureia/nitrogenio. Solo seco nao incorporara o fertilizante, causando perda volatil. Aguardar chuva."
+            }
+        elif chuva_projetada > 100:
+            return {
+                "status_title": "🟡 Lixiviacao",
+                "mensagem_recomendacao": "Chuva excessiva projetada. Risco de lixiviacao de nutrientes. Fracionar a dose recomendada."
+            }
+
     # Fase Maturação / Corte (Abr a Out)
     if fase_maturacao:
         if ndvi_atual < 0.4:
