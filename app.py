@@ -17,23 +17,58 @@ st.set_page_config(page_title="Dashboard · SugarCane Copilot", layout="wide",
 
 inject_css()
 
-# ── Verificar se a fazenda está configurada ───────────────────
-if not is_configured():
-    render_sidebar({}, None)
+# ── Onboarding Dinâmico (Landing Page) ───────────────────────
+if 'setup_completo' not in st.session_state:
+    st.session_state['setup_completo'] = is_configured()
+
+if not st.session_state['setup_completo']:
+    # Ocultar a sidebar temporariamente
     st.markdown("""
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-            min-height:60vh;text-align:center;gap:16px;">
-    <div style="font-size:48px;">🌾</div>
-    <div style="font-size:24px;font-weight:800;color:#fff;">Bem-vindo ao SugarCane Copilot</div>
-    <div style="font-size:14px;color:rgba(180,230,180,.60);max-width:440px;line-height:1.6;">
-        Configure a localizacao da sua fazenda para comecar a receber
-        diagnosticos em tempo real baseados em dados climaticos reais.
-    </div>
-    <div style="margin-top:8px;font-size:13px;color:#69F0AE;font-weight:600;">
-        Acesse Settings na barra lateral para comecar.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+        <style>
+            [data-testid="stSidebar"] { display: none; }
+            [data-testid="collapsedControl"] { display: none; }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<h1 style='text-align: center; margin-top: 40px;'>Bem-vindo ao SugarCane Copilot</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 18px; margin-bottom: 40px;'>"
+                "Uma plataforma inteligente que utiliza Machine Learning e dados climáticos para prever o <br>Vigor Vegetativo (NDVI) da sua safra e sugerir as melhores ações de manejo.</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("onboarding_form"):
+            fazenda = st.text_input("Nome da Fazenda (ou Talhão)", placeholder="Ex: Fazenda Santa Cruz")
+            local = st.text_input("Localização (Cidade/Estado ou Lat/Lon)", placeholder="Ex: Piracicaba, SP")
+            
+            submit = st.form_submit_button("Iniciar Análise 🚀", use_container_width=True)
+            
+            if submit:
+                if not fazenda or not local:
+                    st.error("Preencha ambos os campos para continuar.")
+                else:
+                    from components.live_data import search_location
+                    from components.farm_config import save_config
+                    
+                    with st.spinner("Buscando coordenadas via satélite..."):
+                        pts = search_location(local)
+                        if pts:
+                            cfg = {
+                                "farm_name": fazenda,
+                                "city": pts[0]["label"],
+                                "lat": pts[0]["lat"],
+                                "lon": pts[0]["lon"],
+                                "variedade": "RB867515",
+                                "area_ha": 100,
+                                "alert_amarelo": 0.6,
+                                "alert_vermelho": 0.4,
+                                "chuva_critica": 30,
+                                "gda_critico": 150
+                            }
+                            save_config(cfg)
+                            st.session_state['setup_completo'] = True
+                            st.rerun()
+                        else:
+                            st.error("📍 Localização não encontrada. Tente escrever o nome da cidade e a sigla do estado.")
     st.stop()
 
 # ── Carregar config e buscar dados reais ─────────────────────
