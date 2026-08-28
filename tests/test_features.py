@@ -9,24 +9,26 @@ from components.live_data import _build_features
 
 class TestFeatureEngineering(unittest.TestCase):
     def test_gda_mensal_calculation(self):
-        """A base térmica da cana é 15°C. Se fizermos 30 dias de exatos 20°C, GDA diário = 5. GDA Mensal = 150."""
-        # Criar dataframe dummy
-        dates = pd.date_range("2023-01-01", periods=30)
+        """Teste agronômico preciso do GDA com base 18°C (sem valores negativos)."""
+        # Temperaturas: [20, 22, 15, 10, 25] -> Esperado GDA diário: [2, 4, 0, 0, 7]
+        dates = pd.date_range("2023-01-01", periods=5)
         df_dummy = pd.DataFrame({
             "date": dates,
-            "t_mean": [20.0] * 30,
-            "precipitacao_total": [10.0] * 30, # 10mm por dia
+            "t_mean": [20.0, 22.0, 15.0, 10.0, 25.0],
+            "precipitacao_total": [0.0] * 5,
         })
         
-        # Calcular
+        # Calcular features
         res_df = _build_features(df_dummy)
         
-        # Última linha deve ter 30 dias de acúmulo
-        last_row = res_df.iloc[-1]
+        # Os valores diários de gdd
+        gda_diario = res_df["gdd"].tolist()
+        self.assertEqual(gda_diario, [2.0, 4.0, 0.0, 0.0, 7.0])
         
-        self.assertEqual(last_row["GDA_mensal"], 150.0)
-        self.assertEqual(last_row["chuva_acumulada_30d"], 300.0) # 10mm * 30 dias
-        
+        # O GDA Acumulado da janela (GDA_mensal usa rolling de 30, então a última linha pega a soma de tudo)
+        gda_acumulado = res_df.iloc[-1]["GDA_mensal"]
+        self.assertEqual(gda_acumulado, 13.0)
+
     def test_chuva_acumulada_limits(self):
         """Teste para garantir que as somas móveis tratam janelas menores no início dos dados (min_periods=1)."""
         dates = pd.date_range("2023-01-01", periods=5)

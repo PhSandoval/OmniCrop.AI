@@ -89,8 +89,8 @@ def _fetch_openmeteo(lat: float, lon: float, past_days: int = 92) -> pd.DataFram
 def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
     df = daily.copy()
 
-    # GDA Mensal (base 15°C para cana)
-    df["gdd"] = (df["t_mean"] - 15.0).clip(lower=0)
+    # GDA Mensal (base 18°C para cana)
+    df["gdd"] = (df["t_mean"] - 18.0).clip(lower=0)
     df["GDA_mensal"] = df["gdd"].rolling(30, min_periods=1).sum()
 
     # Chuva acumulada

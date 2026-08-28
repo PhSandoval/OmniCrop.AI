@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 
-def calculate_gdd(t_mean, t_base=15.0):
+def calculate_gdd(t_mean, t_base=18.0):
     return max(0, t_mean - t_base)
 
 def build_features():
@@ -37,8 +37,8 @@ def build_features():
         group['chuva_acumulada_60d'] = group['precipitacao_total'].rolling(window=60, min_periods=1).sum()
         group['chuva_acumulada_90d'] = group['precipitacao_total'].rolling(window=90, min_periods=1).sum()
         
-        # 3. GDA (Graus-Dia Acumulados) - Temperatura base 15°C
-        group['gdd_diario'] = group['t_mean'].apply(lambda x: calculate_gdd(x, t_base=15.0))
+        # 3. GDA (Graus-Dia Acumulados) - Temperatura base 18°C
+        group['gdd_diario'] = group['t_mean'].apply(lambda x: calculate_gdd(x, t_base=18.0))
         group['GDA_mensal'] = group['gdd_diario'].rolling(window=30, min_periods=1).sum()
         
         # Manter a variavel alvo
