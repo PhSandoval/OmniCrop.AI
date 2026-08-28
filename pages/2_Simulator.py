@@ -48,34 +48,29 @@ payload_sim = payload_hoje.copy()
 
 with col_ctrl:
     st.markdown('<div class="sec-header">Parametros da Simulacao</div>', unsafe_allow_html=True)
-    st.caption(f"Balanco hidrico atual: **{today['balanco_hidrico_30d']:.1f} mm** · "
-               f"Temperatura atual: **{today['t_mean']:.1f} °C**")
+    st.caption(f"Chuva 30d: **{today.get('chuva_acumulada_30d', 0):.1f} mm** · "
+               f"GDA atual: **{today.get('GDA_mensal', 0):.1f}**")
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "Irrigacao" in cenario:
-        lame    = st.slider("Lamina de Irrigacao (mm/dia)", 0, 100, 40)
+        lame    = st.slider("Lamina de Irrigacao (mm/dia)", 0, 100, 40, help="Milimetros aplicados por dia")
         duracao = st.slider("Duracao do Programa (dias)", 1, 30, 10)
-        payload_sim["precipitacao_total"]      = float(lame)
-        payload_sim["balanco_hidrico_30d"]     = float(today["balanco_hidrico_30d"] + lame * duracao * 0.7)
-        payload_sim["chuva_acumulada_lag_30d"] = float(today["chuva_acumulada_lag_30d"] + lame * duracao * 0.5)
-        st.caption(f"Balanco projetado: {today['balanco_hidrico_30d']:.0f} → **{payload_sim['balanco_hidrico_30d']:.0f} mm**")
+        vol_total = lame * duracao
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_total)
+        st.caption(f"Chuva 30d projetada: {today.get('chuva_acumulada_30d',0):.0f} → **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
 
     elif "Calor" in cenario:
-        dias_calor    = st.slider("Dias adicionais T > 35°C", 0, 20, 8)
+        aumento_gda = st.slider("Aumento no GDA (Graus-Dia)", 0, 150, 60, help="Dias mais quentes acumulam mais graus-dia na planta.")
         red_chuva_pct = st.slider("Reducao na precipitacao mensal (%)", 0, 100, 60)
-        payload_sim["dias_calor_extremo_30d"] = float(today["dias_calor_extremo_30d"] + dias_calor)
-        payload_sim["precipitacao_total"]     = float(today["precipitacao_total"] * (1 - red_chuva_pct / 100))
-        payload_sim["balanco_hidrico_30d"]    = float(today["balanco_hidrico_30d"] - dias_calor * 4)
-        payload_sim["t_mean"]                 = float(today["t_mean"] + 3.5)
-        st.caption(f"T. media projetada: {today['t_mean']:.1f} → **{payload_sim['t_mean']:.1f} °C**")
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + aumento_gda)
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) * (1 - red_chuva_pct / 100))
+        st.caption(f"GDA projetado: {today.get('GDA_mensal',0):.1f} → **{payload_sim['GDA_mensal']:.1f}**")
 
     elif "Chuvoso" in cenario:
         vol_extra     = st.slider("Volume extra de chuva no mes (mm)", 0, 300, 120)
-        dias_extremos = st.slider("Eventos de chuva extrema (>50mm/dia)", 0, 10, 3)
-        payload_sim["precipitacao_total"]        = float(vol_extra / 30)
-        payload_sim["balanco_hidrico_30d"]       = float(today["balanco_hidrico_30d"] + vol_extra * 0.6)
-        payload_sim["eventos_chuva_extrema_30d"] = float(today["eventos_chuva_extrema_30d"] + dias_extremos)
-        st.caption(f"Eventos extremos projetados: **{payload_sim['eventos_chuva_extrema_30d']:.0f}** no mes")
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_extra)
+        payload_sim["chuva_acumulada_60d"] = float(today.get("chuva_acumulada_60d", 0) + vol_extra)
+        st.caption(f"Chuva 30d projetada: **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
 
 with col_out:
     st.markdown('<div class="sec-header">Projecao Pos-Intervencao</div>', unsafe_allow_html=True)
@@ -115,4 +110,4 @@ with col_out:
             
         st.info(f"**Acao Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
     else:
-        st.error("API offline — rode: uvicorn main:app --port 8555")
+        st.error("Erro na projecao local.")
