@@ -69,8 +69,7 @@ k1, k2, k3, k4, k5 = st.columns(5)
 k1.metric("Temperatura Media",   f"{today['t_mean']:.1f} °C",
           f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C")
 k2.metric("Precipitacao",        f"{today['precipitacao_total']:.1f} mm")
-k3.metric("Balanco Hidrico 30d", f"{today['balanco_hidrico_30d']:.1f} mm",
-          "Deficit" if today["balanco_hidrico_30d"] < 0 else "Superavit")
+k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm")
 k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}")
 k5.metric("Radiacao Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²")
 
@@ -124,9 +123,9 @@ with h2:
     st.markdown("**Precipitacao Diaria (mm)**")
     st.plotly_chart(rain_bars(hist), use_container_width=True, config={"displayModeBar": False})
 with h3:
-    st.markdown("**Balanco Hidrico 30d (mm)**")
+    st.markdown("**GDA Acumulado 30d**")
     import plotly.express as px
-    fig_bh = px.line(hist, x="date", y="balanco_hidrico_30d",
+    fig_bh = px.line(hist, x="date", y="GDA_mensal",
                      color_discrete_sequence=["#64B5F6"])
     fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.3)", dash="dash", width=1))
     fig_bh.update_layout(height=200, margin=dict(t=10,b=10,l=10,r=10),
