@@ -99,12 +99,12 @@ with col_thresholds:
         cfg.get("ndvi_critico_lim", 0.40), step=0.01)
 
     deficit_lim = st.slider(
-        "Deficit Hidrico Critico (mm)", -200, 0,
+        "Chuva Acumulada Critica (mm)", -200, 0,
         cfg.get("deficit_lim", -30),
         help="Balanco hidrico abaixo desse valor dispara alerta de irrigacao.")
 
     dias_calor_lim = st.slider(
-        "Dias de Calor Extremo (limite/mes)", 0, 30,
+        "GDA Critico (Mensal)", 0, 30,
         cfg.get("dias_calor_lim", 5),
         help="Acima desse numero de dias com T > 35 graus, alerta termico.")
 
@@ -155,6 +155,6 @@ with col_btn:
                     p1, p2, p3 = st.columns(3)
                     p1.metric("Temperatura", f"{t['t_mean']:.1f} °C")
                     p2.metric("Precipitacao", f"{t['precipitacao_total']:.1f} mm")
-                    p3.metric("Balanco Hidrico 30d", f"{t['balanco_hidrico_30d']:.1f} mm")
+                    p3.metric("Chuva Acum. 30d", f"{t.get('chuva_acumulada_30d',0):.1f} mm")
                 except Exception as e:
                     st.error(f"Erro ao buscar dados da API: {e}")

@@ -59,7 +59,7 @@ if "Reais" in fonte:
     # Dados reais: mostrar balanço hídrico (NDVI real não disponível)
     import plotly.graph_objects as go
     fig_bh = go.Figure()
-    fig_bh.add_trace(go.Scatter(x=df_plot["date"], y=df_plot["balanco_hidrico_30d"],
+    fig_bh.add_trace(go.Scatter(x=df_plot["date"], y=df_plot["chuva_acumulada_30d"],
                                 mode="lines", line=dict(color="#69F0AE", width=1.8),
                                 fill="tozeroy", fillcolor="rgba(105,240,174,0.08)"))
     fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.25)", dash="dash", width=1))
@@ -68,8 +68,8 @@ if "Reais" in fonte:
                          font_color="rgba(180,230,180,.80)", showlegend=False,
                          xaxis=dict(showgrid=False, tickfont=dict(size=9)),
                          yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
-                                    tickfont=dict(size=9), title="Balanco Hidrico 30d (mm)"))
-    st.caption("Dados reais nao possuem NDVI observado. Exibindo Balanco Hidrico como proxy de estresse hidrico.")
+                                    tickfont=dict(size=9), title="Volume de Chuva 30d (mm)"))
+    st.caption("Dados reais nao possuem NDVI observado. Exibindo Volume de Chuva como proxy de estresse hidrico.")
     st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
 else:
     st.plotly_chart(ndvi_full_history(df_plot), use_container_width=True, config={"displayModeBar": False})
