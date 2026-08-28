@@ -84,11 +84,8 @@ with c1:
     st.plotly_chart(seasonal_box(df_plot), use_container_width=True, config={"displayModeBar": False})
 
 with c2:
-    st.markdown('<div class="sec-header">Correlacao NDVI × Chuva (Lags Mensais)</div>',
-                unsafe_allow_html=True)
-    if "Reais" in fonte:
-        st.caption("Disponivel apenas com o dataset historico completo.")
-    else:
+    if not "Reais" in fonte:
+        st.markdown('<div class="sec-header">Correlacao NDVI × Chuva (Lags Mensais)</div>', unsafe_allow_html=True)
         st.plotly_chart(lag_heatmap(df_plot), use_container_width=True, config={"displayModeBar": False})
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -105,7 +102,15 @@ s1, s2, s3, s4, s5 = st.columns(5)
 s1.metric("Temp. Media", f"{df_plot['t_mean'].mean():.1f} °C")
 s2.metric("Temp. Maxima", f"{df_plot['t_max'].max():.1f} °C")
 s3.metric("Chuva Total", f"{df_plot['precipitacao_total'].sum():.0f} mm")
-s4.metric("Dias sem Chuva", f"{int((df_plot['precipitacao_total'] == 0).sum())}")
+
+dias_sem_chuva = int((df_plot['precipitacao_total'] == 0).sum())
+if dias_sem_chuva > 60:
+    s4.metric("Dias sem Chuva", f"🔴 {dias_sem_chuva}")
+elif dias_sem_chuva < 20:
+    s4.metric("Dias sem Chuva", f"🟢 {dias_sem_chuva}")
+else:
+    s4.metric("Dias sem Chuva", f"{dias_sem_chuva}")
+
 s5.metric("Eventos Extremos", f"{int((df_plot['precipitacao_total'] > 50).sum())} dias")
 
 # ── Bastidores (Explicabilidade do Modelo) ────────────────────

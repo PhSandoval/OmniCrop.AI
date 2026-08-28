@@ -51,32 +51,24 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
         else:
             color, dot = "#888", "#888"
 
-        st.markdown(f"""
-<div style="background:rgba(8,35,10,.55);border:1px solid rgba(100,220,100,.20);
-            border-radius:12px;padding:16px;">
-    <div style="font-size:10px;color:rgba(180,230,180,.55);text-transform:uppercase;
-                letter-spacing:.10em;margin-bottom:10px;">Talhão Ativo</div>
-    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;">
-        RP · Talhão Central
-    </div>
-    <div style="font-size:11px;color:rgba(180,230,180,.60);margin-bottom:12px;">
-        Ribeirão Preto, SP
-    </div>
-    <div style="font-size:10px;color:rgba(180,230,180,.45);margin-bottom:4px;">
-        Última leitura
-    </div>
-    <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:12px;">
-        {date_str}
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:8px;height:8px;border-radius:50%;background:{dot};
-                    box-shadow:0 0 6px {dot};"></div>
-        <div style="font-size:11px;color:{color};font-weight:600;">
-            {status_txt.split("(")[0].strip() if resultado else "API Offline"}
-        </div>
-    </div>
+        from components.farm_config import load_config
+        cfg = load_config()
+        farm_name = cfg.get("farm_name", "Minha Fazenda")
+        city_name = cfg.get("city", "Localização Desconhecida")
+        status_label = status_txt.split("(")[0].strip() if (resultado and status_txt) else "Online" if resultado else "API Offline"
+        
+        html_str = f'''<div style="background:rgba(8,35,10,.55);border:1px solid rgba(100,220,100,.20);border-radius:12px;padding:16px;">
+<div style="font-size:10px;color:rgba(180,230,180,.55);text-transform:uppercase;letter-spacing:.10em;margin-bottom:10px;">Talhão Ativo</div>
+<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;">{farm_name}</div>
+<div style="font-size:11px;color:rgba(180,230,180,.60);margin-bottom:12px;">{city_name}</div>
+<div style="font-size:10px;color:rgba(180,230,180,.45);margin-bottom:4px;">Última leitura</div>
+<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:12px;">{date_str}</div>
+<div style="display:flex;align-items:center;gap:8px;">
+<div style="width:8px;height:8px;border-radius:50%;background:{dot};box-shadow:0 0 6px {dot};"></div>
+<div style="font-size:11px;color:{color};font-weight:600;">{status_label}</div>
 </div>
-""", unsafe_allow_html=True)
+</div>'''
+        st.markdown(html_str, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.caption(f"v1.0 · {datetime.now().strftime('%H:%M')}")
