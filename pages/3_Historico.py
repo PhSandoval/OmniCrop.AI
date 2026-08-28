@@ -8,9 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from components.styles import inject_css
 from components.farm_config import load_config, is_configured
 from components.live_data import fetch_farm_data
-from components.api_client import load_dataset, build_payload, get_prediction
+from components.api_client import build_payload, get_prediction
 from components.charts import (
-    ndvi_full_history, seasonal_box, lag_heatmap, extreme_events
+    seasonal_box, extreme_events
 )
 from components.header import render_sidebar, render_page_header
 
@@ -35,19 +35,8 @@ resultado = get_prediction(payload)
 render_sidebar(today, resultado)
 render_page_header("Analytics", "INTELIGENCIA AGRONOMICA · ANALISE HISTORICA")
 
-# ── Selector: dados reais vs histórico completo ───────────────
-fonte = st.radio("Fonte de dados:",
-                 ["Ultimos 90 Dias (Dados Reais)", "Historico Completo 5 Anos (Dataset)"],
-                 horizontal=True)
-
-if "Reais" in fonte:
-    df_plot = df_live
-    fonte_label = "Open-Meteo (Dados Reais)"
-else:
-    df_plot = load_dataset()
-    fonte_label = "Dataset Historico (CSV)"
-
-st.caption(f"Fonte: **{fonte_label}** · {len(df_plot)} registros · "
+df_plot = df_live
+st.caption(f"Fonte: **Open-Meteo (Dados Reais)** · {len(df_plot)} registros · "
            f"{df_plot['date'].min().strftime('%d/%m/%Y')} a {df_plot['date'].max().strftime('%d/%m/%Y')}")
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -55,38 +44,27 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ── Série NDVI ────────────────────────────────────────────────
 st.markdown('<div class="sec-header">Serie Historica NDVI</div>', unsafe_allow_html=True)
 
-if "Reais" in fonte:
-    # Dados reais: mostrar balanço hídrico (NDVI real não disponível)
-    import plotly.graph_objects as go
-    fig_bh = go.Figure()
-    fig_bh.add_trace(go.Scatter(x=df_plot["date"], y=df_plot["chuva_acumulada_30d"],
-                                mode="lines", line=dict(color="#69F0AE", width=1.8),
-                                fill="tozeroy", fillcolor="rgba(105,240,174,0.08)"))
-    fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.25)", dash="dash", width=1))
-    fig_bh.update_layout(height=250, margin=dict(t=10,b=10,l=10,r=10),
-                         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                         font_color="rgba(180,230,180,.80)", showlegend=False,
-                         xaxis=dict(showgrid=False, tickfont=dict(size=9)),
-                         yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
-                                    tickfont=dict(size=9), title="Volume de Chuva 30d (mm)"))
-    st.caption("Dados reais nao possuem NDVI observado. Exibindo Volume de Chuva como proxy de estresse hidrico.")
-    st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
-else:
-    st.plotly_chart(ndvi_full_history(df_plot), use_container_width=True, config={"displayModeBar": False})
+import plotly.graph_objects as go
+fig_bh = go.Figure()
+fig_bh.add_trace(go.Scatter(x=df_plot["date"], y=df_plot["chuva_acumulada_30d"],
+                            mode="lines", line=dict(color="#69F0AE", width=1.8),
+                            fill="tozeroy", fillcolor="rgba(105,240,174,0.08)"))
+fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.25)", dash="dash", width=1))
+fig_bh.update_layout(height=250, margin=dict(t=10,b=10,l=10,r=10),
+                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                     font_color="rgba(180,230,180,.80)", showlegend=False,
+                     xaxis=dict(showgrid=False, tickfont=dict(size=9)),
+                     yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
+                                tickfont=dict(size=9), title="Volume de Chuva 30d (mm)"))
+st.caption("Dados reais nao possuem NDVI observado via satélite sem nuvens todo dia. Exibindo Volume de Chuva como proxy de estresse hidrico.")
+st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Sazonalidade + Correlação ─────────────────────────────────
-c1, c2 = st.columns(2, gap="large")
-with c1:
-    st.markdown('<div class="sec-header">Perfil Sazonal de Precipitacao (por Mes)</div>',
-                unsafe_allow_html=True)
-    st.plotly_chart(seasonal_box(df_plot), use_container_width=True, config={"displayModeBar": False})
-
-with c2:
-    if not "Reais" in fonte:
-        st.markdown('<div class="sec-header">Correlacao NDVI × Chuva (Lags Mensais)</div>', unsafe_allow_html=True)
-        st.plotly_chart(lag_heatmap(df_plot), use_container_width=True, config={"displayModeBar": False})
+st.markdown('<div class="sec-header">Perfil Sazonal de Precipitacao (Ultimos 3 Meses)</div>',
+            unsafe_allow_html=True)
+st.plotly_chart(seasonal_box(df_plot), use_container_width=True, config={"displayModeBar": False})
 
 st.markdown("<br>", unsafe_allow_html=True)
 
