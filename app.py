@@ -6,8 +6,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
 from components.styles import inject_css
-from components.farm_config import load_config, is_configured
-from components.live_data import fetch_farm_data
+from components.farm_config import load_config, is_configured, save_config
+from components.live_data import fetch_farm_data, search_location
 from components.api_client import build_payload, get_prediction, badge_html, calcular_dss
 from components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
 from components.header import render_sidebar, render_page_header
@@ -17,12 +17,12 @@ st.set_page_config(page_title="Dashboard · SugarCane Copilot", layout="wide",
 
 inject_css()
 
-# ── Onboarding Dinâmico (Landing Page) ───────────────────────
-if 'setup_completo' not in st.session_state:
-    st.session_state['setup_completo'] = is_configured()
+# 1. Controle de Estado
+if 'onboarding_completo' not in st.session_state:
+    st.session_state['onboarding_completo'] = False
 
-if not st.session_state['setup_completo']:
-    # Ocultar a sidebar temporariamente
+# 2. Função de Onboarding
+def render_onboarding():
     st.markdown("""
         <style>
             [data-testid="stSidebar"] { display: none; }
@@ -30,144 +30,143 @@ if not st.session_state['setup_completo']:
         </style>
     """, unsafe_allow_html=True)
     
-    st.markdown("<h1 style='text-align: center; margin-top: 40px;'>Bem-vindo ao SugarCane Copilot</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 18px; margin-bottom: 40px;'>"
-                "Uma plataforma inteligente que utiliza Machine Learning e dados climáticos para prever o <br>Vigor Vegetativo (NDVI) da sua safra e sugerir as melhores ações de manejo.</p>", unsafe_allow_html=True)
+    st.title('🌱 Bem-vindo ao SugarCane Copilot')
+    st.write('Sua IA particular para gestão de canaviais. Insira sua localização para começarmos.')
     
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        with st.form("onboarding_form"):
-            fazenda = st.text_input("Nome da Fazenda (ou Talhão)", placeholder="Ex: Fazenda Santa Cruz")
-            local = st.text_input("Localização (Cidade/Estado ou Lat/Lon)", placeholder="Ex: Piracicaba, SP")
-            
-            submit = st.form_submit_button("Iniciar Análise 🚀", use_container_width=True)
-            
-            if submit:
-                if not fazenda or not local:
-                    st.error("Preencha ambos os campos para continuar.")
-                else:
-                    from components.live_data import search_location
-                    from components.farm_config import save_config
-                    
-                    with st.spinner("Buscando coordenadas via satélite..."):
-                        pts = search_location(local)
-                        if pts:
-                            cfg = {
-                                "farm_name": fazenda,
-                                "city": pts[0]["label"],
-                                "lat": pts[0]["lat"],
-                                "lon": pts[0]["lon"],
-                                "variedade": "RB867515",
-                                "area_ha": 100,
-                                "alert_amarelo": 0.6,
-                                "alert_vermelho": 0.4,
-                                "chuva_critica": 30,
-                                "gda_critico": 150
-                            }
-                            save_config(cfg)
-                            st.session_state['setup_completo'] = True
-                            st.rerun()
-                        else:
-                            st.error("📍 Localização não encontrada. Tente escrever o nome da cidade e a sigla do estado.")
-    st.stop()
-
-# ── Carregar config e buscar dados reais ─────────────────────
-cfg = load_config()
-
-with st.spinner("Buscando dados reais da sua fazenda via satelite..."):
-    try:
-        df, today = fetch_farm_data(cfg["lat"], cfg["lon"])
-    except Exception as e:
-        st.warning("⚠️ Ops! A API meteorológica não está respondendo. Verifique sua conexão com a internet ou tente novamente mais tarde.")
-        st.stop()
-
-payload   = build_payload(today)
-resultado = get_prediction(payload)
-
-render_sidebar(today, resultado)
-render_page_header(
-    cfg.get("farm_name", "Dashboard"),
-    f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
-)
-
-with st.expander("🤔 O que é este sistema?"):
-    st.markdown('''
-    O **SugarCane Copilot** atua como um **satélite virtual**. 
-    Ele utiliza o histórico climático dos últimos 90 dias (via Open-Meteo API) e um modelo de Machine Learning (XGBoost) para 
-    prever o vigor vegetativo (NDVI) da sua lavoura de cana-de-açúcar, permitindo tomada de decisão até mesmo em dias nublados.
-    ''')
-
-
-# ── KPIs ──────────────────────────────────────────────────────
-st.markdown('<div class="sec-header">Condicoes do Talhao Hoje</div>', unsafe_allow_html=True)
-k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("Temperatura Media",   f"{today['t_mean']:.1f} °C",
-          f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C")
-k2.metric("Precipitacao",        f"{today['precipitacao_total']:.1f} mm")
-k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm")
-k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}")
-k5.metric("Radiacao Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²")
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ── Gauge + DSS ───────────────────────────────────────────────
-st.markdown('<div class="sec-header">Satellite Virtual · Diagnostico IA</div>', unsafe_allow_html=True)
-
-col_g, col_d = st.columns([1, 2], gap="large")
-with col_g:
-    if resultado:
-        st.plotly_chart(ndvi_gauge(resultado["ndvi_previsto"]),
-                        use_container_width=True, config={"displayModeBar": False})
-        st.markdown(badge_html(resultado["status_vigor"]), unsafe_allow_html=True)
-        st.caption(f"Variedade: {cfg.get('variedade','—')} · Area: {cfg.get('area_ha','—')} ha")
-    else:
-        st.error("API offline — rode: uvicorn main:app --port 8555")
-
-with col_d:
-    if resultado:
-        mes_atual = today["date"].month if hasattr(today.get("date", ""), "month") else 8
-        dss = calcular_dss(mes_atual, resultado["ndvi_previsto"], resultado["ndvi_previsto"])
+    with st.form('onboarding_form'):
+        fazenda = st.text_input('Nome do Talhão/Fazenda')
+        local = st.text_input('Cidade ou Coordenadas (Lat, Lon)')
+        submit = st.form_submit_button('Iniciar Análise 🚀')
         
-        for alerta in resultado["fatores_de_risco_identificados"]:
-            st.warning(f"⚠️ {alerta}")
+        if submit:
+            if not fazenda or not local:
+                st.error("Preencha todos os campos!")
+            else:
+                with st.spinner("Buscando..."):
+                    pts = search_location(local)
+                    if pts:
+                        cfg = {
+                            "farm_name": fazenda,
+                            "city": pts[0]["label"],
+                            "lat": pts[0]["lat"],
+                            "lon": pts[0]["lon"],
+                            "variedade": "RB867515",
+                            "area_ha": 100,
+                            "alert_amarelo": 0.6,
+                            "alert_vermelho": 0.4,
+                            "chuva_critica": 30,
+                            "gda_critico": 150
+                        }
+                        save_config(cfg)
+                        st.session_state['onboarding_completo'] = True
+                        st.rerun()
+                    else:
+                        st.error("Localização não encontrada.")
+
+# 3. Função do App Principal
+def render_main_app():
+    cfg = load_config()
+
+    with st.spinner("Buscando dados reais da sua fazenda via satelite..."):
+        try:
+            df, today = fetch_farm_data(cfg["lat"], cfg["lon"])
+        except Exception as e:
+            st.warning("⚠️ Ops! A API meteorológica não está respondendo. Verifique sua conexão com a internet ou tente novamente mais tarde.")
+            st.stop()
+
+    payload   = build_payload(today)
+    resultado = get_prediction(payload)
+
+    render_sidebar(today, resultado)
+    render_page_header(
+        cfg.get("farm_name", "Dashboard"),
+        f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
+    )
+
+    with st.expander("🤔 O que é este sistema?"):
+        st.markdown('''
+        O **SugarCane Copilot** atua como um **satélite virtual**. 
+        Ele utiliza o histórico climático dos últimos 90 dias (via Open-Meteo API) e um modelo de Machine Learning (XGBoost) para 
+        prever o vigor vegetativo (NDVI) da sua lavoura de cana-de-açúcar, permitindo tomada de decisão até mesmo em dias nublados.
+        ''')
+
+
+    # ── KPIs ──────────────────────────────────────────────────────
+    st.markdown('<div class="sec-header">Condicoes do Talhao Hoje</div>', unsafe_allow_html=True)
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Temperatura Media",   f"{today['t_mean']:.1f} °C",
+              f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C")
+    k2.metric("Precipitacao",        f"{today['precipitacao_total']:.1f} mm")
+    k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm")
+    k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}")
+    k5.metric("Radiacao Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Gauge + DSS ───────────────────────────────────────────────
+    st.markdown('<div class="sec-header">Satellite Virtual · Diagnostico IA</div>', unsafe_allow_html=True)
+
+    col_g, col_d = st.columns([1, 2], gap="large")
+    with col_g:
+        if resultado:
+            st.plotly_chart(ndvi_gauge(resultado["ndvi_previsto"]),
+                            use_container_width=True, config={"displayModeBar": False})
+            st.markdown(badge_html(resultado["status_vigor"]), unsafe_allow_html=True)
+            st.caption(f"Variedade: {cfg.get('variedade','—')} · Area: {cfg.get('area_ha','—')} ha")
+        else:
+            st.error("API offline — rode: uvicorn main:app --port 8555")
+
+    with col_d:
+        if resultado:
+            mes_atual = today["date"].month if hasattr(today.get("date", ""), "month") else 8
+            dss = calcular_dss(mes_atual, resultado["ndvi_previsto"], resultado["ndvi_previsto"])
             
-        st.info(f"**Plano de Acao ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
-        
-        st.markdown("**Ações Sugeridas (Checklist):**")
-        st.checkbox("Enviar drone para inspecionar falhas")
-        if dss['status_title'] == "🔴 Critico":
-            st.checkbox("Solicitar orçamento de irrigação de salvamento")
-        if dss['status_title'] in ["🟠 Alerta", "🟡 Pronto p/ Corte"]:
-            st.checkbox("Avaliar compra de maturador químico")
-            st.checkbox("Agendar equipe de colheita")
+            for alerta in resultado["fatores_de_risco_identificados"]:
+                st.warning(f"⚠️ {alerta}")
+                
+            st.info(f"**Plano de Acao ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
+            
+            st.markdown("**Ações Sugeridas (Checklist):**")
+            st.checkbox("Enviar drone para inspecionar falhas")
+            if dss['status_title'] == "🔴 Critico":
+                st.checkbox("Solicitar orçamento de irrigação de salvamento")
+            if dss['status_title'] in ["🟠 Alerta", "🟡 Pronto p/ Corte"]:
+                st.checkbox("Avaliar compra de maturador químico")
+                st.checkbox("Agendar equipe de colheita")
 
-        st.caption("Inteligência Agronômica baseada na Matriz de Fases de Safra")
+            st.caption("Inteligência Agronômica baseada na Matriz de Fases de Safra")
 
-st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Histórico 90 dias (dados reais) ───────────────────────────
-st.markdown('<div class="sec-header">Historico Real · Ultimos 90 Dias (Open-Meteo)</div>',
-            unsafe_allow_html=True)
+    # ── Histórico 90 dias (dados reais) ───────────────────────────
+    st.markdown('<div class="sec-header">Historico Real · Ultimos 90 Dias (Open-Meteo)</div>',
+                unsafe_allow_html=True)
 
-hist = df.iloc[-90:]
-h1, h2, h3 = st.columns(3)
-with h1:
-    st.markdown("**Temperatura (°C)**")
-    st.plotly_chart(temp_lines(hist), use_container_width=True, config={"displayModeBar": False})
-with h2:
-    st.markdown("**Precipitacao Diaria (mm)**")
-    st.plotly_chart(rain_bars(hist), use_container_width=True, config={"displayModeBar": False})
-with h3:
-    st.markdown("**GDA Acumulado 30d**")
-    import plotly.express as px
-    fig_bh = px.line(hist, x="date", y="GDA_mensal",
-                     color_discrete_sequence=["#64B5F6"])
-    fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.3)", dash="dash", width=1))
-    fig_bh.update_layout(height=200, margin=dict(t=10,b=10,l=10,r=10),
-                         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                         font_color="rgba(180,230,180,.80)",
-                         xaxis=dict(showgrid=False, tickfont=dict(size=9)),
-                         yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
-                                    tickfont=dict(size=9)),
-                         showlegend=False)
-    st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
+    hist = df.iloc[-90:]
+    h1, h2, h3 = st.columns(3)
+    with h1:
+        st.markdown("**Temperatura (°C)**")
+        st.plotly_chart(temp_lines(hist), use_container_width=True, config={"displayModeBar": False})
+    with h2:
+        st.markdown("**Precipitacao Diaria (mm)**")
+        st.plotly_chart(rain_bars(hist), use_container_width=True, config={"displayModeBar": False})
+    with h3:
+        st.markdown("**GDA Acumulado 30d**")
+        import plotly.express as px
+        fig_bh = px.line(hist, x="date", y="GDA_mensal",
+                         color_discrete_sequence=["#64B5F6"])
+        fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.3)", dash="dash", width=1))
+        fig_bh.update_layout(height=200, margin=dict(t=10,b=10,l=10,r=10),
+                             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                             font_color="rgba(180,230,180,.80)",
+                             xaxis=dict(showgrid=False, tickfont=dict(size=9)),
+                             yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
+                                        tickfont=dict(size=9)),
+                             showlegend=False)
+        st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
+
+# 4. Gatilho Final
+if not st.session_state['onboarding_completo']:
+    render_onboarding()
+else:
+    render_main_app()
