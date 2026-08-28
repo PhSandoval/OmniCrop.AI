@@ -31,7 +31,7 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
         st.page_link("app.py",                    label="Painel Geral")
         st.page_link("pages/2_Simulador.py",      label="Simulador")
-        st.page_link("pages/3_Historico.py",      label="Histórico")
+        st.page_link("pages/3_Analise.py",        label="Análise")
         st.page_link("pages/4_Configuracoes.py",       label="Configurações")
 
         st.markdown("---")

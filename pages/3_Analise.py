@@ -14,7 +14,7 @@ from components.charts import (
 )
 from components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="Analytics · SugarCane Copilot", layout="wide",
+st.set_page_config(page_title="Análise · SugarCane Copilot", layout="wide",
                    initial_sidebar_state="expanded", page_icon="")
 
 inject_css()
@@ -33,7 +33,7 @@ payload   = build_payload(today)
 resultado = get_prediction(payload)
 
 render_sidebar(today, resultado)
-render_page_header("Analytics", "INTELIGENCIA AGRONOMICA · ANALISE HISTORICA")
+render_page_header("Análise", "INTELIGENCIA AGRONOMICA · ANALISE HISTORICA")
 
 df_plot = df_live
 st.caption(f"Fonte: **Open-Meteo (Dados Reais)** · {len(df_plot)} registros · "
