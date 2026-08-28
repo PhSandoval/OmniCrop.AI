@@ -1,6 +1,8 @@
 """Dashboard — Página principal com dados REAIS da Open-Meteo."""
 import streamlit as st
 import sys
+import folium
+from streamlit_folium import st_folium
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
