@@ -93,10 +93,17 @@ with col_out:
 
     if resultado_sim and resultado_hoje:
         ndvi_base = resultado_hoje["ndvi_previsto"]
-        bonus_ndvi_val = bonus_ndvi if "Adubacao" in cenario else 0
-    ndvi_proj = resultado_sim["ndvi_previsto"]
-    if "Adubacao" in cenario:
-        ndvi_proj = min(0.95, ndvi_proj + bonus_ndvi_val)
+        ndvi_proj = resultado_sim["ndvi_previsto"]
+        
+        bonus_ndvi_val = 0
+        if "Adubacao" in cenario:
+            # We assume bonus_ndvi was defined in the Adubacao block
+            try:
+                bonus_ndvi_val = bonus_ndvi
+            except NameError:
+                bonus_ndvi_val = 0
+            ndvi_proj = min(0.95, ndvi_proj + bonus_ndvi_val)
+            
         delta     = ndvi_proj - ndvi_base
         delta_pct = (delta / ndvi_base * 100) if ndvi_base else 0
 
