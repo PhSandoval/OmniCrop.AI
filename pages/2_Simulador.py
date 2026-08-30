@@ -64,6 +64,10 @@ with col_ctrl:
         vol_total = lame * duracao
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_total)
         st.caption(f"Chuva 30d projetada: {today.get('chuva_acumulada_30d',0):.0f} → **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
+        
+        custo_por_mm_ha = 5.00
+        custo_total = lame * duracao * custo_por_mm_ha
+        st.caption(f'💸 Custo Estimado de Energia/Bombeamento: **R$ {custo_total:,.2f} / hectare**')
 
     elif "Adubacao" in cenario:
         eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polimero)", "Nitrato (Alta Absorcao)"])
@@ -134,5 +138,8 @@ with col_out:
             st.error(f"Cenario critico — queda de {abs(delta_pct):.1f}% no vigor.")
             
         st.info(f"**Acao Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
+        
+        if "Irrigacao" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
+            st.error("⚠️ **Risco de Alagamento (Waterlogging)**: Volume excessivo de água pode causar sufocamento radicular e queda brusca de vigor.")
     else:
         st.error("Erro na projecao local.")

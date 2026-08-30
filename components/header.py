@@ -53,8 +53,10 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
         from components.farm_config import load_config
         cfg = load_config()
-        farm_name = cfg.get("farm_name", "Minha Fazenda")
-        city_name = cfg.get("city", "Localização Desconhecida")
+        
+        # Busca no session_state primeiro (prioridade para a sessao de Onboarding), caso contrario usa o config
+        farm_name = st.session_state.get("farm_name", cfg.get("farm_name", "Minha Fazenda"))
+        city_name = st.session_state.get("city", cfg.get("city", "Localização Desconhecida"))
         status_label = status_txt.split("(")[0].strip() if (resultado and status_txt) else "Online" if resultado else "API Offline"
         
         html_str = f'''<div style="background:rgba(8,35,10,.55);border:1px solid rgba(100,220,100,.20);border-radius:12px;padding:16px;">
