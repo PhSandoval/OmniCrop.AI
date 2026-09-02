@@ -39,7 +39,7 @@ st.markdown(
     "</div>", unsafe_allow_html=True)
 
 cenario = st.radio("Cenário de Intervenção:",
-                   ["🌱 Planejamento de Plantio", "💧 Irrigação de Salvamento", "🧪 Aplicação de Adubação", "🌾 Manejo de Colheita / Maturador"],
+                   ["Planejamento de Plantio", "Irrigação de Salvamento", "Aplicação de Adubação", "Manejo de Colheita / Maturador"],
                    horizontal=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -67,7 +67,7 @@ with col_ctrl:
         
         custo_por_mm_ha = 5.00
         custo_total = lame * duracao * custo_por_mm_ha
-        st.caption(f'💸 Custo Estimado de Energia/Bombeamento: **R$ {custo_total:,.2f} / hectare**')
+        st.caption(f'Custo Estimado de Energia/Bombeamento: **R$ {custo_total:,.2f} / hectare**')
 
     elif "Adubação" in cenario:
         eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polimero)", "Nitrato (Alta Absorção)"])

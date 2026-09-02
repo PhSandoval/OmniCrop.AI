@@ -241,19 +241,19 @@ def render_main_app():
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Temperatura Média",   f"{today['t_mean']:.1f} °C",
               f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C", 
-              help="Média de calor do dia.\n\n⚙️ PARÂMETROS:\n• Ideal: 25°C a 30°C\n• Abaixo de 20°C: Crescimento trava\n• Acima de 35°C: Estresse térmico")
+              help="Média de calor do dia.\n\nPARÂMETROS:\n• Ideal: 25°C a 30°C\n• Abaixo de 20°C: Crescimento trava\n• Acima de 35°C: Estresse térmico")
     
     k2.metric("Precipitação",        f"{today['precipitacao_total']:.1f} mm", 
-              help="Chuva de hoje (1mm = 1 Litro/m²).\n\n⚙️ PARÂMETROS:\n• > 10mm: Chuva boa\n• > 50mm: Chuva forte (risco de atolamento para máquinas)")
+              help="Chuva de hoje (1mm = 1 Litro/m²).\n\nPARÂMETROS:\n• > 10mm: Chuva boa\n• > 50mm: Chuva forte (risco de atolamento para máquinas)")
     
     k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm", 
-              help="Reserva de chuva do último mês.\n\n⚙️ PARÂMETROS:\n• Ideal (Crescimento): > 120mm/mês\n• Crítico: < 50mm/mês (Déficit Hídrico)")
+              help="Reserva de chuva do último mês.\n\nPARÂMETROS:\n• Ideal (Crescimento): > 120mm/mês\n• Crítico: < 50mm/mês (Déficit Hídrico)")
     
     k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}", 
-              help="Água disponível na raiz (escala 0 a 1).\n\n⚙️ PARÂMETROS:\n• 0.0 a 0.2: Seca extrema\n• 0.3 a 0.6: Ideal para crescimento\n• > 0.8: Solo encharcado/alagado")
+              help="Água disponível na raiz (escala 0 a 1).\n\nPARÂMETROS:\n• 0.0 a 0.2: Seca extrema\n• 0.3 a 0.6: Ideal para crescimento\n• > 0.8: Solo encharcado/alagado")
     
     k5.metric("Radiação Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²", 
-              help="Energia solar para fotossíntese.\n\n⚙️ PARÂMETROS:\n• > 200 W/m²: Excelente\n• < 100 W/m²: Dias muito nublados (atrasam a maturação)")
+              help="Energia solar para fotossíntese.\n\nPARÂMETROS:\n• > 200 W/m²: Excelente\n• < 100 W/m²: Dias muito nublados (atrasam a maturação)")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
