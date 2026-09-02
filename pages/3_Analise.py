@@ -41,22 +41,29 @@ st.caption(f"Fonte: **Open-Meteo (Dados Reais)** · {len(df_plot)} registros · 
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Série NDVI ────────────────────────────────────────────────
-st.markdown('<div class="sec-header">Série Histórica NDVI</div>', unsafe_allow_html=True)
+# ── Série NDVI (Passado e Futuro) ────────────────────────────────────────────────
+st.markdown('<div class="sec-header">Evolução do Vigor (NDVI) — Histórico e Previsão 15 Dias</div>', unsafe_allow_html=True)
+st.caption("O XGBoost projeta o NDVI todos os dias baseado no clima. A linha vertical amarela separa o que já aconteceu (passado) do que o modelo prevê que vai acontecer (futuro).")
 
 import plotly.graph_objects as go
+import pandas as pd
+hoje = pd.Timestamp.now(tz="America/Sao_Paulo").normalize()
+
 fig_bh = go.Figure()
-fig_bh.add_trace(go.Scatter(x=df_plot["date"], y=df_plot["chuva_acumulada_30d"],
-                            mode="lines", line=dict(color="#69F0AE", width=1.8),
-                            fill="tozeroy", fillcolor="rgba(105,240,174,0.08)"))
-fig_bh.add_hline(y=0, line=dict(color="rgba(255,255,255,.25)", dash="dash", width=1))
-fig_bh.update_layout(height=250, margin=dict(t=10,b=10,l=10,r=10),
+fig_bh.add_trace(go.Scatter(x=df_plot["date"], y=df_plot["ndvi_medio"],
+                            mode="lines", line=dict(color="#69F0AE", width=2.5),
+                            fill="tozeroy", fillcolor="rgba(105,240,174,0.15)", name="NDVI"))
+# Linha do "HOJE"
+fig_bh.add_vline(x=hoje, line_width=2, line_dash="dash", line_color="#FFCA28", 
+                 annotation_text="HOJE", annotation_position="top right")
+
+fig_bh.update_layout(height=280, margin=dict(t=20,b=10,l=10,r=10),
                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                      font_color="rgba(180,230,180,.80)", showlegend=False,
                      xaxis=dict(showgrid=False, tickfont=dict(size=9)),
                      yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
-                                tickfont=dict(size=9), title="Volume de Chuva 30d (mm)"))
-st.caption("Dados reais não possuem NDVI observado via satélite sem nuvens todo dia. Exibindo Volume de Chuva como proxy de estresse hídrico.")
+                                tickfont=dict(size=9), title="Vigor (NDVI)"))
+
 st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
 
 st.markdown("<br>", unsafe_allow_html=True)

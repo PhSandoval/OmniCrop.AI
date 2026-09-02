@@ -52,7 +52,7 @@ def _fetch_openmeteo(lat: float, lon: float, past_days: int = 92) -> pd.DataFram
         "longitude": lon,
         "hourly": ",".join(HOURLY_VARS),
         "past_days": past_days,
-        "forecast_days": 1,
+        "forecast_days": 16,
         "timezone": "America/Sao_Paulo",
     }
     r = requests.get(OPENMETEO_URL, params=params, timeout=15)
@@ -98,8 +98,13 @@ def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
     df["chuva_acumulada_60d"]  = df["precipitacao_total"].rolling(60, min_periods=1).sum()
     df["chuva_acumulada_90d"]  = df["precipitacao_total"].rolling(90, min_periods=1).sum()
 
-    # NDVI placeholder (não temos real, mas o modelo não usa NDVI como input)
-    df["ndvi_medio"] = np.nan
+    # Aplicar XGBoost no Histórico e na Previsão Futura!
+    try:
+        from components.api_client import load_model, FEATURE_KEYS
+        model = load_model()
+        df["ndvi_medio"] = model.predict(df[FEATURE_KEYS].bfill().ffill())
+    except Exception as e:
+        df["ndvi_medio"] = np.nan
 
     return df.bfill().ffill()
 
@@ -114,5 +119,11 @@ def fetch_farm_data(lat: float, lon: float) -> tuple[pd.DataFrame, dict]:
     """
     daily = _fetch_openmeteo(lat, lon, past_days=92)
     df    = _build_features(daily)
-    today = df.iloc[-1].to_dict()
+    # Garante que 'today' é a data atual (hoje) para o dashboard, ignorando a previsão futura
+    now = pd.Timestamp.now(tz="America/Sao_Paulo").normalize()
+    df_past = df[df["date"] <= now]
+    if not df_past.empty:
+        today = df_past.iloc[-1].to_dict()
+    else:
+        today = df.iloc[0].to_dict()
     return df, today
