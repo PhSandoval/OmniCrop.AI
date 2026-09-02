@@ -1,6 +1,6 @@
 # SugarCane Copilot - NDVI Predictor & DSS (SaaS B2B)
 
-Um**Sistema de Suporte à Decisão (DSS) Multi-Tenant** de ponta a ponta (End-to-End) focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um**Satélite Virtual**, o sistema permite o monitoramento contínuo de múltiplos talhões utilizando dados climáticos, mesmo em dias nublados onde satélites ópticos falhariam.
+**Um Sistema de Suporte à Decisão (DSS) Multi-Tenant** de ponta a ponta (End-to-End) focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um**Satélite Virtual**, o sistema permite o monitoramento contínuo de múltiplos talhões utilizando dados climáticos, mesmo em dias nublados onde satélites ópticos falhariam.
 
 Criado inteiramente com uma**Arquitetura Monolítica no Streamlit**, integrado com**Supabase (PostgreSQL + Auth)**, ideal para deploy em nuvem (SaaS B2B) com foco no setor AgTech.
 
