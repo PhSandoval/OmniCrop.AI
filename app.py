@@ -58,7 +58,7 @@ def render_farm_selector():
                 if st.button(f"🌾 {f['farm_name']} ({f['city']})", use_container_width=True):
                     # Set active farm and override the local config
                     cfg = f.copy()
-                    st.session_state['active_farm'] = True
+                    st.session_state['active_farm'] = cfg
                     st.session_state['farm_name'] = cfg['farm_name']
                     st.session_state['city'] = cfg['city']
                     
@@ -190,7 +190,7 @@ def render_onboarding():
                 insert_farm(user_id, fazenda, city, lat, lon)
                 
                 st.session_state['show_onboarding'] = False
-                st.session_state['active_farm'] = True
+                st.session_state['active_farm'] = cfg
                 st.rerun()
                 
         if st.button("Cancelar", use_container_width=True):
