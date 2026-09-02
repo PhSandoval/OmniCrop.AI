@@ -13,3 +13,7 @@ data/interim/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+.streamlit/
