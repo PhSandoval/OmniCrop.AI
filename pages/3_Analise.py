@@ -33,7 +33,7 @@ payload   = build_payload(today)
 resultado = get_prediction(payload)
 
 render_sidebar(today, resultado)
-render_page_header("Análise", "INTELIGENCIA AGRONOMICA · ANALISE HISTORICA")
+render_page_header("Análise", "INTELIGENCIA AGRONOMICA · ANÁLISE HISTÓRICA")
 
 df_plot = df_live
 st.caption(f"Fonte: **Open-Meteo (Dados Reais)** · {len(df_plot)} registros · "
@@ -42,7 +42,7 @@ st.caption(f"Fonte: **Open-Meteo (Dados Reais)** · {len(df_plot)} registros · 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Série NDVI ────────────────────────────────────────────────
-st.markdown('<div class="sec-header">Serie Historica NDVI</div>', unsafe_allow_html=True)
+st.markdown('<div class="sec-header">Série Histórica NDVI</div>', unsafe_allow_html=True)
 
 import plotly.graph_objects as go
 fig_bh = go.Figure()
@@ -56,13 +56,13 @@ fig_bh.update_layout(height=250, margin=dict(t=10,b=10,l=10,r=10),
                      xaxis=dict(showgrid=False, tickfont=dict(size=9)),
                      yaxis=dict(showgrid=True, gridcolor="rgba(100,200,100,.10)",
                                 tickfont=dict(size=9), title="Volume de Chuva 30d (mm)"))
-st.caption("Dados reais nao possuem NDVI observado via satélite sem nuvens todo dia. Exibindo Volume de Chuva como proxy de estresse hidrico.")
+st.caption("Dados reais não possuem NDVI observado via satélite sem nuvens todo dia. Exibindo Volume de Chuva como proxy de estresse hídrico.")
 st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Sazonalidade + Correlação ─────────────────────────────────
-st.markdown('<div class="sec-header">Perfil Sazonal de Precipitacao (Ultimos 3 Meses)</div>',
+st.markdown('<div class="sec-header">Perfil Sazonal de Precipitação (Ultimos 3 Meses)</div>',
             unsafe_allow_html=True)
 st.plotly_chart(seasonal_box(df_plot), use_container_width=True, config={"displayModeBar": False})
 
@@ -75,10 +75,10 @@ st.plotly_chart(extreme_events(df_plot), use_container_width=True, config={"disp
 
 # ── Stats ─────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown('<div class="sec-header">Resumo Estatistico</div>', unsafe_allow_html=True)
+st.markdown('<div class="sec-header">Resumo Estatístico</div>', unsafe_allow_html=True)
 s1, s2, s3, s4, s5 = st.columns(5)
-s1.metric("Temp. Media", f"{df_plot['t_mean'].mean():.1f} °C")
-s2.metric("Temp. Maxima", f"{df_plot['t_max'].max():.1f} °C")
+s1.metric("Temp. Média", f"{df_plot['t_mean'].mean():.1f} °C")
+s2.metric("Temp. Máxima", f"{df_plot['t_max'].max():.1f} °C")
 s3.metric("Chuva Total", f"{df_plot['precipitacao_total'].sum():.0f} mm")
 
 dias_sem_chuva = int((df_plot['precipitacao_total'] == 0).sum())

@@ -82,7 +82,7 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
     if delta < 0:
         return {
             "status_title": "❌ Alerta Simulacao",
-            "mensagem_recomendacao": "A intervencao simulada reduziu ou nao alterou o vigor projetado. Estrategia nao recomendada (desperdicio de recursos)."
+            "mensagem_recomendacao": "A intervencao simulada reduziu ou nao alterou o vigor projetado. Estratégia não recomendada (desperdício de recursos)."
         }
         
     # Regras especificas de novos cenarios (ignoram fase do ano)
@@ -90,7 +90,7 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
         if chuva_projetada > 50:
             return {
                 "status_title": "🔴 Risco Operacional",
-                "mensagem_recomendacao": "Alerta: Previsao de chuva forte. Risco altíssimo de atolamento de maquinas e pisoteio de soqueira. Interromper operacoes de corte."
+                "mensagem_recomendacao": "Alerta: Previsao de chuva forte. Risco altíssimo de atolamento de máquinas e pisoteio de soqueira. Interromper operacoes de corte."
             }
         elif gda_projetado > 100 and chuva_projetada < 20:
             return {
@@ -99,7 +99,7 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
             }
         else:
             return {
-                "status_title": "🟡 Janela Sub-otima",
+                "status_title": "🟡 Janela Sub-ótima",
                 "mensagem_recomendacao": "Condicao aceitavel, porem avaliar maturador para acelerar acumulo de ATR antes de eventuais chuvas."
             }
             
@@ -107,24 +107,24 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
         if chuva_projetada < 20:
             return {
                 "status_title": "🔴 Risco de Falha",
-                "mensagem_recomendacao": "Chuva projetada muito baixa. O plantio agora apresenta altissimo risco de falha na brotacao dos toletes."
+                "mensagem_recomendacao": "Chuva projetada muito baixa. O plantio agora apresenta altissimo risco de falha na brotação dos toletes."
             }
         elif gda_projetado > 90 and chuva_projetada >= 40:
             return {
                 "status_title": "🟢 Plantio Liberado",
-                "mensagem_recomendacao": "Condicao termohidrica excelente (GDA e Umidade) para brotacao rapida e uniforme dos toletes."
+                "mensagem_recomendacao": "Condicao termohidrica excelente (GDA e Umidade) para brotação rapida e uniforme dos toletes."
             }
             
     if "Adubacao" in cenario:
         if chuva_projetada < 10:
             return {
                 "status_title": "🔴 Desperdicio",
-                "mensagem_recomendacao": "Nao aplicar ureia/nitrogenio. Solo seco nao incorporara o fertilizante, causando perda volatil. Aguardar chuva."
+                "mensagem_recomendacao": "Não aplicar ureia/nitrogenio. Solo seco nao incorporara o fertilizante, causando perda volatil. Aguardar chuva."
             }
         elif chuva_projetada > 100:
             return {
-                "status_title": "🟡 Lixiviacao",
-                "mensagem_recomendacao": "Chuva excessiva projetada. Risco de lixiviacao de nutrientes. Fracionar a dose recomendada."
+                "status_title": "🟡 Lixiviação",
+                "mensagem_recomendacao": "Chuva excessiva projetada. Risco de lixiviação de nutrientes. Fracionar a dose recomendada."
             }
 
     # Fase Maturação / Corte (Abr a Out)
@@ -132,12 +132,12 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
         if ndvi_atual < 0.4:
             return {
                 "status_title": "🟡 Pronto p/ Corte",
-                "mensagem_recomendacao": "O vigor atual indica estresse hidrico natural da maturacao ou area ja colhida. Intervencao Rejeitada: Irrigar agora causara desperdicio. Priorizar talhao na fila de colheita."
+                "mensagem_recomendacao": "O vigor atual indica estresse hídrico natural da maturacao ou area ja colhida. Intervencao Rejeitada: Irrigar agora causara desperdício. Priorizar talhao na fila de colheita."
             }
         elif ndvi_atual >= 0.6:
             return {
                 "status_title": "🟠 Alerta",
-                "mensagem_recomendacao": "Cana vegetando durante periodo de maturacao. Avaliar aplicacao de maturador quimico para forcar o acumulo de ATR (acucar)."
+                "mensagem_recomendacao": "Cana vegetando durante periodo de maturacao. Avaliar aplicacao de maturador químico para forcar o acumulo de ATR (acucar)."
             }
         else: # Zona cinza de maturacao
             return {
@@ -150,7 +150,7 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
         if ndvi_atual < 0.5 and delta > 0:
             return {
                 "status_title": "🔴 Critico",
-                "mensagem_recomendacao": "Deficit hidrico severo na fase de crescimento. Aprovar intervencao: Irrigacao de salvamento recomendada para evitar quebra de safra."
+                "mensagem_recomendacao": "Déficit hídrico severo na fase de crescimento. Aprovar intervencao: Irrigacao de salvamento recomendada para evitar quebra de safra."
             }
         elif ndvi_atual >= 0.6:
             return {
@@ -159,6 +159,6 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
             }
         else: # Zona cinza de crescimento
             return {
-                "status_title": "🟡 Atencao",
-                "mensagem_recomendacao": "Desenvolvimento intermediario. Acompanhar indices nos proximos 15 dias."
+                "status_title": "🟡 Atenção",
+                "mensagem_recomendacao": "Desenvolvimento intermediario. Acompanhar indices nos próximos 15 dias."
             }

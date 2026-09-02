@@ -107,19 +107,19 @@ def render_main_app():
 
 
     # ── KPIs ──────────────────────────────────────────────────────
-    st.markdown('<div class="sec-header">Condicoes do Talhao Hoje</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-header">Condições do Talhão Hoje</div>', unsafe_allow_html=True)
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Temperatura Media",   f"{today['t_mean']:.1f} °C",
+    k1.metric("Temperatura Média",   f"{today['t_mean']:.1f} °C",
               f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C")
     k2.metric("Precipitacao",        f"{today['precipitacao_total']:.1f} mm")
     k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm")
     k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}")
-    k5.metric("Radiacao Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²")
+    k5.metric("Radiação Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Gauge + DSS ───────────────────────────────────────────────
-    st.markdown('<div class="sec-header">Satellite Virtual · Diagnostico IA</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-header">Satellite Virtual · Diagnóstico IA</div>', unsafe_allow_html=True)
 
     col_g, col_d = st.columns([1, 2], gap="large")
     with col_g:
@@ -154,7 +154,7 @@ def render_main_app():
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Histórico 90 dias (dados reais) ───────────────────────────
-    st.markdown('<div class="sec-header">Historico Real · Ultimos 90 Dias (Open-Meteo)</div>',
+    st.markdown('<div class="sec-header">Histórico Real · Últimos 90 Dias (Open-Meteo)</div>',
                 unsafe_allow_html=True)
 
     hist = df.iloc[-90:]
@@ -163,7 +163,7 @@ def render_main_app():
         st.markdown("**Temperatura (°C)**")
         st.plotly_chart(temp_lines(hist), use_container_width=True, config={"displayModeBar": False})
     with h2:
-        st.markdown("**Precipitacao Diaria (mm)**")
+        st.markdown("**Precipitação Diária (mm)**")
         st.plotly_chart(rain_bars(hist), use_container_width=True, config={"displayModeBar": False})
     with h3:
         st.markdown("**GDA Acumulado 30d**")

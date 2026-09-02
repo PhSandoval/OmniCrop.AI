@@ -30,16 +30,16 @@ payload_hoje = build_payload(today)
 resultado_hoje = get_prediction(payload_hoje)
 
 render_sidebar(today, resultado_hoje)
-render_page_header("Simulator", "SIMULADOR DE INTERVENCOES · ANALISE WHAT-IF")
+render_page_header("Simulator", "SIMULADOR DE INTERVENÇÕES · ANÁLISE WHAT-IF")
 
 st.markdown(
     "<div style='color:rgba(180,230,180,.55);font-size:13px;margin-bottom:24px;'>"
     f"Baseline: dados reais de hoje ({today['date'].strftime('%d/%m/%Y') if hasattr(today.get('date', ''), 'strftime') else str(today.get('date',''))}) "
-    f"em {cfg.get('farm_name','sua fazenda')}. Ajuste os parametros para projetar o impacto de uma intervencao."
+    f"em {cfg.get('farm_name','sua fazenda')}. Ajuste os parâmetros para projetar o impacto de uma intervenção."
     "</div>", unsafe_allow_html=True)
 
-cenario = st.radio("Cenario de Intervencao:",
-                   ["🌱 Planejamento de Plantio", "💧 Irrigacao de Salvamento", "🧪 Aplicacao de Adubacao", "🌾 Manejo de Colheita / Maturador"],
+cenario = st.radio("Cenário de Intervenção:",
+                   ["🌱 Planejamento de Plantio", "💧 Irrigação de Salvamento", "🧪 Aplicação de Adubação", "🌾 Manejo de Colheita / Maturador"],
                    horizontal=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -47,20 +47,20 @@ col_ctrl, col_out = st.columns([1, 1], gap="large")
 payload_sim = payload_hoje.copy()
 
 with col_ctrl:
-    st.markdown('<div class="sec-header">Parametros da Simulacao</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-header">Parâmetros da Simulação</div>', unsafe_allow_html=True)
     st.caption(f"Chuva 30d: **{today.get('chuva_acumulada_30d', 0):.1f} mm** · "
                f"GDA atual: **{today.get('GDA_mensal', 0):.1f}**")
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "Plantio" in cenario:
-        chuva_plantio = st.slider("Previsao de Chuva para a Quinzena (mm)", 0, 150, 40)
-        gda_plantio   = st.slider("Previsao de GDA (Termometro de Brotacao)", 0, 200, 95)
+        chuva_plantio = st.slider("Previsão de Chuva para a Quinzena (mm)", 0, 150, 40)
+        gda_plantio   = st.slider("Previsão de GDA (Termômetro de Brotação)", 0, 200, 95)
         payload_sim["chuva_acumulada_30d"] = chuva_plantio
         payload_sim["GDA_mensal"] = gda_plantio
         
     elif "Irrigacao" in cenario:
-        lame    = st.slider("Lamina de Irrigacao (mm/dia)", 0, 100, 40, help="Milimetros aplicados por dia")
-        duracao = st.slider("Duracao do Programa (dias)", 1, 30, 10)
+        lame    = st.slider("Lâmina de Irrigação (mm/dia)", 0, 100, 40, help="Milimetros aplicados por dia")
+        duracao = st.slider("Duração do Programa (dias)", 1, 30, 10)
         vol_total = lame * duracao
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_total)
         st.caption(f"Chuva 30d projetada: {today.get('chuva_acumulada_30d',0):.0f} → **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
@@ -69,9 +69,9 @@ with col_ctrl:
         custo_total = lame * duracao * custo_por_mm_ha
         st.caption(f'💸 Custo Estimado de Energia/Bombeamento: **R$ {custo_total:,.2f} / hectare**')
 
-    elif "Adubacao" in cenario:
-        eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polimero)", "Nitrato (Alta Absorcao)"])
-        chuva_prev = st.slider("Previsao de Chuva pos-aplicacao (mm)", 0, 150, 15)
+    elif "Adubação" in cenario:
+        eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polimero)", "Nitrato (Alta Absorção)"])
+        chuva_prev = st.slider("Previsão de Chuva pos-aplicacao (mm)", 0, 150, 15)
         
         bonus_ndvi = 0
         if "Comum" in eficiencia and chuva_prev > 15:
@@ -84,15 +84,15 @@ with col_ctrl:
         payload_sim["chuva_acumulada_30d"] = chuva_prev
         
     elif "Colheita" in cenario:
-        dias_antecip = st.slider("Dias para Antecipacao de Corte / Aplicacao de Maturador", 0, 45, 15)
+        dias_antecip = st.slider("Dias para Antecipação de Corte / Aplicacao de Maturador", 0, 45, 15)
         # O maturador trava o crescimento vegetativo para acumular açucar.
         # Entao o NDVI vai artificialmente "cair" ou estabilizar, e a planta precisa de estresse hidrico.
-        chuva_colheita = st.slider("Previsao de Chuva (Atrapalha colheita)", 0, 150, 5)
+        chuva_colheita = st.slider("Previsão de Chuva (Atrapalha colheita)", 0, 150, 5)
         payload_sim["chuva_acumulada_30d"] = chuva_colheita
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + (dias_antecip * 4)) # aumenta calor
 
 with col_out:
-    st.markdown('<div class="sec-header">Projecao Pos-Intervencao</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-header">Projeção Pós-Intervenção</div>', unsafe_allow_html=True)
     resultado_sim = get_prediction(payload_sim)
 
     if resultado_sim and resultado_hoje:
@@ -100,8 +100,8 @@ with col_out:
         ndvi_proj = resultado_sim["ndvi_previsto"]
         
         bonus_ndvi_val = 0
-        if "Adubacao" in cenario:
-            # We assume bonus_ndvi was defined in the Adubacao block
+        if "Adubação" in cenario:
+            # We assume bonus_ndvi was defined in the Adubação block
             try:
                 bonus_ndvi_val = bonus_ndvi
             except NameError:
@@ -133,13 +133,13 @@ with col_out:
         dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario, chuva_projetada=payload_sim["chuva_acumulada_30d"], gda_projetado=payload_sim["GDA_mensal"])
         
         if delta > 0:
-            st.success(f"Intervencao benefica — melhora de {abs(delta_pct):.1f}% no vigor.")
+            st.success(f"Intervenção benéfica — melhora de {abs(delta_pct):.1f}% no vigor.")
         elif delta < 0:
-            st.error(f"Cenario critico — queda de {abs(delta_pct):.1f}% no vigor.")
+            st.error(f"Cenário crítico — queda de {abs(delta_pct):.1f}% no vigor.")
             
-        st.info(f"**Acao Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
+        st.info(f"**Ação Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
         
         if "Irrigacao" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
             st.error("⚠️ **Risco de Alagamento (Waterlogging)**: Volume excessivo de água pode causar sufocamento radicular e queda brusca de vigor.")
     else:
-        st.error("Erro na projecao local.")
+        st.error("Erro na projeção local.")
