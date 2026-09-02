@@ -98,12 +98,7 @@ def render_main_app():
         f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
     )
 
-    with st.expander("🤔 O que é este sistema?"):
-        st.markdown('''
-        O **SugarCane Copilot** atua como um **satélite virtual**. 
-        Ele utiliza o histórico climático dos últimos 90 dias (via Open-Meteo API) e um modelo de Machine Learning (XGBoost) para 
-        prever o vigor vegetativo (NDVI) da sua lavoura de cana-de-açúcar, permitindo tomada de decisão até mesmo em dias nublados.
-        ''')
+
 
 
     # ── KPIs ──────────────────────────────────────────────────────
