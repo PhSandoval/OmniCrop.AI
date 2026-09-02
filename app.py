@@ -86,51 +86,91 @@ def render_onboarding():
         </style>
     """, unsafe_allow_html=True)
     
-    # Espaçamento vertical para alinhar ao centro da tela
-    st.write("")
-    st.write("")
-    st.write("")
     st.write("")
     st.write("")
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 3, 1])
     
     with col2:
-        st.markdown("<h1 style='text-align: center;'>🌱 Bem-vindo ao SugarCane Copilot</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 16px; margin-bottom: 30px;'>"
-                    "Sua IA particular para gestão de canaviais. Insira sua localização para começarmos.</p>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>🌱 Mapear Novo Talhão</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 16px; margin-bottom: 20px;'>"
+                    "Busque sua cidade e clique no mapa para marcar a localização exata da lavoura.</p>", unsafe_allow_html=True)
         
-        with st.form('onboarding_form'):
-            fazenda = st.text_input('Nome do Talhão/Fazenda', placeholder='Ex: Fazenda Santa Maria')
-            local = st.text_input('Localização (Cidade/Estado ou Lat/Lon)', placeholder='Ex: Ribeirão Preto, SP ou -21.17, -47.81')
-            
-            # Botão de destaque com type='primary' e largura total
-            submit = st.form_submit_button('Iniciar Análise 🚀', type='primary', use_container_width=True)
-        
-        if submit:
-            if not fazenda or not local:
-                st.error("Preencha todos os campos!")
+        # Smart Search
+        busca = st.text_input("📍 Buscar Cidade ou Município:", placeholder="Ex: Ribeirão Preto, SP")
+        if busca and busca != st.session_state.get('last_busca'):
+            st.session_state['last_busca'] = busca
+            from components.live_data import search_location
+            pts = search_location(busca)
+            if pts:
+                st.session_state['map_center'] = [pts[0]['lat'], pts[0]['lon']]
+                st.session_state['map_zoom'] = 12
+                st.rerun()
             else:
-                with st.spinner("Buscando..."):
-                    pts = search_location(local)
-                    if pts:
-                        cfg = {
-                            "farm_name": fazenda,
-                            "city": pts[0]["label"],
-                            "lat": pts[0]["lat"],
-                            "lon": pts[0]["lon"],
-                            "variedade": "RB867515",
-                            "area_ha": 100,
-                            "alert_amarelo": 0.6,
-                            "alert_vermelho": 0.4,
-                            "chuva_critica": 30,
-                            "gda_critico": 150
-                        }
-                        save_config(cfg)
-                        st.session_state['onboarding_completo'] = True
-                        st.rerun()
-                    else:
-                        st.error("Localização não encontrada.")
+                st.warning("Localidade não encontrada.")
+                
+        import folium
+        from streamlit_folium import st_folium
+        
+        m = folium.Map(location=st.session_state['map_center'], zoom_start=st.session_state['map_zoom'])
+        folium.TileLayer(
+            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attr='Esri',
+            name='Esri Satellite',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        
+        map_data = st_folium(m, height=400, use_container_width=True)
+        
+        fazenda = st.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
+        
+        if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
+            if not fazenda:
+                st.error("Dê um nome para o talhão!")
+            elif not map_data or not map_data.get('last_clicked'):
+                st.error("Clique no mapa para marcar o ponto exato da fazenda!")
+            else:
+                lat = map_data['last_clicked']['lat']
+                lon = map_data['last_clicked']['lng']
+                
+                # Reverso para achar a cidade baseada no clique
+                import requests
+                try:
+                    r = requests.get(f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}", headers={"User-Agent": "SugarCaneCopilot"})
+                    city = r.json().get('address', {}).get('city', 'Fazenda')
+                except:
+                    city = "Local Desconhecido"
+                
+                cfg = {
+                    "farm_name": fazenda,
+                    "city": city,
+                    "lat": lat,
+                    "lon": lon,
+                    "variedade": "RB867515",
+                    "area_ha": 100,
+                    "alert_amarelo": 0.6,
+                    "alert_vermelho": 0.4,
+                    "chuva_critica": 30,
+                    "gda_critico": 150
+                }
+                
+                from components.farm_config import save_config
+                save_config(cfg)
+                st.session_state['farm_name'] = fazenda
+                st.session_state['city'] = city
+                
+                from components.db import insert_farm
+                user_id = st.session_state['user'].id
+                insert_farm(user_id, fazenda, city, lat, lon)
+                
+                st.session_state['show_onboarding'] = False
+                st.session_state['active_farm'] = True
+                st.rerun()
+                
+        if st.button("Cancelar", use_container_width=True):
+            st.session_state['show_onboarding'] = False
+            st.rerun()
 
 # 3. Função do App Principal
 def render_main_app():
