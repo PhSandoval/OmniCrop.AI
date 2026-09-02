@@ -121,7 +121,17 @@ def render_onboarding():
             control=True
         ).add_to(m)
         
+        # Ativa o clique no mapa para colocar um pino visual (client-side)
+        m.add_child(folium.ClickForMarker(popup="Local Selecionado"))
+        
+        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Navegue pelo mapa e <b>clique na sua lavoura</b> para fixar um pino.</p>", unsafe_allow_html=True)
+        
         map_data = st_folium(m, height=400, use_container_width=True)
+        
+        if map_data and map_data.get('last_clicked'):
+            lat = map_data['last_clicked']['lat']
+            lon = map_data['last_clicked']['lng']
+            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {lat:.4f} | Longitude {lon:.4f}")
         
         fazenda = st.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
         
