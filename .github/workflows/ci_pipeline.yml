@@ -1,0 +1,56 @@
+name: Integração Contínua (CI)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  teste_dados_api:
+    name: "1. Testes de Ingestão e Features"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Dependências
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        pip install -r requirements.txt
+    - name: Testar API Mock e Features
+      run: pytest tests/test_api_mock.py tests/test_features.py
+
+  teste_dss_regras:
+    name: "2. Testes do Motor de Decisão (DSS)"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Dependências
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        pip install -r requirements.txt
+    - name: Testar DSS
+      run: pytest tests/test_dss.py
+
+  teste_modelo_ia:
+    name: "3. Testes do Modelo XGBoost (IA)"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Dependências
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        pip install -r requirements.txt
+    - name: Testar Modelo IA
+      run: pytest tests/test_model_pipeline.py
