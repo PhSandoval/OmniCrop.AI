@@ -217,6 +217,24 @@ def render_main_app():
         f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
     )
 
+    from components.pdf_generator import generate_pdf_report
+    pdf_bytes = generate_pdf_report(
+        cfg.get("farm_name", "Minha Fazenda"),
+        cfg.get("city", "Desconhecida"),
+        resultado.get("ndvi_previsto", 0),
+        payload.get("chuva_acumulada_30d", 0),
+        resultado.get("fatores_de_risco_identificados", [])
+    )
+    st.download_button(
+        label="📄 Baixar Relatório Semanal (PDF)",
+        data=pdf_bytes,
+        file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf",
+        mime="application/pdf",
+        type="primary"
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+
+
     with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
         st.markdown('''
         O **SugarCane Copilot** atua como um **Satélite Virtual** (um *DSS* - Sistema de Suporte à Decisão). 
