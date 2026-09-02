@@ -36,7 +36,32 @@ O motor do sistema utiliza um modelo de **Gradient Boosting (XGBoost)**. Por que
 
 ---
 
+
+## De onde vêm os Dados?
+
+O ecossistema de dados do SugarCane Copilot opera em duas frentes distintas:
+
+1. **Os Dados de Treinamento (Offline / Passado):**
+   O modelo de Machine Learning (`.pkl`) foi forjado com mais de **10 anos de histórico climático e leituras de satélite** em centenas de fazendas de cana-de-açúcar. A matemática aprendeu como o acúmulo de energia térmica (Graus-Dia) e a umidade do solo impactam a biologia da planta.
+
+2. **Os Dados em Tempo Real (Cloud / Presente e Futuro):**
+   * **Open-Meteo (Clima):** Sem a necessidade de instalar uma estação meteorológica física caríssima na fazenda, a nossa aplicação se conecta ao Open-Meteo (um hub de satélites meteorológicos) para extrair, em tempo real, as condições exatas da Latitude/Longitude do usuário. Nós capturamos a curva dos últimos 90 dias e projetamos os próximos 15 dias de chuva e temperatura.
+   * **OpenStreetMap Geocoding:** Mapeia endereços textuais digitados pelo produtor rural e converte em coordenadas geográficas precisas para "ancorar" o talhão no globo.
+
+---
+
+## Camadas de Segurança (B2B SaaS)
+
+No setor agroindustrial, dados de produtividade e localização de lavouras valem milhões e são alvo constante de espionagem. Nossa arquitetura adota a metodologia de Defesa em Profundidade:
+
+1. **Identity & Auth (JWT):** Nenhum acesso é anônimo. O cadastro, autenticação e renovação de sessões são orquestrados pelo Supabase (GoTrue Auth) via tokens JWT de curta duração.
+2. **Row Level Security (RLS) no Banco de Dados:** Essa é a "jóia da coroa". As tabelas no banco PostgreSQL (Supabase) possuem políticas matemáticas. Mesmo que um atacante burle a interface do Streamlit ou crie um script malicioso, **o próprio banco de dados bloqueia** qualquer tentativa de ler uma fazenda em que a coluna `user_id` não seja exatamente igual ao ID do token JWT de quem está pedindo. É isolamento multilocatário à prova de falhas.
+3. **Ponte Zero-Trust (db.py):** Nossa comunicação interna entre o Streamlit e o banco injeta o Header de Autorização do usuário logado em cada requisição. O backend não roda como "Superadmin" global para buscar dados, ele age estritamente sob as credenciais do usuário requisitante.
+4. **Cofres de Chaves:** As credenciais e URLs vitais nunca sobem para o repositório. Em desenvolvimento local, ficam restritas ao `.streamlit/secrets.toml`, e em produção, ficam em variáveis de ambiente criptografadas do host.
+
+---
 ## Arquitetura do Projeto
+
 
 ```text
 Sugarcane_NDVI_Predictor/
