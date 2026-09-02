@@ -13,13 +13,13 @@ from components.header import render_sidebar, render_page_header
 import google.generativeai as genai
 
 st.set_page_config(page_title="Copilot IA · SugarCane", layout="wide", initial_sidebar_state="expanded")
-inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:
     st.info("A sua sessão expirou. Faça login novamente para acessar o sistema.")
     st.page_link("app.py", label="Ir para Login 🔒")
     st.stop()
 
+inject_css()
 
 if not is_configured():
     st.warning("Fazenda não configurada. Conclua o Onboarding primeiro.")
@@ -63,20 +63,13 @@ Dados atuais da fazenda '{cfg.get("farm_name", "Desconhecida")}':
 
 Responda de forma profissional, direta e concisa. Forneça conselhos práticos de manejo se questionado. Nunca revele que você é uma IA genérica, assuma a persona do SugarCane Copilot."""
     
-    # Setup history injection for backward compatibility with gemini-pro if flash fails
-    history_setup = [
-        {"role": "user", "parts": [f"INSTRUÇÃO DO SISTEMA: {contexto_oculto}\n\nConfirme que entendeu."]},
-        {"role": "model", "parts": ["Entendido. Eu sou o SugarCane Copilot, utilizarei os dados fornecidos para guiar minhas respostas."]}
-    ]
-
     try:
-        # Primeiro tentamos o modelo 1.5 Flash (recomendado)
-        modelo = genai.GenerativeModel('gemini-1.5-flash', system_instruction=contexto_oculto)
+        # ATUALIZACAO 2026: Usando o modelo gemini-3.6-flash conforme instruido pela API
+        modelo = genai.GenerativeModel('gemini-3.6-flash', system_instruction=contexto_oculto)
         if 'chat_session' not in st.session_state:
             st.session_state['chat_session'] = modelo.start_chat(history=[])
-    except:
-        pass # Ignora erros de build inicial
-
+    except Exception as e:
+        pass
 
     # 4. Renderiza histórico na UI
     for msg in st.session_state['mensagens_chat']:
@@ -87,50 +80,17 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
     prompt_usuario = st.chat_input("Pergunte ao seu agrônomo virtual...")
     
     if prompt_usuario:
-        # Exibe mensagem do usuário
         with st.chat_message("user"):
             st.markdown(prompt_usuario)
         st.session_state['mensagens_chat'].append({"role": "user", "content": prompt_usuario})
         
-        # Chama a API do Gemini com Fallback
         with st.chat_message("assistant"):
             with st.spinner("Analisando dados da fazenda..."):
                 try:
-                    # Tenta com a sessao ativa do flash
-                    response = st.session_state.get('chat_session').send_message(prompt_usuario)
+                    response = st.session_state['chat_session'].send_message(prompt_usuario)
                     st.markdown(response.text)
                     st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    if "404" in str(e):
-                        # Fallback para o modelo gemini-pro legado
-                        try:
-                            fallback_model = genai.GenerativeModel('gemini-pro')
-                            if 'fallback_session' not in st.session_state:
-                                st.session_state['fallback_session'] = fallback_model.start_chat(history=history_setup)
-                            
-                            response = st.session_state['fallback_session'].send_message(prompt_usuario)
-                            st.markdown(response.text)
-                            st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
-                        except Exception as inner_e:
-                            # Let's dynamically find the first available model!
-                            available_models = []
-                            try:
-                                for m in genai.list_models():
-                                    if 'generateContent' in m.supported_generation_methods:
-                                        available_models.append(m.name)
-                                
-                                if available_models:
-                                    fallback_dynamic = genai.GenerativeModel(available_models[0])
-                                    if 'fallback_dynamic_session' not in st.session_state:
-                                        st.session_state['fallback_dynamic_session'] = fallback_dynamic.start_chat(history=history_setup)
-                                    response = st.session_state['fallback_dynamic_session'].send_message(prompt_usuario)
-                                    st.markdown(response.text)
-                                    st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
-                                else:
-                                    st.error("Nenhum modelo compatível encontrado na sua conta.")
-                            except Exception as deepest_e:
-                                st.error(f"Erro crônico de API. Modelos disponíveis encontrados: {available_models}. Erro: {deepest_e}")
-                    else:
-                        st.error(f"Ocorreu um erro ao comunicar com a inteligência: {e}")
+                    st.error(f"Erro ao processar: {e}")
 
 render_copilot()
