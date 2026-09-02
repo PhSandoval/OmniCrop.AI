@@ -121,32 +121,43 @@ def render_onboarding():
             control=True
         ).add_to(m)
         
-        # Ativa o clique no mapa para colocar um pino visual (client-side)
-        m.add_child(folium.ClickForMarker(popup="Local Selecionado"))
-        
         # Botão de GPS nativo do Folium para voar para a localização do usuário
         from folium.plugins import LocateControl
         LocateControl(auto_start=False, position="bottomright").add_to(m)
+        
+        clicked_lat = st.session_state.get('clicked_lat')
+        clicked_lon = st.session_state.get('clicked_lon')
+        
+        if clicked_lat and clicked_lon:
+            folium.Marker([clicked_lat, clicked_lon], tooltip="Nova Fazenda", icon=folium.Icon(color="green", icon="leaf")).add_to(m)
         
         st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique na sua lavoura para fixar um pino. Use o ícone de GPS no mapa para achar sua localização atual.</p>", unsafe_allow_html=True)
         
         map_data = st_folium(m, height=400, use_container_width=True)
         
         if map_data and map_data.get('last_clicked'):
-            lat = map_data['last_clicked']['lat']
-            lon = map_data['last_clicked']['lng']
-            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {lat:.4f} | Longitude {lon:.4f}")
+            new_lat = map_data['last_clicked']['lat']
+            new_lon = map_data['last_clicked']['lng']
+            if new_lat != clicked_lat or new_lon != clicked_lon:
+                st.session_state['clicked_lat'] = new_lat
+                st.session_state['clicked_lon'] = new_lon
+                st.rerun()
+                
+        if clicked_lat and clicked_lon:
+            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {clicked_lat:.4f} | Longitude {clicked_lon:.4f}")
         
-        fazenda = st.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
+        col_f, col_a = st.columns([3, 1])
+        fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
+        area_ha = col_a.number_input("Área (ha):", min_value=1, value=100)
         
         if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
             if not fazenda:
                 st.error("Dê um nome para o talhão!")
-            elif not map_data or not map_data.get('last_clicked'):
+            elif not clicked_lat or not clicked_lon:
                 st.error("Clique no mapa para marcar o ponto exato da fazenda!")
             else:
-                lat = map_data['last_clicked']['lat']
-                lon = map_data['last_clicked']['lng']
+                lat = clicked_lat
+                lon = clicked_lon
                 
                 # Reverso para achar a cidade baseada no clique
                 import requests
@@ -162,7 +173,7 @@ def render_onboarding():
                     "lat": lat,
                     "lon": lon,
                     "variedade": "RB867515",
-                    "area_ha": 100,
+                    "area_ha": area_ha,
                     "alert_amarelo": 0.6,
                     "alert_vermelho": 0.4,
                     "chuva_critica": 30,
