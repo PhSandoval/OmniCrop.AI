@@ -1,37 +1,40 @@
-# 🌾 SugarCane Copilot - NDVI Predictor & DSS
+# 🌾 SugarCane Copilot - NDVI Predictor & DSS (SaaS B2B)
 
-Um **Sistema de Suporte à Decisão (DSS)** de ponta a ponta (End-to-End) focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um **Satélite Virtual**, o sistema permite o monitoramento contínuo da lavoura utilizando dados climáticos, mesmo em dias nublados onde satélites ópticos falhariam.
+Um **Sistema de Suporte à Decisão (DSS) Multi-Tenant** de ponta a ponta (End-to-End) focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um **Satélite Virtual**, o sistema permite o monitoramento contínuo de múltiplos talhões utilizando dados climáticos, mesmo em dias nublados onde satélites ópticos falhariam.
 
-Criado inteiramente com uma **Arquitetura Monolítica no Streamlit**, ideal para deploy em nuvem (SaaS) com foco no setor AgTech.
+Criado inteiramente com uma **Arquitetura Monolítica no Streamlit**, integrado com **Supabase (PostgreSQL + Auth)**, ideal para deploy em nuvem (SaaS B2B) com foco no setor AgTech.
 
 ---
 
 ## 🌟 Principais Funcionalidades
 
-* **📡 Ingestão de Dados em Tempo Real:** Conectado à API Open-Meteo, o sistema processa automaticamente dados meteorológicos da localização exata (Latitude/Longitude) fornecida pelo usuário na aba de configurações.
-* **🧠 Inteligência Artificial (XGBoost/Gradient Boosting):** Modelo de Machine Learning treinado com uma década de histórico climático e imagens de satélite. Preve o NDVI com altíssima precisão (MAE: 0.02) utilizando *Graus-Dia Acumulados (GDA)* e chuvas agrupadas em janelas temporais (30/60/90 dias).
-* **🎯 Matriz de Decisão Agronômica (DSS):** O sistema não entrega apenas números brutos. Ele cruza a previsão de vigor da IA com a biologia da planta (Fase de Crescimento vs. Maturação/Corte) gerando alertas automáticos e planos de ação (ex: "Acionar irrigação de salvamento" ou "Avaliar aplicação de maturador").
-* **🔬 Simulador Interativo:** Uma ferramenta de "What-If Analysis" onde o agrônomo pode testar cenários hipotéticos de clima (simular ausência de chuva ou aumento de temperatura) e ver como a IA projeta o impacto no desenvolvimento da lavoura.
+* **🔐 Arquitetura SaaS Multi-Tenant:** Sistema de autenticação JWT via Supabase com Row Level Security (RLS). O usuário gerencia sua própria carteira de fazendas com total isolamento e segurança de dados.
+* **🗺️ Mapeamento Interativo (Folium/Leaflet):** Cadastro Onboarding moderno com mapas de satélite (Esri), ferramenta de Smart Search (Geocoding - OpenStreetMap) e captura automática do GPS do usuário para fixar os limites da fazenda.
+* **📡 Ingestão de Dados em Tempo Real:** Conectado à API Open-Meteo, o sistema processa automaticamente dados meteorológicos da localização exata (Latitude/Longitude) cadastrada no banco de dados.
+* **🧠 Inteligência Artificial (XGBoost/Gradient Boosting):** Modelo de Machine Learning treinado com histórico climático e imagens de satélite. Preve o NDVI com altíssima precisão utilizando *Graus-Dia Acumulados (GDA)* e chuvas agrupadas em janelas temporais.
+* **🎯 Matriz de Decisão Agronômica Dinâmica:** O sistema cruza a previsão de vigor da IA com regras biológicas, gerando *Checklists* de ação contextuais (ex: "Liberar frente de corte mecanizado com 0mm de chuva" vs "Acionar irrigação de salvamento").
+* **🔬 Simulador Interativo com Inteligência Financeira:** Uma ferramenta de "What-If Analysis" onde o agrônomo testa cenários hipotéticos de clima (ex: El Niño). O simulador projeta o impacto no desenvolvimento da lavoura e calcula instantaneamente o **Custo Financeiro de Energia (ROI)** e dispara alertas agronômicos críticos (ex: *Asfixia Radicular por Alagamento*).
 
 ## 🏗 Arquitetura do Projeto
 
-O sistema é dividido conceitualmente em **Ambiente Local (A Fábrica)** e **Ambiente Cloud (O Produto)**:
+O sistema é dividido conceitualmente em **Ambiente Local (A Fábrica)** e **Ambiente Cloud (O SaaS)**:
 
 ```text
 Sugarcane_NDVI_Predictor/
-├── data/                       # 🗄️ Dados (Gerenciado via .gitignore)
-│   └── processed/              # Métricas históricas leves para a Aba Analytics.
+├── data/                       # 🗄️ Dados
 ├── models/                     # 🧠 O Cérebro da aplicação
-│   └── ndvi_xgb_model.pkl      # Modelo treinado exportado via Joblib.
-├── src/                        # ⚙️ A Fábrica (Pipelines locais de ETL e Treino)
-│   ├── 01_fetch_data.py        # Ingestão de 10 anos de histórico.
-│   ├── 02_clean_data.py        # Tratamento e higienização.
-│   ├── 03_features.py          # Feature engineering (GDA, rolling sums de chuva).
-│   └── 04_train.py             # Treinamento do Gradient Boosting.
-├── pages/                      # 📑 Telas do SaaS (Simulator, Analytics, Settings)
-├── components/                 # 🧩 Componentes modulares (UI, Estilos, API)
-├── app.py                      # 🚀 O Produto Final (Ponto de entrada do Streamlit)
-└── requirements.txt            # 📦 Dependências essenciais para nuvem.
+│   └── ndvi_xgb_model.pkl      # Modelo treinado exportado (scikit-learn).
+├── src/                        # ⚙️ A Fábrica (Pipelines locais de ETL e Treino ML)
+├── pages/                      # 📑 Telas do SaaS (Simulador, Análise, Configurações, Minha Conta)
+├── components/                 # 🧩 Componentes modulares
+│   ├── auth.py                 # Interface de Login/Registro.
+│   ├── db.py                   # Ponte Zero-Trust com o Supabase (Injeção de JWT headers).
+│   ├── live_data.py            # API client (Open-Meteo & Geocoding).
+│   └── ... 
+├── .streamlit/                 
+│   └── secrets.toml            # 🔒 Cofre local para as chaves do Supabase.
+├── app.py                      # 🚀 O Produto Final (Ponto de entrada do SaaS / Onboarding)
+└── requirements.txt            # 📦 Dependências essenciais para deploy na nuvem.
 ```
 
 ## 🚀 Como rodar localmente
@@ -46,9 +49,14 @@ source .venv/bin/activate  # No Windows use: .venv\Scripts\activate
 # 2. Instale as dependências
 pip install -r requirements.txt
 
-# 3. Inicie o Dashboard
+# 3. Configure as variáveis de ambiente (Supabase)
+mkdir -p .streamlit
+echo "SUPABASE_URL = 'sua-url-aqui'" > .streamlit/secrets.toml
+echo "SUPABASE_KEY = 'sua-anon-key-aqui'" >> .streamlit/secrets.toml
+
+# 4. Inicie o Dashboard
 streamlit run app.py
 ```
 
 ---
-*Construído com Python, Scikit-Learn, Pandas e Streamlit.*
+*Construído com Python, Scikit-Learn, Pandas, Folium, Supabase e Streamlit.*
