@@ -124,7 +124,11 @@ def render_onboarding():
         # Ativa o clique no mapa para colocar um pino visual (client-side)
         m.add_child(folium.ClickForMarker(popup="Local Selecionado"))
         
-        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Navegue pelo mapa e <b>clique na sua lavoura</b> para fixar um pino.</p>", unsafe_allow_html=True)
+        # Botão de GPS nativo do Folium para voar para a localização do usuário
+        from folium.plugins import LocateControl
+        LocateControl(auto_start=False, position="bottomright").add_to(m)
+        
+        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique na sua lavoura para fixar um pino. Use o ícone de GPS no mapa para achar sua localização atual.</p>", unsafe_allow_html=True)
         
         map_data = st_folium(m, height=400, use_container_width=True)
         
