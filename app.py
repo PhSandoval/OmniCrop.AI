@@ -23,6 +23,16 @@ inject_css()
 if 'onboarding_completo' not in st.session_state:
     st.session_state['onboarding_completo'] = False
 
+if 'map_center' not in st.session_state:
+    st.session_state['map_center'] = [-21.17, -47.81]
+
+if 'map_zoom' not in st.session_state:
+    st.session_state['map_zoom'] = 7
+
+if 'last_busca' not in st.session_state:
+    st.session_state['last_busca'] = ""
+
+
 # 2. Função de Onboarding
 def render_onboarding():
     st.markdown("""
