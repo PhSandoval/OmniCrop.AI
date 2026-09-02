@@ -17,12 +17,14 @@ Curiosamente, a época em que a cana-de-açúcar mais cresce é exatamente no ve
 
 ## Principais Funcionalidades
 
-* **SaaS Multi-Tenant:** Sistema de autenticação JWT via Supabase com Row Level Security (RLS). Cada usuário acessa apenas a sua própria carteira de fazendas com total isolamento e segurança de dados.
+* **SaaS Multi-Tenant & Multi-Fazenda:** Sistema de autenticação JWT com Supabase e Row Level Security (RLS). O usuário gerencia toda a sua carteira de fazendas isoladas e alterna entre os talhões rapidamente usando um Dropdown global no menu lateral.
 * **Mapeamento Interativo (Folium/Leaflet):** Onboarding moderno com mapas de satélite (Esri), Geocoding (OpenStreetMap) e captura automática do GPS para fixar a fazenda no mapa.
 * **Ingestão de Dados ao Vivo:** O backend bate na API Open-Meteo em tempo real, agrupando dados meteorológicos da localização exata nos últimos 90 dias e nos próximos 15 dias de previsão.
 * **Dashboard Analytics Profissional:** Uma suíte de gráficos robustos feitos com Plotly (Histogramas, Áreas, Eixos Duplos e Séries Temporais) que cruzam o clima real com a projeção do modelo de IA.
 * **DSS (Matriz de Decisão Agronômica):** O sistema entende a biologia (Crescimento vs Maturação) e gera Checklists de ação automáticos (ex: Liberar colheita, aplicar maturador químico, alertar brigada de incêndio).
 * **Simulador de Intervenções (What-If):** O agrônomo projeta cenários hipotéticos ("E se eu irrigar 40mm hoje?"). O sistema calcula o **Custo de Energia (ROI)** e projeta a melhora na curva de vigor.
+* **Relatórios Automatizados (PDF):** Módulo gerador embarcado no Dashboard (via `fpdf2`) que compila a saúde atual da fazenda, KPIs e Alertas em um arquivo executivo pronto para reuniões.
+* **Motor de Alertas Ativos (CRON):** Um operador robótico (`scripts/daily_alerts.py`) que varre as fazendas durante a madrugada e dispara e-mails de alerta se houver risco extremo na operação diária (Configurável por usuário).
 
 ---
 
