@@ -22,6 +22,7 @@ def render_auth_page():
                         with st.spinner("Autenticando..."):
                             res = login_user(email, password)
                             st.session_state['user'] = res.user
+                            st.session_state['access_token'] = res.session.access_token
                             st.rerun()
                     except Exception as e:
                         st.error(f"Falha no login. Verifique suas credenciais.")
