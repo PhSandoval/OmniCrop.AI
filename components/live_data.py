@@ -120,7 +120,7 @@ def fetch_farm_data(lat: float, lon: float) -> tuple[pd.DataFrame, dict]:
     daily = _fetch_openmeteo(lat, lon, past_days=92)
     df    = _build_features(daily)
     # Garante que 'today' é a data atual (hoje) para o dashboard, ignorando a previsão futura
-    now = pd.Timestamp.now(tz="America/Sao_Paulo").normalize()
+    now = pd.Timestamp.now(tz="America/Sao_Paulo").normalize().tz_localize(None)
     df_past = df[df["date"] <= now]
     if not df_past.empty:
         today = df_past.iloc[-1].to_dict()
