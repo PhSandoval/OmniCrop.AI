@@ -7,3 +7,4 @@ joblib
 plotly
 folium
 streamlit-folium
+supabase>=2.0.0

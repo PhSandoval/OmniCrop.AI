@@ -20,8 +20,14 @@ st.set_page_config(page_title="Dashboard · SugarCane Copilot", layout="wide",
 inject_css()
 
 # 1. Controle de Estado
-if 'onboarding_completo' not in st.session_state:
-    st.session_state['onboarding_completo'] = False
+if 'user' not in st.session_state:
+    st.session_state['user'] = None
+
+if 'active_farm' not in st.session_state:
+    st.session_state['active_farm'] = None
+
+if 'show_onboarding' not in st.session_state:
+    st.session_state['show_onboarding'] = False
 
 if 'map_center' not in st.session_state:
     st.session_state['map_center'] = [-21.17, -47.81]
@@ -32,8 +38,46 @@ if 'map_zoom' not in st.session_state:
 if 'last_busca' not in st.session_state:
     st.session_state['last_busca'] = ""
 
+from components.auth import render_auth_page
+from components.db import get_user_farms, insert_farm
+
 
 # 2. Função de Onboarding
+
+def render_farm_selector():
+    st.markdown("<style>[data-testid='stSidebar'] { display: none; }</style>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>Suas Fazendas</h2>", unsafe_allow_html=True)
+    
+    farms = get_user_farms(st.session_state['user'].id)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if farms:
+            st.write("Selecione um talhão para monitorar:")
+            for f in farms:
+                if st.button(f"🌾 {f['farm_name']} ({f['city']})", use_container_width=True):
+                    # Set active farm and override the local config
+                    cfg = f.copy()
+                    st.session_state['active_farm'] = True
+                    st.session_state['farm_name'] = cfg['farm_name']
+                    st.session_state['city'] = cfg['city']
+                    
+                    from components.farm_config import save_config
+                    save_config(cfg) # Sync with local config so pages can read it
+                    st.rerun()
+            st.markdown("<hr>", unsafe_allow_html=True)
+            
+        st.write("Ou adicione uma nova área de manejo:")
+        if st.button("➕ Cadastrar Novo Talhão", type="primary", use_container_width=True):
+            st.session_state['show_onboarding'] = True
+            st.rerun()
+        
+        st.write("")
+        if st.button("🚪 Sair (Logout)", use_container_width=True):
+            st.session_state['user'] = None
+            st.session_state['active_farm'] = None
+            st.rerun()
+
 def render_onboarding():
     st.markdown("""
         <style>
@@ -186,7 +230,11 @@ def render_main_app():
         st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
 
 # 4. Gatilho Final
-if not st.session_state['onboarding_completo']:
+if not st.session_state['user']:
+    render_auth_page()
+elif st.session_state['show_onboarding']:
     render_onboarding()
+elif not st.session_state['active_farm']:
+    render_farm_selector()
 else:
     render_main_app()

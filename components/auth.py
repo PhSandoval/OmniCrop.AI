@@ -1,0 +1,41 @@
+import streamlit as st
+from components.db import login_user, register_user
+
+def render_auth_page():
+    st.markdown("<h1 style='text-align: center;'>🌱 SugarCane Copilot</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8);'>SaaS de Inteligência Agronômica</p>", unsafe_allow_html=True)
+    st.write("")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        tab1, tab2 = st.tabs(["Login", "Criar Conta"])
+        
+        with tab1:
+            with st.form("login_form"):
+                email = st.text_input("E-mail")
+                password = st.text_input("Senha", type="password")
+                submit = st.form_submit_button("Entrar", type="primary", use_container_width=True)
+                
+                if submit:
+                    try:
+                        with st.spinner("Autenticando..."):
+                            res = login_user(email, password)
+                            st.session_state['user'] = res.user
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"Falha no login. Verifique suas credenciais.")
+                        
+        with tab2:
+            with st.form("register_form"):
+                email = st.text_input("Novo E-mail")
+                password = st.text_input("Nova Senha", type="password")
+                submit = st.form_submit_button("Registrar", type="primary", use_container_width=True)
+                
+                if submit:
+                    try:
+                        with st.spinner("Criando conta..."):
+                            res = register_user(email, password)
+                            st.success("Conta criada com sucesso! Faça login para continuar.")
+                    except Exception as e:
+                        st.error(f"Falha ao registrar: {e}")
