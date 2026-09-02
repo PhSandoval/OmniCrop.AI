@@ -62,15 +62,17 @@ st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": Fals
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Sazonalidade + Correlação ─────────────────────────────────
-st.markdown('<div class="sec-header">Perfil Sazonal de Precipitação (Ultimos 3 Meses)</div>',
+st.markdown('<div class="sec-header">Volume Acumulado de Chuva por Mês (Últimos 90 dias)</div>',
             unsafe_allow_html=True)
+st.caption("Visão simples e direta do quanto choveu no total em cada mês. Barras maiores indicam meses mais chuvosos.")
 st.plotly_chart(seasonal_box(df_plot), use_container_width=True, config={"displayModeBar": False})
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Eventos extremos ──────────────────────────────────────────
-st.markdown('<div class="sec-header">Eventos de Chuva Extrema (> 50mm/dia)</div>',
+st.markdown('<div class="sec-header">Eventos de Chuva Extrema (Risco Operacional)</div>',
             unsafe_allow_html=True)
+st.caption("Fique atento aos picos que cruzam a linha vermelha tracejada. Chuvas acima de 50mm num único dia causam alagamentos e atolam máquinas colhedoras.")
 st.plotly_chart(extreme_events(df_plot), use_container_width=True, config={"displayModeBar": False})
 
 # ── Stats ─────────────────────────────────────────────────────

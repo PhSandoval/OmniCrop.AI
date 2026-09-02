@@ -92,11 +92,21 @@ def ndvi_full_history(df: pd.DataFrame) -> go.Figure:
 def seasonal_box(df: pd.DataFrame) -> go.Figure:
     df = df.copy()
     df["mes"] = df["date"].dt.month
+    
+    meses_pt = {1: "Jan", 2: "Fev", 3: "Mar", 4: "Abr", 5: "Mai", 6: "Jun", 
+                7: "Jul", 8: "Ago", 9: "Set", 10: "Out", 11: "Nov", 12: "Dez"}
+    
+    monthly_rain = df.groupby("mes")["precipitacao_total"].sum().reset_index()
+    monthly_rain["mes_nome"] = monthly_rain["mes"].map(meses_pt)
+    
     fig = go.Figure()
-    for m in range(1, 13):
-        vals = df[df["mes"] == m]["precipitacao_total"]
-        fig.add_trace(go.Box(y=vals, name=str(m), marker_color="#69F0AE",
-                             line_color="rgba(105,240,174,.6)", showlegend=False))
+    fig.add_trace(go.Bar(
+        x=monthly_rain["mes_nome"], 
+        y=monthly_rain["precipitacao_total"],
+        marker_color="rgba(105,240,174, 0.8)",
+        text=monthly_rain["precipitacao_total"].round(0).astype(int).astype(str) + " mm",
+        textposition="auto"
+    ))
     return _layout(fig, height=260)
 
 
