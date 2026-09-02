@@ -63,16 +63,20 @@ Dados atuais da fazenda '{cfg.get("farm_name", "Desconhecida")}':
 
 Responda de forma profissional, direta e concisa. Forneça conselhos práticos de manejo se questionado. Nunca revele que você é uma IA genérica, assuma a persona do SugarCane Copilot."""
     
-    # Inicializa o modelo com a System Instruction
+    # Setup history injection for backward compatibility with gemini-pro if flash fails
+    history_setup = [
+        {"role": "user", "parts": [f"INSTRUÇÃO DO SISTEMA: {contexto_oculto}\n\nConfirme que entendeu."]},
+        {"role": "model", "parts": ["Entendido. Eu sou o SugarCane Copilot, utilizarei os dados fornecidos para guiar minhas respostas."]}
+    ]
+
     try:
-        modelo = genai.GenerativeModel('gemini-1.5-flash-latest', system_instruction=contexto_oculto)
-        # Create chat session if not exists
+        # Primeiro tentamos o modelo 1.5 Flash (recomendado)
+        modelo = genai.GenerativeModel('gemini-1.5-flash', system_instruction=contexto_oculto)
         if 'chat_session' not in st.session_state:
             st.session_state['chat_session'] = modelo.start_chat(history=[])
-    except Exception as e:
-        # Fallback se a versão não suportar system_instruction ou erro de inicialização
-        st.error(f"Erro ao inicializar o modelo: {e}")
-        st.stop()
+    except:
+        pass # Ignora erros de build inicial
+
 
     # 4. Renderiza histórico na UI
     for msg in st.session_state['mensagens_chat']:
@@ -88,14 +92,28 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
             st.markdown(prompt_usuario)
         st.session_state['mensagens_chat'].append({"role": "user", "content": prompt_usuario})
         
-        # Chama a API do Gemini
+        # Chama a API do Gemini com Fallback
         with st.chat_message("assistant"):
             with st.spinner("Analisando dados da fazenda..."):
                 try:
-                    response = st.session_state['chat_session'].send_message(prompt_usuario)
+                    # Tenta com a sessao ativa do flash
+                    response = st.session_state.get('chat_session').send_message(prompt_usuario)
                     st.markdown(response.text)
                     st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"Ocorreu um erro ao comunicar com a inteligência: {e}")
+                    if "404" in str(e):
+                        # Fallback para o modelo gemini-pro legado
+                        try:
+                            fallback_model = genai.GenerativeModel('gemini-pro')
+                            if 'fallback_session' not in st.session_state:
+                                st.session_state['fallback_session'] = fallback_model.start_chat(history=history_setup)
+                            
+                            response = st.session_state['fallback_session'].send_message(prompt_usuario)
+                            st.markdown(response.text)
+                            st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
+                        except Exception as inner_e:
+                            st.error(f"Erro crônico de API. Nem o modelo Flash nem o Pro estão acessíveis: {inner_e}")
+                    else:
+                        st.error(f"Ocorreu um erro ao comunicar com a inteligência: {e}")
 
 render_copilot()
