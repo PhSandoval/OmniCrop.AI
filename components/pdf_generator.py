@@ -52,4 +52,4 @@ def generate_pdf_report(farm_name: str, city: str, ndvi: float, chuva_30d: float
     pdf.set_text_color(150, 150, 150)
     pdf.cell(0, 10, "Este relatorio e gerado automaticamente por Inteligencia Artificial (XGBoost).", new_x="LMARGIN", new_y="NEXT", align="C")
     
-    return pdf.output(dest="S")
+    return bytes(pdf.output())
