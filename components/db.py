@@ -45,3 +45,13 @@ def insert_farm(user_id, farm_name, city, lat, lon):
         "gda_critico": 150
     }
     return supabase.table("fazendas").insert(data).execute()
+
+def update_farm(farm_id, user_id, update_data):
+    access_token = st.session_state.get('access_token')
+    supabase = get_supabase(access_token)
+    return supabase.table("fazendas").update(update_data).eq("id", farm_id).eq("user_id", user_id).execute()
+
+def delete_farm(farm_id, user_id):
+    access_token = st.session_state.get('access_token')
+    supabase = get_supabase(access_token)
+    return supabase.table("fazendas").delete().eq("id", farm_id).eq("user_id", user_id).execute()
