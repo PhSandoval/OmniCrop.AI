@@ -59,7 +59,7 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
     
     # Inicializa o modelo com a System Instruction
     try:
-        modelo = genai.GenerativeModel('gemini-1.5-flash', system_instruction=contexto_oculto)
+        modelo = genai.GenerativeModel('gemini-1.5-flash-latest', system_instruction=contexto_oculto)
         # Create chat session if not exists
         if 'chat_session' not in st.session_state:
             st.session_state['chat_session'] = modelo.start_chat(history=[])
