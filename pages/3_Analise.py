@@ -81,7 +81,12 @@ s1.metric("Temp. Média", f"{df_plot['t_mean'].mean():.1f} °C")
 s2.metric("Temp. Máxima", f"{df_plot['t_max'].max():.1f} °C")
 s3.metric("Chuva Total", f"{df_plot['precipitacao_total'].sum():.0f} mm")
 
-dias_sem_chuva = int((df_plot['precipitacao_total'] == 0).sum())
+# Conta os dias CONSECUTIVOS sem chuva (estiagem atual) de tras pra frente
+dias_sem_chuva = 0
+for p in df_plot['precipitacao_total'].iloc[::-1]:
+    if p > 1.0:  # Considera chuva significativa > 1mm
+        break
+    dias_sem_chuva += 1
 if dias_sem_chuva > 60:
     s4.metric("Dias sem Chuva", f"🔴 {dias_sem_chuva}")
 elif dias_sem_chuva < 20:
