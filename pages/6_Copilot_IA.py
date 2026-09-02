@@ -66,6 +66,12 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
     try:
         # ATUALIZACAO 2026: Usando o modelo gemini-3.6-flash conforme instruido pela API
         modelo = genai.GenerativeModel('gemini-3.6-flash', system_instruction=contexto_oculto)
+        
+        # Se a sessao existente for de um modelo antigo (1.5), nos a deletamos
+        if 'chat_session' in st.session_state:
+            if hasattr(st.session_state['chat_session'], 'model') and '3.6' not in getattr(st.session_state['chat_session'].model, 'model_name', ''):
+                del st.session_state['chat_session']
+                
         if 'chat_session' not in st.session_state:
             st.session_state['chat_session'] = modelo.start_chat(history=[])
     except Exception as e:
@@ -87,10 +93,28 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
         with st.chat_message("assistant"):
             with st.spinner("Analisando dados da fazenda..."):
                 try:
+                    # In 2026, old session states might hold references to deprecated 1.5 models. 
+                    # If we catch an error, we wipe the session state and try again.
                     response = st.session_state['chat_session'].send_message(prompt_usuario)
                     st.markdown(response.text)
                     st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"Erro ao processar: {e}")
+                    if "404" in str(e) or "not found" in str(e).lower():
+                        st.warning("🔄 Atualizando sessão de inteligência para o modelo 3.6...")
+                        del st.session_state['chat_session']
+                        
+                        # Re-inicializa
+                        modelo = genai.GenerativeModel('gemini-3.6-flash', system_instruction=contexto_oculto)
+                        st.session_state['chat_session'] = modelo.start_chat(history=[])
+                        
+                        # Tenta enviar de novo
+                        try:
+                            response = st.session_state['chat_session'].send_message(prompt_usuario)
+                            st.markdown(response.text)
+                            st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
+                        except Exception as e2:
+                            st.error(f"Erro persistente na API do Google: {e2}")
+                    else:
+                        st.error(f"Erro ao processar: {e}")
 
 render_copilot()
