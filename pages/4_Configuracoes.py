@@ -95,9 +95,14 @@ with col_thresholds:
 st.markdown("<br>", unsafe_allow_html=True)
 col_btn, col_status = st.columns([1, 2])
 
+st.markdown("<br>", unsafe_allow_html=True)
+receber_alertas = st.toggle("Ativar Relatório Diário por E-mail (CRON)", value=cfg.get("receber_alertas", True), help="Receba um e-mail às 06:00 caso o DSS detecte risco na operação (Ex: Alagamento).")
+st.markdown("<br>", unsafe_allow_html=True)
+
 with col_btn:
     if st.button("Salvar e Buscar Dados Reais", use_container_width=True):
         config = {
+            "receber_alertas": receber_alertas,
             "lat": lat_input,
             "lon": lon_input,
             "farm_name": farm_name,
