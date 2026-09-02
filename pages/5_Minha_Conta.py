@@ -15,6 +15,24 @@ st.set_page_config(page_title="Minha Conta · SugarCane Copilot", layout="wide",
 
 inject_css()
 
+# -- LIMPEZA FORCADA --
+if not st.session_state.get('cleaned_up_nova_fazenda_forced'):
+    try:
+        from components.db import delete_farm, get_user_farms
+        _farms = get_user_farms(st.session_state['user'].id)
+        for _f in _farms:
+            if _f.get("farm_name") == "Nova Fazenda":
+                delete_farm(_f["id"], st.session_state['user'].id)
+                # If the deleted farm is the active one, clear the active state
+                if st.session_state.get('active_farm', {}).get('id') == _f['id']:
+                    st.session_state['active_farm'] = None
+        st.session_state['cleaned_up_nova_fazenda_forced'] = True
+        st.rerun()
+    except Exception as e:
+        print("Erro limpando:", e)
+# ---------------------
+
+
 if 'user' not in st.session_state or not st.session_state['user']:
     st.info("Você precisa estar logado para acessar esta página.")
     st.page_link("app.py", label="Ir para Login")
