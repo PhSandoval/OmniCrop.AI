@@ -37,6 +37,6 @@ def render_auth_page():
                     try:
                         with st.spinner("Criando conta..."):
                             res = register_user(email, password)
-                            st.success("Conta criada com sucesso! Faça login para continuar.")
+                            st.success("Conta criada com sucesso! Por favor, verifique sua caixa de entrada (e spam) e confirme seu e-mail antes de fazer login.")
                     except Exception as e:
                         st.error(f"Falha ao registrar: {e}")
