@@ -112,7 +112,24 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
                             st.markdown(response.text)
                             st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
                         except Exception as inner_e:
-                            st.error(f"Erro crônico de API. Nem o modelo Flash nem o Pro estão acessíveis: {inner_e}")
+                            # Let's dynamically find the first available model!
+                            available_models = []
+                            try:
+                                for m in genai.list_models():
+                                    if 'generateContent' in m.supported_generation_methods:
+                                        available_models.append(m.name)
+                                
+                                if available_models:
+                                    fallback_dynamic = genai.GenerativeModel(available_models[0])
+                                    if 'fallback_dynamic_session' not in st.session_state:
+                                        st.session_state['fallback_dynamic_session'] = fallback_dynamic.start_chat(history=history_setup)
+                                    response = st.session_state['fallback_dynamic_session'].send_message(prompt_usuario)
+                                    st.markdown(response.text)
+                                    st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
+                                else:
+                                    st.error("Nenhum modelo compatível encontrado na sua conta.")
+                            except Exception as deepest_e:
+                                st.error(f"Erro crônico de API. Modelos disponíveis encontrados: {available_models}. Erro: {deepest_e}")
                     else:
                         st.error(f"Ocorreu um erro ao comunicar com a inteligência: {e}")
 
