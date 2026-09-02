@@ -62,9 +62,13 @@ def run_daily_cron():
             payload = build_payload(today)
             resultado = get_prediction(payload)
             
-            # 3. Dispara e-mail se houver alertas de risco
+            # 3. Dispara e-mail se houver alertas de risco (e se estiver ativo para a fazenda)
             alertas = resultado.get("fatores_de_risco_identificados", [])
             if len(alertas) > 0:
+                if farm.get('receber_alertas', True) == False:
+                    print(f"🔕 Avisos desativados pelo usuario para {farm['farm_name']}. Pulando...")
+                    continue
+
                 print(f"⚠️ {len(alertas)} alertas disparados! Enviando e-mail...")
                 # Procura o email do dono da fazenda
                 email_dono = "mock@email.com" # Exemplo
