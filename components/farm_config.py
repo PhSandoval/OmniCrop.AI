@@ -41,10 +41,6 @@ def load_config() -> dict | None:
         st.session_state['user_farms'] = farms
         return farms[0]
         
-    if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-            
     return None
 
 def save_config(config: dict) -> None:
@@ -95,11 +91,6 @@ def save_config(config: dict) -> None:
         except Exception as e:
             st.error(f"Erro ao salvar na nuvem: {e}")
 
-    # Fallback local
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(config, f, ensure_ascii=False, indent=2)
-    
     if 'active_farm' in st.session_state and st.session_state['active_farm']:
         st.session_state['active_farm'].update(config)
     else:
