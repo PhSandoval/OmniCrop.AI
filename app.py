@@ -217,6 +217,22 @@ def render_main_app():
         f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
     )
 
+    with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
+        st.markdown('''
+        O **SugarCane Copilot** atua como um **Satélite Virtual** (um *DSS* - Sistema de Suporte à Decisão). 
+        Ele utiliza Inteligência Artificial para ler o clima e prever a saúde da sua lavoura, ajudando você a tomar decisões mesmo de longe.
+        
+        **📖 Dicionário Leigo de Termos do Agro:**
+        - **NDVI (Índice de Vigor Vegetativo):** Uma "nota de saúde" de 0 a 1 que o satélite dá para a planta. 
+          * Valores altos (próximos a 1) significam cana verde, alta e crescendo saudável. 
+          * Valores baixos (abaixo de 0.4) indicam que a planta está seca, estressada ou já madura e pronta para ser cortada.
+        - **GDA (Graus-Dia Acumulados):** É o "relógio biológico" da planta. Mede a quantidade de calor que a cana recebeu do sol. Dias frios não geram calor útil, o que "trava" o crescimento da lavoura.
+        - **Precipitação / Lâmina (mm):** É a quantidade de água da chuva ou irrigação. 1 milímetro equivale a jogar 1 litro de água espalhado em 1 metro quadrado de terra.
+        - **Déficit Hídrico:** A "conta bancária" de água da fazenda. Fica no vermelho quando a planta transpira mais água do que chove.
+        - **ROI (Retorno sobre Investimento):** O cálculo de quanto dinheiro uma ação (como ligar o pivô de irrigação) vai custar versus o quanto vai salvar de safra.
+        ''')
+
+
 
 
 
@@ -224,11 +240,11 @@ def render_main_app():
     st.markdown('<div class="sec-header">Condições do Talhão Hoje</div>', unsafe_allow_html=True)
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Temperatura Média",   f"{today['t_mean']:.1f} °C",
-              f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C")
-    k2.metric("Precipitacao",        f"{today['precipitacao_total']:.1f} mm")
-    k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm")
-    k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}")
-    k5.metric("Radiação Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²")
+              f"Max {today['t_max']:.0f} / Min {today['t_min']:.0f} °C", help="Média de calor do dia.")
+    k2.metric("Precipitação",        f"{today['precipitacao_total']:.1f} mm", help="Chuva de hoje. Lembre-se: 1mm = 1 Litro de água por metro quadrado.")
+    k3.metric("Chuva Acum. 30d", f"{today.get('chuva_acumulada_30d',0):.1f} mm", help="Reserva de chuva do último mês. Vital para a cana bater a meta de crescimento.")
+    k4.metric("Umidade do Solo",     f"{today['umidade_solo_mean']:.2f}", help="Quantidade de água que está fisicamente molhando a raiz da planta hoje.")
+    k5.metric("Radiação Solar",      f"{today['radiacao_solar_mean']:.0f} W/m²", help="Energia da luz do sol que faz a planta realizar fotossíntese.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
