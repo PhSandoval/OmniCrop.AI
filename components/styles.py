@@ -71,6 +71,15 @@ footer { display: none !important; }
 [data-testid="stMetricDelta"] { color: #4ADE80 !important; font-weight: 500 !important; }
 [data-testid="stMetricDelta"] svg { display: none !important; }
 
+/* ── Esconder "Press Enter to Submit" do Formulario ── */
+[data-testid="InputInstructions"], 
+div[data-testid="InputInstructions"], 
+.st-emotion-cache-1629p8f, 
+.st-emotion-cache-nahz7x {
+    display: none !important;
+    visibility: hidden !important;
+}
+
 /* ── Headers de Secao ── */
 .sec-header {
     font-size: 11px; 
