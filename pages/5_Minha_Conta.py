@@ -77,7 +77,7 @@ with col2:
             btn_text = f"✅ {f['farm_name']} ({f['city']})" if is_active else f"🌾 {f['farm_name']} ({f['city']})"
             
             if st.button(btn_text, use_container_width=True, disabled=is_active):
-                st.session_state['active_farm'] = True
+                st.session_state['active_farm'] = f
                 st.session_state['farm_name'] = f['farm_name']
                 st.session_state['city'] = f['city']
                 save_config(f)
