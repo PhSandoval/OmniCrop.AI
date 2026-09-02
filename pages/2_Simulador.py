@@ -58,7 +58,7 @@ with col_ctrl:
         payload_sim["chuva_acumulada_30d"] = chuva_plantio
         payload_sim["GDA_mensal"] = gda_plantio
         
-    elif "Irrigacao" in cenario:
+    elif "Irrigação" in cenario:
         lame    = st.slider("Lâmina de Irrigação Adicional", 0, 100, 40, format="%d mm/dia", help="Milimetros de água aplicados no campo por dia")
         duracao = st.slider("Duração do Programa", 1, 30, 10, format="%d dias")
         vol_total = lame * duracao
@@ -139,7 +139,7 @@ with col_out:
             
         st.info(f"**Ação Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
         
-        if "Irrigacao" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
+        if "Irrigação" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
             st.error("⚠️ **Risco de Alagamento (Waterlogging)**: Volume excessivo de água pode causar sufocamento radicular e queda brusca de vigor.")
     else:
         st.error("Erro na projeção local.")
