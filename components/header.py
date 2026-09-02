@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from components.farm_config import load_config
 
 
 def render_sidebar(today: dict, resultado: dict | None) -> None:
@@ -37,8 +38,26 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
         st.markdown("---")
 
+        # Farm Switcher (Multi-Tenant)
+        if 'user_farms' in st.session_state and isinstance(st.session_state['user_farms'], list) and len(st.session_state['user_farms']) > 1:
+            farm_names = [f.get("farm_name", f"Fazenda {i}") for i, f in enumerate(st.session_state['user_farms'])]
+            
+            # Find active index
+            active_idx = 0
+            if 'active_farm' in st.session_state and st.session_state['active_farm']:
+                active_id = st.session_state['active_farm'].get("id")
+                active_idx = next((i for i, f in enumerate(st.session_state['user_farms']) if f.get("id") == active_id), 0)
+                
+            selected_name = st.selectbox("Mudar Fazenda", farm_names, index=active_idx)
+            
+            # If changed, update active farm and rerun
+            if 'active_farm' in st.session_state and st.session_state['active_farm'].get("farm_name") != selected_name:
+                selected_farm = next(f for f in st.session_state['user_farms'] if f.get("farm_name") == selected_name)
+                st.session_state['active_farm'] = selected_farm
+                st.rerun()
+
         # Farm status panel
-        date_str = pd.to_datetime(today.get("date", "")).strftime("%d/%m/%Y") if today.get("date") else "—"
+        date_str = pd.to_datetime(today.get("date", "")).strftime("%d/%m/%Y") if today and today.get("date") else "—"
         ndvi_val = resultado["ndvi_previsto"] if resultado else None
         status_txt = resultado["status_vigor"] if resultado else "API Offline"
 
@@ -52,12 +71,10 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
         else:
             color, dot = "#888", "#888"
 
-        from components.farm_config import load_config
-        cfg = load_config()
+        cfg = load_config() or {}
         
-        # Busca no session_state primeiro (prioridade para a sessao de Onboarding), caso contrario usa o config
-        farm_name = st.session_state.get("farm_name", cfg.get("farm_name", "Minha Fazenda"))
-        city_name = st.session_state.get("city", cfg.get("city", "Localização Desconhecida"))
+        farm_name = cfg.get("farm_name", "Minha Fazenda")
+        city_name = cfg.get("city", "Localização Desconhecida")
         status_label = status_txt.split("(")[0].strip() if (resultado and status_txt) else "Online" if resultado else "API Offline"
         
         html_str = f'''<div style="background:rgba(8,35,10,.55);border:1px solid rgba(100,220,100,.20);border-radius:12px;padding:16px;">
