@@ -17,6 +17,12 @@ st.set_page_config(page_title="Simulator · SugarCane Copilot", layout="wide",
 
 inject_css()
 
+if 'user' not in st.session_state or not st.session_state['user']:
+    st.info("A sua sessão expirou. Faça login novamente para acessar o sistema.")
+    st.page_link("app.py", label="Ir para Login 🔒")
+    st.stop()
+
+
 if not is_configured():
     render_sidebar({}, None)
     st.info("Configure a localizacao da sua fazenda em Settings para usar o Simulator.")

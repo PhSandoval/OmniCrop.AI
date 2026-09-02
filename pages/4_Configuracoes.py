@@ -17,6 +17,12 @@ st.set_page_config(page_title="Settings · SugarCane Copilot", layout="wide",
 
 inject_css()
 
+if 'user' not in st.session_state or not st.session_state['user']:
+    st.info("A sua sessão expirou. Faça login novamente para acessar o sistema.")
+    st.page_link("app.py", label="Ir para Login 🔒")
+    st.stop()
+
+
 # Carregar config salva (se existir)
 cfg = load_config() or {}
 
