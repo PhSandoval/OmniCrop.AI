@@ -37,47 +37,20 @@ render_page_header("Settings", "CONFIGURAÇÃO DA FAZENDA E LIMIARES DE ALERTA")
 col_farm, col_thresholds = st.columns([1, 1], gap="large")
 
 # ─────────────────────────────────────────────────────────────
-# COLUNA A — Localização da Fazenda
+# COLUNA A — Dados Operacionais
 # ─────────────────────────────────────────────────────────────
 with col_farm:
-    st.markdown('<div class="sec-header">Localização da Fazenda</div>', unsafe_allow_html=True)
-
-    # Busca por nome de cidade
-    query = st.text_input("Buscar por nome de cidade / município",
-                          placeholder="Ex: Ribeirão Preto, Piracicaba, Jaboticabal...")
-
-    lat_val = cfg.get("lat", -21.1767)
-    lon_val = cfg.get("lon", -47.8208)
-
-    if query and len(query) >= 3:
-        with st.spinner("Buscando localização..."):
-            results = search_location(query)
-
-        if results:
-            labels = [r["label"] for r in results]
-            escolha = st.selectbox("Selecione a localidade:", labels)
-            idx = labels.index(escolha)
-            lat_val = results[idx]["lat"]
-            lon_val = results[idx]["lon"]
-            st.caption(f"Coordenadas: {lat_val:.4f}, {lon_val:.4f}")
-        else:
-            st.warning("Nenhuma localidade encontrada. Tente outro nome ou insira as coordenadas manualmente.")
-
-    st.markdown("**Ou insira as coordenadas manualmente:**")
-    col_lat, col_lon = st.columns(2)
-    lat_input = col_lat.number_input("Latitude", value=lat_val, format="%.4f", step=0.0001)
-    lon_input = col_lon.number_input("Longitude", value=lon_val, format="%.4f", step=0.0001)
-
-    # Mapa interativo
-    st.markdown("**Localização no Mapa:**")
-    map_df = pd.DataFrame({"lat": [lat_input], "lon": [lon_input]})
-    st.map(map_df, zoom=9, use_container_width=True)
-
+    st.markdown('<div class="sec-header">Talhão Ativo</div>', unsafe_allow_html=True)
+    
+    farm_name = cfg.get("farm_name", "Minha Fazenda")
+    city = cfg.get("city", "Cidade")
+    lat_input = cfg.get("lat", -21.1767)
+    lon_input = cfg.get("lon", -47.8208)
+    
+    st.info(f"📍 **{farm_name}** ({city})\n\nAs coordenadas de satélite ({lat_input:.4f}, {lon_input:.4f}) são gerenciadas na aba **Minha Conta**.")
+    
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="sec-header">Dados da Fazenda</div>', unsafe_allow_html=True)
-
-    farm_name  = st.text_input("Nome da Fazenda / Talhão",
-                               value=cfg.get("farm_name", "Minha Fazenda"))
+    st.markdown('<div class="sec-header">Dados Agronômicos</div>', unsafe_allow_html=True)
     area_ha    = st.number_input("Área (hectares)", value=cfg.get("area_ha", 100), min_value=1)
     variedade  = st.selectbox("Variedade de Cana",
                               ["RB867515", "CTC9001", "SP803280", "RB966928"],
