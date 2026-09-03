@@ -48,54 +48,61 @@ cenario = st.radio("Cenário de Intervenção:",
                    ["Planejamento de Plantio", "Irrigação de Salvamento", "Aplicação de Adubação", "Manejo de Colheita / Maturador"],
                    horizontal=True)
 
+import pandas as pd
+now = pd.Timestamp.now(tz="America/Sao_Paulo").normalize().tz_localize(None)
+df_future = df[df["date"] > now].head(15)
+chuva_15d_futura = df_future["precipitacao_total"].sum() if not df_future.empty else 0
+gda_15d_futuro = df_future["gdd"].sum() if "gdd" in df_future.columns and not df_future.empty else 0
+
 st.markdown("<br>", unsafe_allow_html=True)
 col_ctrl, col_out = st.columns([1, 1], gap="large")
 payload_sim = payload_hoje.copy()
 
 with col_ctrl:
     st.markdown('<div class="sec-header">Parâmetros da Simulação</div>', unsafe_allow_html=True)
-    st.caption(f"Chuva 30d: **{today.get('chuva_acumulada_30d', 0):.1f} mm** · "
-               f"GDA atual: **{today.get('GDA_mensal', 0):.1f}**")
+    st.info(f"⛅ **Previsão Real (Próximos 15 dias):**\n- **Chuva Esperada:** {chuva_15d_futura:.1f} mm\n- **Calor (GDA) Esperado:** {gda_15d_futuro:.1f}")
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "Plantio" in cenario:
-        chuva_plantio = st.slider(f"Previsão de Chuva para a Quinzena (Atual Real: {today.get('chuva_acumulada_30d',0):.1f} mm)", 0, 150, 40, format="%d mm")
-        gda_plantio   = st.slider(f"Previsão de GDA (Atual Real: {today.get('GDA_mensal',0):.1f} GDA)", 0, 200, 95, format="%d GDA")
-        payload_sim["chuva_acumulada_30d"] = chuva_plantio
-        payload_sim["GDA_mensal"] = gda_plantio
+        st.write("Decisão: Aplicar irrigação de salvamento no plantio ou confiar na chuva?")
+        irrigacao = st.slider("Irrigação no Sulco de Plantio", 0, 100, 0, format="%d mm")
+        # Soma a chuva passada + chuva futura + irrigação humana
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura + irrigacao)
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
         
     elif "Irrigação" in cenario:
-        lame    = st.slider("Lâmina de Irrigação Adicional", 0, 100, 40, format="%d mm/dia", help="Milimetros de água aplicados no campo por dia")
+        lame    = st.slider("Lâmina de Irrigação (Pivô/Gotejo)", 0, 100, 40, format="%d mm/dia", help="Milimetros de água aplicados no campo por dia")
         duracao = st.slider("Duração do Programa", 1, 30, 10, format="%d dias")
         vol_total = lame * duracao
-        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + vol_total)
-        st.caption(f"Chuva 30d projetada: {today.get('chuva_acumulada_30d',0):.0f} → **{payload_sim['chuva_acumulada_30d']:.0f} mm**")
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura + vol_total)
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
+        st.caption(f"Água Total Projetada (Chuva + Irrigação): **{chuva_15d_futura + vol_total:.0f} mm**")
         
         custo_por_mm_ha = 5.00
-        custo_total = lame * duracao * custo_por_mm_ha
+        custo_total = vol_total * custo_por_mm_ha
         st.caption(f'Custo Estimado de Energia/Bombeamento: **R$ {custo_total:,.2f} / hectare**')
 
     elif "Adubação" in cenario:
-        eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polimero)", "Nitrato (Alta Absorção)"])
-        chuva_prev = st.slider(f"Previsão de Chuva Pós-Aplicação (Atual Real: {today.get('chuva_acumulada_30d',0):.1f} mm)", 0, 150, 15, format="%d mm")
+        st.write("Decisão: Qual fertilizante aplicar considerando a chuva prevista?")
+        eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polímero)", "Nitrato (Alta Absorção)"])
         
         bonus_ndvi = 0
-        if "Comum" in eficiencia and chuva_prev > 15:
+        if "Comum" in eficiencia and chuva_15d_futura > 15:
             bonus_ndvi = 0.05
         elif "Protegida" in eficiencia:
             bonus_ndvi = 0.08
         elif "Nitrato" in eficiencia:
             bonus_ndvi = 0.12
             
-        payload_sim["chuva_acumulada_30d"] = chuva_prev
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
         
     elif "Colheita" in cenario:
+        st.write("Decisão: Quando entrar com as máquinas e aplicar maturador?")
         dias_antecip = st.slider("Dias para Antecipação de Corte / Aplicação de Maturador", 0, 45, 15, format="%d dias")
-        # O maturador trava o crescimento vegetativo para acumular açucar.
-        # Entao o NDVI vai artificialmente "cair" ou estabilizar, e a planta precisa de estresse hidrico.
-        chuva_colheita = st.slider(f"Previsão de Chuva Acumulada (Atual Real: {today.get('chuva_acumulada_30d',0):.1f} mm)", 0, 150, 5, format="%d mm")
-        payload_sim["chuva_acumulada_30d"] = chuva_colheita
-        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + (dias_antecip * 4)) # aumenta calor
+        # Maturador corta o vigor vegetativo. Adicionar dias de estresse hidrico reduz a chuva proporcionalmente
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura) * (1 - (dias_antecip/100))
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro + (dias_antecip * 4)) # aumenta calor
 
 with col_out:
     st.markdown('<div class="sec-header">Projeção Pós-Intervenção</div>', unsafe_allow_html=True)
