@@ -145,10 +145,18 @@ with col_out:
         mes_atual = today["date"].month if hasattr(today.get("date", ""), "month") else 8
         dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario, chuva_projetada=payload_sim["chuva_acumulada_30d"], gda_projetado=payload_sim["GDA_mensal"])
         
-        if delta > 0:
-            st.success(f"Intervenção benéfica — melhora de {abs(delta_pct):.1f}% no vigor.")
-        elif delta < 0:
-            st.error(f"Cenário crítico — queda de {abs(delta_pct):.1f}% no vigor.")
+        if "Colheita" in cenario:
+            if delta < 0:
+                st.success(f"Maturador eficiente — redução esperada de {abs(delta_pct):.1f}% no vigor foliar (acúmulo de ATR).")
+            else:
+                st.warning(f"Atenção — Vigor aumentou {abs(delta_pct):.1f}%. A cana está vegetando em vez de acumular açúcar.")
+        elif "Plantio" in cenario and ndvi_base < 0.25:
+            st.info(f"Solo exposto (NDVI={ndvi_base:.3f}). Variação de {abs(delta_pct):.1f}% inicial é normal durante a brotação.")
+        else:
+            if delta > 0:
+                st.success(f"Intervenção benéfica — melhora de {abs(delta_pct):.1f}% no vigor.")
+            elif delta < 0:
+                st.error(f"Cenário crítico — queda de {abs(delta_pct):.1f}% no vigor.")
             
         st.info(f"**Ação Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
         

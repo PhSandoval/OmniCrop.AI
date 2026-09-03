@@ -78,13 +78,6 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
         
     delta = ndvi_projetado - ndvi_atual
     
-    # Regra absoluta (Independente do mes/fase)
-    if delta < 0:
-        return {
-            "status_title": "❌ Alerta Simulacao",
-            "mensagem_recomendacao": "A intervencao simulada reduziu ou nao alterou o vigor projetado. Estratégia não recomendada (desperdício de recursos)."
-        }
-        
     # Regras especificas de novos cenarios (ignoram fase do ano)
     if "Colheita" in cenario:
         if chuva_projetada > 50:
