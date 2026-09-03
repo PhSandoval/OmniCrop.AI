@@ -145,14 +145,36 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
                 "mensagem_recomendacao": "A irrigação simulada não reverteu a queda de vigor. Estratégia não recomendada (desperdício de recursos e energia)."
             }
 
-    # Fallback para outras acoes
-    if delta < 0:
-        return {
-            "status_title": "❌ Alerta Simulacao",
-            "mensagem_recomendacao": "A intervencao simulada reduziu ou nao alterou o vigor projetado. Estratégia não recomendada."
-        }
-        
-    return {
-        "status_title": "🟢 Operação Padrão",
-        "mensagem_recomendacao": "As condições estão dentro da normalidade para esta fase fenológica."
-    }
+    # Fallback / Analise da Fase Fenológica Padrão
+    if fase_maturacao:
+        if ndvi_atual < 0.4:
+            return {
+                "status_title": "🟡 Pronto p/ Corte",
+                "mensagem_recomendacao": "O vigor atual indica estresse hídrico natural da maturacao ou area ja colhida. Intervencao Rejeitada: Irrigar agora causara desperdício. Priorizar talhao na fila de colheita."
+            }
+        elif ndvi_atual >= 0.6:
+            return {
+                "status_title": "🟠 Alerta",
+                "mensagem_recomendacao": "Cana vegetando durante periodo de maturacao. Avaliar aplicacao de maturador químico para forcar o acumulo de ATR (acucar)."
+            }
+        else:
+            return {
+                "status_title": "🟢 Normal p/ Fase",
+                "mensagem_recomendacao": "Condicao normal de desenvolvimento na maturacao. Manter monitoramento para a janela de corte ideal."
+            }
+    else:
+        if ndvi_atual < 0.5 and delta > 0:
+            return {
+                "status_title": "🔴 Critico",
+                "mensagem_recomendacao": "Déficit hídrico severo na fase de crescimento. Aprovar intervencao: Irrigacao de salvamento recomendada para evitar quebra de safra."
+            }
+        elif ndvi_atual >= 0.6:
+            return {
+                "status_title": "🟢 Normal",
+                "mensagem_recomendacao": "Desenvolvimento vegetativo dentro da normalidade. Manter monitoramento padrao."
+            }
+        else:
+            return {
+                "status_title": "🟡 Atenção",
+                "mensagem_recomendacao": "Desenvolvimento intermediario. Acompanhar indices nos próximos 15 dias."
+            }
