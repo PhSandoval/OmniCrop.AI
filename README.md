@@ -1,5 +1,7 @@
 # SugarCane Copilot - O Satélite Virtual do Agronegócio (SaaS B2B)
 
+🚀 **Aplicação em Produção (Nuvem):** [Acesse o SugarCane Copilot (Web App)](https://sugarcanemle.streamlit.app)
+
 Um **Sistema de Suporte à Decisão (DSS)** de ponta a ponta focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um **Satélite Virtual**, o sistema permite o monitoramento contínuo de múltiplos talhões utilizando dados climáticos em tempo real, contornando a limitação física dos satélites ópticos (que ficam cegos em dias nublados).
 
 Criado com uma **Arquitetura Monolítica no Streamlit** e integrado nativamente com o **Supabase (PostgreSQL + Auth)**, é um produto desenhado para ser comercializado no modelo SaaS B2B.
