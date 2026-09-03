@@ -374,7 +374,7 @@ def render_main_app():
             umidade = f"{today.get('umidade_solo_mean', 0):.2f}"
             
             # Inicializa chaves de sessao se nao existirem (prefixo por talhao para isolar checkboxes)
-            c_talhao = st.session_state['current_farm']
+            c_talhao = cfg.get('farm_name', 'default')
             k1, k2, k3 = f'chk_1_{c_talhao}', f'chk_2_{c_talhao}', f'chk_3_{c_talhao}'
             if k1 not in st.session_state: st.session_state[k1] = False
             if k2 not in st.session_state: st.session_state[k2] = False
