@@ -159,6 +159,29 @@ with col_out:
                 st.error(f"Cenário crítico — queda de {abs(delta_pct):.1f}% no vigor.")
             
         st.info(f"**Ação Recomendada ({dss['status_title']}):**  \n{dss['mensagem_recomendacao']}")
+        if "Plantio" in cenario or "Irrigação" in cenario:
+            best_ndvi = -1
+            best_irr = 0
+            for irr_test in range(0, 151, 5):
+                test_payload = payload_hoje.copy()
+                test_payload["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura + irr_test)
+                test_payload["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
+                res_test = get_prediction(test_payload)
+                if res_test:
+                    if (res_test["ndvi_previsto"] - best_ndvi) > 0.001:
+                        best_ndvi = res_test["ndvi_previsto"]
+                        best_irr = irr_test
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            if best_irr > 0:
+                st.markdown(f"<div style='padding:15px; border-radius:8px; border:1px solid #4CAF50; background:rgba(76,175,80,0.1); color:#A5D6A7;'>"
+                            f"💡 <b>Ponto Ótimo de Irrigação (IA):</b> Para maximizar o vigor e evitar desperdício de bombeamento, aplique exatamente <b>{best_irr} mm</b> (teto alcançável: NDVI {best_ndvi:.3f})."
+                            f"</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<div style='padding:15px; border-radius:8px; border:1px solid #4CAF50; background:rgba(76,175,80,0.1); color:#A5D6A7;'>"
+                            f"💡 <b>Ponto Ótimo de Irrigação (IA):</b> Economize energia! A chuva natural projetada já atinge o teto máximo de vigor para os próximos 15 dias (NDVI {best_ndvi:.3f}). Nenhuma irrigação adicional é recomendada."
+                            f"</div>", unsafe_allow_html=True)
+
         
         if "Irrigação" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
             st.error("⚠️ **Risco de Alagamento (Waterlogging)**: Volume excessivo de água pode causar sufocamento radicular e queda brusca de vigor.")
