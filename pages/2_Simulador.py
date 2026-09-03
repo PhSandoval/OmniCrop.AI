@@ -86,15 +86,24 @@ with col_ctrl:
     elif "Adubação" in cenario:
         st.write("Decisão: Qual fertilizante aplicar considerando a chuva prevista?")
         eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polímero)", "Nitrato (Alta Absorção)"])
+        dose = st.slider("Dose de Aplicação", 0, 500, 200, format="%d kg/ha", help="Quantidade de fertilizante aplicado por hectare.")
         cenario_dss = f"Adubação - {eficiencia}" 
         
+        preco_kg = 3.50
         bonus_ndvi = 0
-        if "Comum" in eficiencia and chuva_15d_futura > 15:
-            bonus_ndvi = 0.05
+        if "Comum" in eficiencia:
+            preco_kg = 3.00
+            if chuva_15d_futura > 15:
+                bonus_ndvi = 0.05 * (dose / 200)
         elif "Protegida" in eficiencia:
-            bonus_ndvi = 0.08
+            preco_kg = 4.50
+            bonus_ndvi = 0.08 * (dose / 200)
         elif "Nitrato" in eficiencia:
-            bonus_ndvi = 0.12
+            preco_kg = 5.50
+            bonus_ndvi = 0.12 * (dose / 200)
+            
+        custo_adubacao = dose * preco_kg
+        st.caption(f"💰 Custo Estimado do Fertilizante: **R$ {custo_adubacao:,.2f} / hectare**")
             
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
