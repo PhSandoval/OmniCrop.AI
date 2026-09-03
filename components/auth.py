@@ -3,7 +3,7 @@ from components.db import login_user, register_user
 from streamlit_cookies_controller import CookieController
 
 def render_auth_page():
-    st.markdown("<h1 style='text-align: center;'>🌱 Cropilot AI</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>🌱 OmniCrop AI</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8);'>SaaS de Inteligência Agronômica</p>", unsafe_allow_html=True)
     st.write("")
     

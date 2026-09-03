@@ -12,7 +12,7 @@ from components.live_data import search_location, fetch_farm_data
 from components.api_client import build_payload, get_prediction
 from components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="Settings · Cropilot AI", layout="wide",
+st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="🌾", layout="wide",
                    initial_sidebar_state="expanded", page_icon="")
 
 inject_css()

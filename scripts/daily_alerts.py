@@ -13,7 +13,7 @@ from components.api_client import build_payload, get_prediction
 
 def send_alert_email(email_to, farm_name, alertas):
     msg = EmailMessage()
-    msg['Subject'] = f"🚨 Alerta Operacional: {farm_name} (Cropilot AI)"
+    msg['Subject'] = f"🚨 Alerta Operacional: {farm_name} (OmniCrop AI)"
     msg['From'] = "alertas@cropilot.ai"
     msg['To'] = email_to
     
@@ -27,7 +27,7 @@ O Satélite Virtual detectou os seguintes riscos iminentes na fazenda {farm_name
 Por favor, acesse o Dashboard para redirecionar a operação ou iniciar o Simulador de Salvamento.
 
 Atenciosamente,
-IA do Cropilot AI
+IA do OmniCrop AI
 """
     msg.set_content(content)
     

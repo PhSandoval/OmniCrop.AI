@@ -10,7 +10,7 @@ from components.farm_config import load_config, save_config
 from components.live_data import fetch_farm_data
 from components.api_client import build_payload, get_prediction
 
-st.set_page_config(page_title="Minha Conta · Cropilot AI", layout="wide",
+st.set_page_config(page_title="Minha Conta · OmniCrop AI", page_icon="🌾", layout="wide",
                    initial_sidebar_state="expanded")
 
 inject_css()

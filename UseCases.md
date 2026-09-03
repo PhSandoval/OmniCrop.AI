@@ -1,6 +1,6 @@
 # Casos de Uso (Use Cases)
 
-O Cropilot AI foi desenhado para atuar como o principal assistente de decisão de Agrônomos, Gestores Agrícolas e Diretores de Usinas de Cana-de-Açúcar. Abaixo estão os 6 cenários práticos de geração de valor financeiro (ROI) do sistema.
+O OmniCrop AI foi desenhado para atuar como o principal assistente de decisão de Agrônomos, Gestores Agrícolas e Diretores de Usinas de Cana-de-Açúcar. Abaixo estão os 6 cenários práticos de geração de valor financeiro (ROI) do sistema.
 
 ## 1. Planejamento de Colheita (Corte Mecanizado)
 **O Problema:** Máquinas colhedoras pesam toneladas. Se o solo estiver muito úmido, a máquina atola, compacta a terra e "esmaga" a soqueira (a base da planta que vai brotar na próxima safra), causando prejuízos milionários.
