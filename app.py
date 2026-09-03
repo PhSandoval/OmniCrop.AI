@@ -288,20 +288,26 @@ def render_main_app():
         f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
     )
 
-    from components.pdf_generator import generate_pdf_report
-    pdf_bytes = generate_pdf_report(
-        cfg.get("farm_name", "Minha Fazenda"),
-        cfg.get("city", "Desconhecida"),
-        payload,
-        resultado
-    )
-    st.download_button(
-        label="📄 Baixar Relatório Semanal (PDF)",
-        data=pdf_bytes,
-        file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf",
-        mime="application/pdf",
-        type="primary"
-    )
+    @st.fragment
+    def render_pdf_section():
+        if st.button("📄 Gerar Relatório Executivo (PDF)", type="primary"):
+            with st.spinner("Analisando dados com IA e compilando PDF..."):
+                from components.pdf_generator import generate_pdf_report
+                pdf_bytes = generate_pdf_report(
+                    cfg.get("farm_name", "Minha Fazenda"),
+                    cfg.get("city", "Desconhecida"),
+                    payload,
+                    resultado
+                )
+                st.download_button(
+                    label="⬇️ PDF Pronto! Clique para Baixar",
+                    data=pdf_bytes,
+                    file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf",
+                    mime="application/pdf",
+                    type="secondary"
+                )
+    
+    render_pdf_section()
     st.markdown("<br>", unsafe_allow_html=True)
 
 
