@@ -47,6 +47,7 @@ st.markdown(
 cenario = st.radio("Cenário de Intervenção:",
                    ["Planejamento de Plantio", "Irrigação de Salvamento", "Aplicação de Adubação", "Manejo de Colheita / Maturador"],
                    horizontal=True)
+cenario_dss = cenario
 
 import pandas as pd
 now = pd.Timestamp.now(tz="America/Sao_Paulo").normalize().tz_localize(None)
@@ -85,6 +86,7 @@ with col_ctrl:
     elif "Adubação" in cenario:
         st.write("Decisão: Qual fertilizante aplicar considerando a chuva prevista?")
         eficiencia = st.selectbox("Qualidade e Tipo do Fertilizante", ["Ureia Comum", "Ureia Protegida (Polímero)", "Nitrato (Alta Absorção)"])
+        cenario_dss = f"Adubação - {eficiencia}" 
         
         bonus_ndvi = 0
         if "Comum" in eficiencia and chuva_15d_futura > 15:
@@ -143,7 +145,13 @@ with col_out:
         st.markdown("<br>", unsafe_allow_html=True)
         
         mes_atual = today["date"].month if hasattr(today.get("date", ""), "month") else 8
-        dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario, chuva_projetada=payload_sim["chuva_acumulada_30d"], gda_projetado=payload_sim["GDA_mensal"])
+        
+        # Calcular apenas a chuva futura projetada para as regras do DSS
+        chuva_futura_DSS = chuva_15d_futura
+        if "Irrigação" in cenario: chuva_futura_DSS += vol_total
+        elif "Plantio" in cenario: chuva_futura_DSS += irrigacao
+            
+        dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario_dss, chuva_projetada=chuva_futura_DSS, gda_projetado=gda_15d_futuro)
         
         if "Colheita" in cenario:
             if delta < 0:

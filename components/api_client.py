@@ -116,21 +116,47 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
                 "mensagem_recomendacao": base_msg + "Condição razoável, mas exigirá monitoramento."
             }
             
-    if "Adubacao" in cenario:
-        if chuva_projetada < 10:
-            return {
-                "status_title": "🔴 Desperdicio",
-                "mensagem_recomendacao": "Não aplicar ureia. Solo seco nao incorporara o fertilizante, causando perda volatil."
-            }
+    if "Adubação" in cenario or "Adubacao" in cenario:
+        is_comum = "Comum" in cenario
+        is_protegida = "Protegida" in cenario
+        is_nitrato = "Nitrato" in cenario
+        
+        if chuva_projetada < 15:
+            if is_comum:
+                return {
+                    "status_title": "🔴 Volatilização Severa",
+                    "mensagem_recomendacao": "A chuva projetada é muito baixa para incorporar a Ureia Comum. Haverá severa perda de nitrogênio para a atmosfera (gás amônia). Aguarde chuvas ou troque para Ureia Protegida."
+                }
+            elif is_nitrato:
+                return {
+                    "status_title": "🟡 Absorção Lenta",
+                    "mensagem_recomendacao": "O Nitrato não volatiliza, mas a falta de umidade no solo limitará a absorção pelas raízes. A resposta vegetativa será lenta."
+                }
+            else:
+                return {
+                    "status_title": "🟢 Ureia Protegida Segura",
+                    "mensagem_recomendacao": "A Ureia Protegida (com inibidor de urease) resiste ao sol e não volatiliza. Pode aplicar agora com segurança e aguardar a próxima chuva para incorporação."
+                }
         elif chuva_projetada > 100:
-            return {
-                "status_title": "🟡 Lixiviação",
-                "mensagem_recomendacao": "Chuva excessiva projetada. Risco de lixiviação de nutrientes. Fracionar a dose recomendada."
-            }
+            if is_nitrato:
+                return {
+                    "status_title": "🔴 Risco Crítico de Lixiviação",
+                    "mensagem_recomendacao": "Chuva excessiva! O Nitrato possui altíssima solubilidade e será lavado (lixiviado) para o lençol freático antes da planta absorver. Prejuízo financeiro alto."
+                }
+            elif is_comum:
+                return {
+                    "status_title": "🟡 Risco Moderado",
+                    "mensagem_recomendacao": "Volume alto de chuvas. Há risco de lixiviação parcial do nitrogênio. Considere fracionar a dose da adubação para não perder produto."
+                }
+            else:
+                return {
+                    "status_title": "🟢 Ureia Protegida Segura",
+                    "mensagem_recomendacao": "Os polímeros da Ureia Protegida garantem liberação gradual, suportando bem o volume alto de chuvas sem lixiviar rapidamente."
+                }
         else:
             return {
                 "status_title": "🟢 Janela Ideal",
-                "mensagem_recomendacao": "Condições ideais de umidade para incorporação e absorção radicular do fertilizante."
+                "mensagem_recomendacao": "Condições termohídricas perfeitas para adubação de cobertura. Umidade suficiente para incorporação rápida no solo sem lixiviação grave."
             }
 
     if "Irrigação" in cenario:
