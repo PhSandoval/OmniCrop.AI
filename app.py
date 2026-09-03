@@ -373,14 +373,43 @@ def render_main_app():
             chuva_30 = f"{today.get('chuva_acumulada_30d', 0):.1f}"
             umidade = f"{today.get('umidade_solo_mean', 0):.2f}"
             
+            # Inicializa chaves de sessao se nao existirem (prefixo por talhao para isolar checkboxes)
+            c_talhao = st.session_state['current_farm']
+            k1, k2, k3 = f'chk_1_{c_talhao}', f'chk_2_{c_talhao}', f'chk_3_{c_talhao}'
+            if k1 not in st.session_state: st.session_state[k1] = False
+            if k2 not in st.session_state: st.session_state[k2] = False
+            if k3 not in st.session_state: st.session_state[k3] = False
+            
+            # Calcula progresso
+            tasks_done = sum([st.session_state[k1], st.session_state[k2], st.session_state[k3]])
+            porcentagem = int((tasks_done / 3) * 100)
+            
+            # Renderiza barra de progresso
+            st.progress(porcentagem, text=f'Progresso das Ações Diárias ({porcentagem}%)')
+            if porcentagem == 100:
+                st.success('✅ Todas as ações de mitigação foram validadas para este talhão hoje!')
+                
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Renderiza 3 tarefas dependendo do contexto
             if "Pronto p/ Corte" in status_titulo or "Critico" in status_titulo:
-                st.checkbox(f'🚜 **Operacional:** Liberar frente de corte mecanizado (Trafegabilidade excelente com {chuva_30}mm de chuva).')
-                st.checkbox('🚁 **Tecnologia:** Realizar voo de drone pré-colheita para mapear linhas e evitar pisoteio da soqueira.')
-                st.checkbox(f'🔥 **Prevenção:** Alertar brigada de incêndio (Risco crítico de fogo devido à umidade do solo em {umidade}).')
+                t1 = st.checkbox('🚜 Liberar Frente de Corte Mecanizado', key=k1)
+                st.caption(f'Trafegabilidade excelente devido ao baixo acúmulo de apenas {chuva_30}mm de chuva recente.')
+                
+                t2 = st.checkbox('🚁 Agendar Voo de Drone Pré-Colheita', key=k2)
+                st.caption('Necessário para mapear as linhas de plantio e configurar piloto automático (evita pisoteio da soqueira).')
+                
+                t3 = st.checkbox('🔥 Alertar Brigada de Incêndio', key=k3)
+                st.caption(f'Risco crítico de fogo devido à palhada seca e umidade do solo perigosamente baixa ({umidade}).')
             else:
-                st.checkbox('💧 **Irrigação:** Acionar pivô/gotejo conforme lâmina sugerida no simulador.')
-                st.checkbox('🧪 **Tratos Culturais:** Programar aplicação de nitrogênio em cobertura antes da próxima chuva.')
-
+                t1 = st.checkbox('💧 Acionar Programa de Irrigação', key=k1)
+                st.caption('Verifique o módulo Simulador para calcular a lâmina exata em milímetros que maximiza o vigor sem desperdício.')
+                
+                t2 = st.checkbox('🧪 Programar Adubação de Cobertura', key=k2)
+                st.caption('Recomenda-se aplicar fertilizante nitrogenado antes da próxima chuva para garantir incorporação no solo e evitar volatilização.')
+                
+                t3 = st.checkbox('🌱 Inspecionar Pragas (Broca-da-Cana)', key=k3)
+                st.caption('Fase de alto vigor vegetativo é o prato principal para pragas. Desloque um técnico para amostragem destrutiva.')
 
             st.caption("Inteligência Agronômica baseada na Matriz de Fases de Safra")
 
