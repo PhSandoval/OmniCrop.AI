@@ -159,8 +159,8 @@ def render_onboarding():
                     
         with tab_coord:
             c1, c2, c3 = st.columns([2, 2, 1])
-            man_lat = c1.number_input("Latitude:", value=float(st.session_state['map_center'][0]), format="%.5f")
-            man_lon = c2.number_input("Longitude:", value=float(st.session_state['map_center'][1]), format="%.5f")
+            man_lat = c1.number_input("Latitude:", value=float(st.session_state['map_center'][0]), format="%.6f", step=1e-6)
+            man_lon = c2.number_input("Longitude:", value=float(st.session_state['map_center'][1]), format="%.6f", step=1e-6)
             if c3.button("Pular para Coordenada", use_container_width=True):
                 st.session_state['map_center'] = [man_lat, man_lon]
                 st.session_state['clicked_lat'] = man_lat
@@ -215,7 +215,7 @@ def render_onboarding():
                 st.rerun()
                 
         if clicked_lat and clicked_lon:
-            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {clicked_lat:.4f} | Longitude {clicked_lon:.4f}")
+            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {clicked_lat:.6f} | Longitude {clicked_lon:.6f}")
         
         col_f, col_a = st.columns([3, 1])
         fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
