@@ -10,3 +10,4 @@ streamlit-folium
 supabase>=2.0.0
 fpdf2
 google-generativeai
+streamlit-cookies-controller

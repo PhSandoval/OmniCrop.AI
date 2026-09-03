@@ -1,5 +1,6 @@
 import streamlit as st
 from components.db import login_user, register_user
+from streamlit_cookies_controller import CookieController
 
 def render_auth_page():
     st.markdown("<h1 style='text-align: center;'>🌱 SugarCane Copilot</h1>", unsafe_allow_html=True)
@@ -23,6 +24,15 @@ def render_auth_page():
                             res = login_user(email, password)
                             st.session_state['user'] = res.user
                             st.session_state['access_token'] = res.session.access_token
+                            
+                            # Salva nos cookies para persistencia
+                            try:
+                                controller = CookieController()
+                                controller.set('sb-access-token', res.session.access_token, max_age=86400*30)
+                                controller.set('sb-refresh-token', res.session.refresh_token, max_age=86400*30)
+                            except:
+                                pass
+                                
                             st.rerun()
                     except Exception as e:
                         st.error(f"Falha no login. Verifique suas credenciais.")

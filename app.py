@@ -22,6 +22,20 @@ inject_css()
 # 1. Controle de Estado
 if 'user' not in st.session_state:
     st.session_state['user'] = None
+    try:
+        from streamlit_cookies_controller import CookieController
+        controller = CookieController()
+        access_token = controller.get('sb-access-token')
+        refresh_token = controller.get('sb-refresh-token')
+        
+        if access_token and refresh_token:
+            from components.db import get_supabase
+            res = get_supabase().auth.set_session(access_token, refresh_token)
+            if res and getattr(res, 'user', None):
+                st.session_state['user'] = res.user
+                st.session_state['access_token'] = res.session.access_token
+    except Exception as e:
+        pass
 
 if 'active_farm' not in st.session_state:
     st.session_state['active_farm'] = None
@@ -76,6 +90,13 @@ def render_farm_selector():
         if st.button("🚪 Sair (Logout)", use_container_width=True):
             st.session_state['user'] = None
             st.session_state['active_farm'] = None
+            try:
+                from streamlit_cookies_controller import CookieController
+                controller = CookieController()
+                controller.remove('sb-access-token')
+                controller.remove('sb-refresh-token')
+            except:
+                pass
             st.rerun()
 
 def render_onboarding():
