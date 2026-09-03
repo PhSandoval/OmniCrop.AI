@@ -242,9 +242,8 @@ def render_main_app():
     pdf_bytes = generate_pdf_report(
         cfg.get("farm_name", "Minha Fazenda"),
         cfg.get("city", "Desconhecida"),
-        resultado.get("ndvi_previsto", 0),
-        payload.get("chuva_acumulada_30d", 0),
-        resultado.get("fatores_de_risco_identificados", [])
+        payload,
+        resultado
     )
     st.download_button(
         label="📄 Baixar Relatório Semanal (PDF)",
