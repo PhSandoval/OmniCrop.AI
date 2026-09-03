@@ -171,7 +171,7 @@ def render_onboarding():
         import folium
         from streamlit_folium import st_folium
         
-        m = folium.Map(location=st.session_state['map_center'], zoom_start=st.session_state['map_zoom'])
+        m = folium.Map(location=st.session_state['map_center'], zoom_start=st.session_state['map_zoom'], tiles=None)
         
         # Adiciona Camada de Satelite
         folium.TileLayer(
