@@ -96,8 +96,12 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
                     # In 2026, old session states might hold references to deprecated 1.5 models. 
                     # If we catch an error, we wipe the session state and try again.
                     response = st.session_state['chat_session'].send_message(prompt_usuario)
-                    st.markdown(response.text)
-                    st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
+                    try:
+                        resposta_texto = response.text
+                    except ValueError:
+                        resposta_texto = "Desculpe, o filtro de segurança do Google bloqueou esta resposta. Por favor, reformule sua pergunta para mantê-la no contexto agronômico."
+                    st.markdown(resposta_texto)
+                    st.session_state['mensagens_chat'].append({"role": "assistant", "content": resposta_texto})
                 except Exception as e:
                     if "404" in str(e) or "not found" in str(e).lower():
                         st.warning("🔄 Atualizando sessão de inteligência para o modelo 3.6...")
@@ -110,8 +114,12 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
                         # Tenta enviar de novo
                         try:
                             response = st.session_state['chat_session'].send_message(prompt_usuario)
-                            st.markdown(response.text)
-                            st.session_state['mensagens_chat'].append({"role": "assistant", "content": response.text})
+                            try:
+                                resposta_texto2 = response.text
+                            except ValueError:
+                                resposta_texto2 = "Desculpe, o filtro de segurança do Google bloqueou esta resposta. Por favor, reformule sua pergunta para mantê-la no contexto agronômico."
+                            st.markdown(resposta_texto2)
+                            st.session_state['mensagens_chat'].append({"role": "assistant", "content": resposta_texto2})
                         except Exception as e2:
                             st.error(f"Erro persistente na API do Google: {e2}")
                     else:
