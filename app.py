@@ -19,6 +19,29 @@ st.set_page_config(page_title="Dashboard · SugarCane Copilot", layout="wide",
 
 inject_css()
 
+# -- CAPTURA DE CALLBACK DO SUPABASE (EMAIL CONFIRMATION PKCE) --
+if 'code' in st.query_params:
+    try:
+        from components.db import get_supabase
+        auth_code = st.query_params['code']
+        # Troca o auth_code por uma sessao real
+        res = get_supabase().auth.exchange_code_for_session({"auth_code": auth_code})
+        st.session_state['user'] = res.user
+        st.session_state['access_token'] = res.session.access_token
+        
+        # Salva nos cookies para não perder
+        from streamlit_cookies_controller import CookieController
+        controller = CookieController()
+        controller.set('sb-access-token', res.session.access_token, max_age=86400*30)
+        controller.set('sb-refresh-token', res.session.refresh_token, max_age=86400*30)
+        
+        st.query_params.clear() # Limpa a URL
+        st.rerun()
+    except Exception as e:
+        pass
+# ---------------------------------------------------------------
+
+
 # 1. Controle de Estado
 if 'user' not in st.session_state:
     st.session_state['user'] = None
