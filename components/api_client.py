@@ -63,28 +63,99 @@ def badge_html(status: str) -> str:
 
 
 def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None, cenario: str = "", chuva_projetada: float = 0, gda_projetado: float = 0) -> dict:
-    """
-    Matriz de decisão cruzando biologia da planta (fase do ano) com o impacto da simulação.
-    Crescimento: Nov a Mar (Meses 11, 12, 1, 2, 3)
-    Maturacao/Corte: Abr a Out (Meses 4 a 10)
-    """
-    # Identificar fase (Crescimento vs Maturacao)
     fase_crescimento = mes_atual in [11, 12, 1, 2, 3]
     fase_maturacao = not fase_crescimento
     
-    # Se nao houver projecao, assumimos projecao igual atual (ou seja, delta 0)
     if ndvi_projetado is None:
         ndvi_projetado = ndvi_atual
         
     delta = ndvi_projetado - ndvi_atual
     
-    # Regras especificas de novos cenarios (ignoram fase do ano)
     if "Colheita" in cenario:
+        msg_delta = " O Maturador químico agiu com sucesso derrubando o vigor vegetativo." if delta < 0 else ""
         if chuva_projetada > 50:
             return {
                 "status_title": "🔴 Risco Operacional",
-                "mensagem_recomendacao": "Alerta: Previsao de chuva forte. Risco altíssimo de atolamento de máquinas e pisoteio de soqueira. Interromper operacoes de corte."
+                "mensagem_recomendacao": f"Alerta: Previsao de chuva forte. Risco altíssimo de atolamento de máquinas e pisoteio de soqueira. Interromper operacoes de corte.{msg_delta}"
             }
+        elif gda_projetado > 100 and chuva_projetada < 20:
+            return {
+                "status_title": "🟢 Corte Liberado",
+                "mensagem_recomendacao": f"Cenario ideal. GDA alto para maturação e solo seco para trafegabilidade. Liberado para Corte Mecanizado.{msg_delta}"
+            }
+        else:
+            return {
+                "status_title": "🟡 Janela Sub-ótima",
+                "mensagem_recomendacao": f"Condicao aceitavel, porem avaliar maturador para acelerar acumulo de ATR antes de eventuais chuvas.{msg_delta}"
+            }
+            
+    if "Plantio" in cenario:
+        if ndvi_atual < 0.25:
+            base_msg = "Solo limpo/preparado detectado. "
+        else:
+            base_msg = "Atenção: NDVI alto indica presença de soqueira velha ou mato. Recomenda-se dessecação antes do plantio. "
+            
+        if chuva_projetada < 20:
+            return {
+                "status_title": "🔴 Risco de Falha",
+                "mensagem_recomendacao": base_msg + "Chuva projetada muito baixa. Risco de falha na brotação por seca."
+            }
+        elif chuva_projetada > 150:
+            return {
+                "status_title": "🔴 Risco de Podridão",
+                "mensagem_recomendacao": base_msg + "Volume excessivo de água (Chuva + Irrigação). Risco crítico de alagamento do sulco, sufocamento radicular e podridão dos toletes. Cancele a irrigação!"
+            }
+        elif gda_projetado > 80 and chuva_projetada >= 40:
+            return {
+                "status_title": "🟢 Plantio Liberado",
+                "mensagem_recomendacao": base_msg + "Condição termohidrica excelente para brotação rápida e uniforme."
+            }
+        else:
+            return {
+                "status_title": "🟡 Plantio com Restrições",
+                "mensagem_recomendacao": base_msg + "Condição razoável, mas exigirá monitoramento."
+            }
+            
+    if "Adubacao" in cenario:
+        if chuva_projetada < 10:
+            return {
+                "status_title": "🔴 Desperdicio",
+                "mensagem_recomendacao": "Não aplicar ureia. Solo seco nao incorporara o fertilizante, causando perda volatil."
+            }
+        elif chuva_projetada > 100:
+            return {
+                "status_title": "🟡 Lixiviação",
+                "mensagem_recomendacao": "Chuva excessiva projetada. Risco de lixiviação de nutrientes. Fracionar a dose recomendada."
+            }
+        else:
+            return {
+                "status_title": "🟢 Janela Ideal",
+                "mensagem_recomendacao": "Condições ideais de umidade para incorporação e absorção radicular do fertilizante."
+            }
+
+    if "Irrigação" in cenario:
+        if chuva_projetada > 150:
+             return {
+                "status_title": "🔴 Risco de Alagamento",
+                "mensagem_recomendacao": "Volume de água excessivo. Cancele o programa de irrigação para não sufocar o sistema radicular."
+             }
+        if delta < 0:
+            return {
+                "status_title": "❌ Alerta Simulacao",
+                "mensagem_recomendacao": "A irrigação simulada não reverteu a queda de vigor. Estratégia não recomendada (desperdício de recursos e energia)."
+            }
+
+    # Fallback para outras acoes
+    if delta < 0:
+        return {
+            "status_title": "❌ Alerta Simulacao",
+            "mensagem_recomendacao": "A intervencao simulada reduziu ou nao alterou o vigor projetado. Estratégia não recomendada."
+        }
+        
+    return {
+        "status_title": "🟢 Operação Padrão",
+        "mensagem_recomendacao": "As condições estão dentro da normalidade para esta fase fenológica."
+    }
         elif gda_projetado > 100 and chuva_projetada < 20:
             return {
                 "status_title": "🟢 Corte Liberado",
