@@ -111,11 +111,11 @@ def generate_pdf_report(farm_name: str, city: str, payload: dict, resultado: dic
     
     if not alertas:
         pdf.set_text_color(39, 174, 96)
-        pdf.cell(0, 8, "✓ Nenhum risco crítico identificado para a operação atual.", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 8, "[OK] Nenhum risco crítico identificado para a operação atual.", new_x="LMARGIN", new_y="NEXT")
     else:
         for alerta in alertas:
             clean_alerta = alerta.encode('latin-1', 'replace').decode('latin-1')
-            pdf.multi_cell(0, 6, f"⚠️ {clean_alerta}")
+            pdf.multi_cell(0, 6, f"[ALERTA] {clean_alerta}")
             pdf.ln(2)
             
     pdf.ln(10)
