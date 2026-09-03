@@ -14,7 +14,7 @@ from components.api_client import build_payload, get_prediction, badge_html, cal
 from components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
 from components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="Dashboard · SugarCane Copilot", layout="wide",
+st.set_page_config(page_title="Dashboard · Cropilot AI", layout="wide",
                    initial_sidebar_state="expanded", page_icon="")
 
 inject_css()
@@ -233,7 +233,7 @@ def render_onboarding():
                 # Reverso para achar a cidade baseada no clique
                 import requests
                 try:
-                    r = requests.get(f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}", headers={"User-Agent": "SugarCaneCopilot"})
+                    r = requests.get(f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}", headers={"User-Agent": "CropilotAI"})
                     city = r.json().get('address', {}).get('city', 'Fazenda')
                 except:
                     city = "Local Desconhecido"
@@ -307,7 +307,7 @@ def render_main_app():
 
     with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
         st.markdown('''
-        O **SugarCane Copilot** atua como um **Satélite Virtual** (um *DSS* - Sistema de Suporte à Decisão). 
+        O **Cropilot AI** atua como um **Satélite Virtual** (um *DSS* - Sistema de Suporte à Decisão). 
         Ele utiliza Inteligência Artificial para ler o clima e prever a saúde da sua lavoura, ajudando você a tomar decisões mesmo de longe.
         
         **📖 Dicionário Leigo de Termos do Agro:**

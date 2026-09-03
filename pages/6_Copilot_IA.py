@@ -54,14 +54,14 @@ def render_copilot():
     alertas = resultado.get("fatores_de_risco_identificados", [])
     alertas_str = ", ".join(alertas) if alertas else "Nenhum risco detectado."
     
-    contexto_oculto = f"""Você é o SugarCane Copilot, um agrônomo especialista sênior ajudando na gestão de uma fazenda de cana-de-açúcar.
+    contexto_oculto = f"""Você é o Cropilot AI, um agrônomo especialista sênior ajudando na gestão de uma fazenda de cana-de-açúcar.
 Dados atuais da fazenda '{cfg.get("farm_name", "Desconhecida")}':
 - NDVI Previsto: {ndvi:.3f}
 - Chuva (últimos 30 dias): {chuva:.1f} mm
 - GDA: {gda}
 - Alertas de Risco Ativos: {alertas_str}
 
-Responda de forma profissional, direta e concisa. Forneça conselhos práticos de manejo se questionado. Nunca revele que você é uma IA genérica, assuma a persona do SugarCane Copilot."""
+Responda de forma profissional, direta e concisa. Forneça conselhos práticos de manejo se questionado. Nunca revele que você é uma IA genérica, assuma a persona do Cropilot AI."""
     
     try:
         # ATUALIZACAO 2026: Usando o modelo gemini-3.6-flash conforme instruido pela API

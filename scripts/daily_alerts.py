@@ -13,8 +13,8 @@ from components.api_client import build_payload, get_prediction
 
 def send_alert_email(email_to, farm_name, alertas):
     msg = EmailMessage()
-    msg['Subject'] = f"🚨 Alerta Operacional: {farm_name} (SugarCane Copilot)"
-    msg['From'] = "alertas@sugarcanecopilot.com"
+    msg['Subject'] = f"🚨 Alerta Operacional: {farm_name} (Cropilot AI)"
+    msg['From'] = "alertas@cropilot.ai"
     msg['To'] = email_to
     
     alertas_str = "\n".join([f"- {a}" for a in alertas])
@@ -27,7 +27,7 @@ O Satélite Virtual detectou os seguintes riscos iminentes na fazenda {farm_name
 Por favor, acesse o Dashboard para redirecionar a operação ou iniciar o Simulador de Salvamento.
 
 Atenciosamente,
-IA do SugarCane Copilot
+IA do Cropilot AI
 """
     msg.set_content(content)
     

@@ -12,7 +12,7 @@ class PDF(FPDF):
         self.set_y(8)
         self.set_font('helvetica', 'B', 16)
         self.set_text_color(255, 255, 255)
-        self.cell(0, 10, 'RELATÓRIO EXECUTIVO - SUGARCANE COPILOT', ln=True, align='C')
+        self.cell(0, 10, 'RELATÓRIO EXECUTIVO - CROPILOT AI', ln=True, align='C')
         self.ln(10)
 
     def footer(self):

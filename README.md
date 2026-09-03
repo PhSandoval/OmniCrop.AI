@@ -1,6 +1,6 @@
-# SugarCane Copilot - O Satélite Virtual do Agronegócio (SaaS B2B)
+# Cropilot AI - O Satélite Virtual do Agronegócio (SaaS B2B)
 
-🚀 **Aplicação em Produção (Nuvem):** [Acesse o SugarCane Copilot (Web App)](https://sugarcanemle.streamlit.app)
+🚀 **Aplicação em Produção (Nuvem):** [Acesse o Cropilot AI (Web App)](https://sugarcanemle.streamlit.app)
 
 Um **Sistema de Suporte à Decisão (DSS)** de ponta a ponta focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um **Satélite Virtual**, o sistema permite o monitoramento contínuo de múltiplos talhões utilizando dados climáticos em tempo real, contornando a limitação física dos satélites ópticos (que ficam cegos em dias nublados).
 
@@ -43,7 +43,7 @@ O motor do sistema utiliza um modelo de **Gradient Boosting (XGBoost)**. Por que
 
 ## De onde vêm os Dados?
 
-O ecossistema de dados do SugarCane Copilot opera em duas frentes distintas:
+O ecossistema de dados do Cropilot AI opera em duas frentes distintas:
 
 1. **Os Dados de Treinamento (Offline / Passado):**
    O modelo de Machine Learning (`.pkl`) foi forjado com mais de **10 anos de histórico climático e leituras de satélite** em centenas de fazendas de cana-de-açúcar. A matemática aprendeu como o acúmulo de energia térmica (Graus-Dia) e a umidade do solo impactam a biologia da planta.

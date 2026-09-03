@@ -1,6 +1,6 @@
 # Arquitetura do Sistema (Architecture)
 
-O SugarCane Copilot adota o padrão de **Monólito Ágil**, sendo todo desenvolvido em Python. Essa escolha reduz drasticamente a latência e complexidade de DevOps, mantendo a escalabilidade necessária para um SaaS B2B.
+O Cropilot AI adota o padrão de **Monólito Ágil**, sendo todo desenvolvido em Python. Essa escolha reduz drasticamente a latência e complexidade de DevOps, mantendo a escalabilidade necessária para um SaaS B2B.
 
 ## 1. Frontend & Backend (Streamlit)
 * **Tecnologia:** Streamlit

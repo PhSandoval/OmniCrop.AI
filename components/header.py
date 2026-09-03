@@ -11,7 +11,7 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
         st.markdown("""
 <div style="padding:8px 4px 20px;">
     <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;">
-        SugarCane Copilot
+        Cropilot AI
     </div>
     <div style="font-size:10px;color:rgba(180,230,180,.5);letter-spacing:.10em;text-transform:uppercase;margin-top:2px;">
         DSS · Satellite Virtual
