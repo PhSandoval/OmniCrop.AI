@@ -19,8 +19,8 @@ class TestDSSLogic(unittest.TestCase):
         self.assertIn("desperdício", res["mensagem_recomendacao"])
 
     def test_simulacao_piora_resultado(self):
-        """Qualquer mês, se a simulação abaixar o NDVI projetado, a regra absoluta de Alerta dispara."""
-        res = calcular_dss(mes_atual=5, ndvi_atual=0.6, ndvi_projetado=0.4)
+        """Se houver intervenção de Irrigação, e o NDVI abaixar, a regra dispara um alerta de falha de estratégia."""
+        res = calcular_dss(mes_atual=5, ndvi_atual=0.6, ndvi_projetado=0.4, cenario="Irrigação")
         self.assertEqual(res["status_title"], "❌ Alerta Simulacao")
         self.assertIn("Estratégia não recomendada", res["mensagem_recomendacao"])
         
