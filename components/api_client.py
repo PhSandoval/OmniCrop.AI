@@ -71,22 +71,38 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
         
     delta = ndvi_projetado - ndvi_atual
     
+    if "Maturador" in cenario:
+        if chuva_projetada > 80:
+            return {
+                "status_title": "🔴 Desperdício de Produto",
+                "mensagem_recomendacao": "A alta previsão de chuvas pode lavar o produto das folhas logo após a aplicação aérea. Além disso, a umidade forçará o crescimento vegetativo da planta contra a ação do maturador."
+            }
+        elif delta < 0:
+            return {
+                "status_title": "🟢 Aplicação Ideal",
+                "mensagem_recomendacao": "A simulação prevê queda do vigor (secagem da folha). Condição climática favorável para o produto inibir o crescimento e maximizar a conversão em sacarose (ATR)."
+            }
+        else:
+            return {
+                "status_title": "🟡 Dose Insuficiente",
+                "mensagem_recomendacao": "O clima atual está estimulando muito o crescimento da planta. A dose de maturador testada não foi forte o suficiente para reverter o vigor. Aumente a dose ou aguarde o tempo secar."
+            }
+
     if "Colheita" in cenario:
-        msg_delta = " O Maturador químico agiu com sucesso derrubando o vigor vegetativo." if delta < 0 else ""
         if chuva_projetada > 50:
             return {
                 "status_title": "🔴 Risco Operacional",
-                "mensagem_recomendacao": f"Alerta: Previsao de chuva forte. Risco altíssimo de atolamento de máquinas e pisoteio de soqueira. Interromper operacoes de corte.{msg_delta}"
+                "mensagem_recomendacao": "Alerta: Previsão de chuva forte (mais de 50mm). Risco altíssimo de atolamento das colhedoras, transbordos e pisoteio de soqueira (destruição da próxima safra). Interromper operações de corte!"
             }
         elif gda_projetado > 100 and chuva_projetada < 20:
             return {
                 "status_title": "🟢 Corte Liberado",
-                "mensagem_recomendacao": f"Cenario ideal. GDA alto para maturação e solo seco para trafegabilidade. Liberado para Corte Mecanizado.{msg_delta}"
+                "mensagem_recomendacao": "Cenário ideal. GDA alto para a maturação final e solo completamente seco garantindo excelente trafegabilidade das máquinas."
             }
         else:
             return {
-                "status_title": "🟡 Janela Sub-ótima",
-                "mensagem_recomendacao": f"Condicao aceitavel, porem avaliar maturador para acelerar acumulo de ATR antes de eventuais chuvas.{msg_delta}"
+                "status_title": "🟡 Janela Aceitável",
+                "mensagem_recomendacao": "Condição razoável. Monitore o mapa de chuvas na véspera para não correr risco de atolar frotas no talhão."
             }
             
     if "Plantio" in cenario:

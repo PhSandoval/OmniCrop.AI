@@ -45,7 +45,7 @@ st.markdown(
     "</div>", unsafe_allow_html=True)
 
 cenario = st.radio("Cenário de Intervenção:",
-                   ["Planejamento de Plantio", "Irrigação de Salvamento", "Aplicação de Adubação", "Manejo de Colheita / Maturador"],
+                   ["Planejamento de Plantio", "Irrigação de Salvamento", "Aplicação de Adubação", "Maturador Químico", "Operação de Colheita"],
                    horizontal=True)
 cenario_dss = cenario
 
@@ -108,12 +108,21 @@ with col_ctrl:
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
         
+    elif "Maturador" in cenario:
+        st.write("Decisão: Qual a dose de maturador químico para forçar a secagem e acúmulo de sacarose?")
+        dose_mat = st.slider("Dose de Maturador", 0, 100, 50, format="%d L/ha")
+        # Maturador corta o vigor vegetativo. A dose simula estresse hídrico artificial e aumento de temperatura.
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura) * (1 - (dose_mat/150))
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro + (dose_mat * 1.5))
+        
+        custo_mat = dose_mat * 4.20
+        st.caption(f"💰 Custo Estimado do Defensivo + Aplicação Aérea: **R$ {custo_mat:,.2f} / hectare**")
+
     elif "Colheita" in cenario:
-        st.write("Decisão: Quando entrar com as máquinas e aplicar maturador?")
-        dias_antecip = st.slider("Dias para Antecipação de Corte / Aplicação de Maturador", 0, 45, 15, format="%d dias")
-        # Maturador corta o vigor vegetativo. Adicionar dias de estresse hidrico reduz a chuva proporcionalmente
-        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura) * (1 - (dias_antecip/100))
-        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro + (dias_antecip * 4)) # aumenta calor
+        st.write("Decisão: Existem condições de maquinário (trafegabilidade) para colher nesta semana?")
+        st.info("🚜 A simulação de colheita não altera a planta (NDVI), mas o motor de IA avaliará a previsão climática para recomendar se as colhedoras devem entrar no campo ou se há risco de atolamento.")
+        payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
+        payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
 
 with col_out:
     st.markdown('<div class="sec-header">Projeção Pós-Intervenção</div>', unsafe_allow_html=True)
@@ -162,11 +171,13 @@ with col_out:
             
         dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario_dss, chuva_projetada=chuva_futura_DSS, gda_projetado=gda_15d_futuro)
         
-        if "Colheita" in cenario:
+        if "Maturador" in cenario:
             if delta < 0:
-                st.success(f"Maturador eficiente — redução esperada de {abs(delta_pct):.1f}% no vigor foliar (acúmulo de ATR).")
+                st.success(f"Maturador eficiente — redução esperada de {abs(delta_pct):.1f}% no vigor foliar (força acúmulo de ATR).")
             else:
-                st.warning(f"Atenção — Vigor aumentou {abs(delta_pct):.1f}%. A cana está vegetando em vez de acumular açúcar.")
+                st.warning(f"Atenção — Vigor aumentou {abs(delta_pct):.1f}%. A dose pode ser insuficiente ou o clima está favorável demais ao crescimento vegetativo.")
+        elif "Colheita" in cenario:
+            st.info("NDVI projetado inalterado pela simulação. Avalie apenas a recomendação logística abaixo.")
         elif "Plantio" in cenario and ndvi_base < 0.25:
             st.info(f"Solo exposto (NDVI={ndvi_base:.3f}). Variação de {abs(delta_pct):.1f}% inicial é normal durante a brotação.")
         else:
