@@ -13,7 +13,7 @@ from components.charts import ndvi_gauge
 from components.header import render_sidebar, render_page_header
 
 st.set_page_config(page_title="Simulador · OmniCrop AI", page_icon="🌾", layout="wide",
-                   initial_sidebar_state="expanded", page_icon="")
+                   initial_sidebar_state="expanded")
 
 inject_css()
 

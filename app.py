@@ -15,7 +15,7 @@ from components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
 from components.header import render_sidebar, render_page_header
 
 st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_icon="🌾", layout="wide",
-                   initial_sidebar_state="expanded", page_icon="")
+                   initial_sidebar_state="expanded")
 
 inject_css()
 

@@ -13,7 +13,7 @@ from components.api_client import build_payload, get_prediction
 from components.header import render_sidebar, render_page_header
 
 st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="🌾", layout="wide",
-                   initial_sidebar_state="expanded", page_icon="")
+                   initial_sidebar_state="expanded")
 
 inject_css()
 
