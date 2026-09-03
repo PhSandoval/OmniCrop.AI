@@ -119,8 +119,25 @@ with col_ctrl:
         st.caption(f"💰 Custo Estimado do Defensivo + Aplicação Aérea: **R$ {custo_mat:,.2f} / hectare**")
 
     elif "Colheita" in cenario:
-        st.write("Decisão: Existem condições de maquinário (trafegabilidade) para colher nesta semana?")
-        st.info("🚜 A simulação de colheita não altera a planta (NDVI), mas o motor de IA avaliará a previsão climática para recomendar se as colhedoras devem entrar no campo ou se há risco de atolamento.")
+        st.write("Decisão: Qual o melhor dia para agendar a frente de colheita?")
+        st.info("🚜 A colheita requer solo seco para evitar atolamento de maquinário e compactação. O assistente avalia a previsão diária (próximos 15 dias) em busca de janelas contínuas de seca.")
+        
+        best_day = None
+        consecutive_dry = 0
+        for idx, row in df_future.iterrows():
+            if row["precipitacao_total"] < 2.0:
+                consecutive_dry += 1
+                if consecutive_dry >= 3:
+                    best_day = row["date"] - pd.Timedelta(days=2)
+                    break
+            else:
+                consecutive_dry = 0
+                
+        if best_day:
+            st.success(f"📅 **Janela Ideal Identificada:** Agende o corte para **{best_day.strftime('%d/%m/%Y')}** (previsão de 3+ dias consecutivos de solo seco).")
+        else:
+            st.error("⛈️ **Sem Janela Segura:** Chuvas frequentes nos próximos 15 dias impossibilitam a trafegabilidade. Não coloque máquinas no campo!")
+
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
 
