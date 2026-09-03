@@ -37,7 +37,7 @@ render_sidebar(today, get_prediction(build_payload(today)))
 render_page_header("Analytics", "INTELIGÊNCIA AGRONÔMICA E DATA SCIENCE")
 
 st.markdown("<br>", unsafe_allow_html=True)
-hoje = pd.Timestamp.now(tz="America/Sao_Paulo").normalize()
+hoje = pd.Timestamp.now(tz="America/Sao_Paulo").normalize().tz_localize(None)
 
 col1, col2 = st.columns(2)
 
