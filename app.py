@@ -141,29 +141,56 @@ def render_onboarding():
                     "Busque sua cidade e clique no mapa para marcar a localização exata da lavoura.</p>", unsafe_allow_html=True)
         
         # Smart Search
-        busca = st.text_input("📍 Buscar Cidade ou Município:", placeholder="Ex: Ribeirão Preto, SP")
-        if busca and busca != st.session_state.get('last_busca'):
-            st.session_state['last_busca'] = busca
-            from components.live_data import search_location
-            pts = search_location(busca)
-            if pts:
-                st.session_state['map_center'] = [pts[0]['lat'], pts[0]['lon']]
-                st.session_state['map_zoom'] = 12
+        st.markdown("📍 **Como deseja encontrar sua lavoura?**")
+        tab_busca, tab_coord = st.tabs(["🏙️ Buscar por Cidade", "🧭 Inserir Coordenadas Manuais"])
+        
+        with tab_busca:
+            busca = st.text_input("Buscar Cidade ou Município:", placeholder="Ex: Ribeirão Preto, SP", label_visibility="collapsed")
+            if busca and busca != st.session_state.get('last_busca'):
+                st.session_state['last_busca'] = busca
+                from components.live_data import search_location
+                pts = search_location(busca)
+                if pts:
+                    st.session_state['map_center'] = [pts[0]['lat'], pts[0]['lon']]
+                    st.session_state['map_zoom'] = 12
+                    st.rerun()
+                else:
+                    st.warning("Localidade não encontrada.")
+                    
+        with tab_coord:
+            c1, c2, c3 = st.columns([2, 2, 1])
+            man_lat = c1.number_input("Latitude:", value=float(st.session_state['map_center'][0]), format="%.5f")
+            man_lon = c2.number_input("Longitude:", value=float(st.session_state['map_center'][1]), format="%.5f")
+            if c3.button("Pular para Coordenada", use_container_width=True):
+                st.session_state['map_center'] = [man_lat, man_lon]
+                st.session_state['clicked_lat'] = man_lat
+                st.session_state['clicked_lon'] = man_lon
+                st.session_state['map_zoom'] = 15
                 st.rerun()
-            else:
-                st.warning("Localidade não encontrada.")
                 
         import folium
         from streamlit_folium import st_folium
         
         m = folium.Map(location=st.session_state['map_center'], zoom_start=st.session_state['map_zoom'])
+        
+        # Adiciona Camada de Satelite
         folium.TileLayer(
             tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             attr='Esri',
-            name='Esri Satellite',
+            name='Satélite (Esri)',
             overlay=False,
-            control=True
+            control=False
         ).add_to(m)
+        
+        # Adiciona Camada de Mapa Hibrido (Ruas e Nomes)
+        folium.TileLayer(
+            tiles='OpenStreetMap',
+            name='Ruas e Cidades (OpenStreetMap)',
+            overlay=False,
+            control=False
+        ).add_to(m)
+        
+        folium.LayerControl().add_to(m)
         
         # Botão de GPS nativo do Folium para voar para a localização do usuário
         from folium.plugins import LocateControl
@@ -175,9 +202,9 @@ def render_onboarding():
         if clicked_lat and clicked_lon:
             folium.Marker([clicked_lat, clicked_lon], tooltip="Nova Fazenda", icon=folium.Icon(color="green", icon="leaf")).add_to(m)
         
-        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique na sua lavoura para fixar um pino. Use o ícone de GPS no mapa para achar sua localização atual.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique no ícone de 'Camadas' (canto superior direito do mapa) para alternar entre <b>Satélite</b> e mapa de <b>Ruas</b>, facilitando encontrar sua fazenda.</p>", unsafe_allow_html=True)
         
-        map_data = st_folium(m, height=400, use_container_width=True)
+        map_data = st_folium(m, height=500, use_container_width=True)
         
         if map_data and map_data.get('last_clicked'):
             new_lat = map_data['last_clicked']['lat']
