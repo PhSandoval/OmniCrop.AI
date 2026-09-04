@@ -11,7 +11,7 @@ def render_auth_page():
     <div style="display:flex; justify-content:center; margin-bottom:10px;">
         <img src="data:image/png;base64,{_logo_b64}"
              style="width:200px; height:200px; object-fit:contain;
-                    mix-blend-mode:multiply; border-radius:50%;">
+                    border-radius:50%;">
     </div>
     """, unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 16px; margin-top: -15px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
