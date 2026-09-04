@@ -17,8 +17,7 @@ from components.header import render_sidebar, render_page_header
 st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_icon="assets/logo.jpg", layout="wide",
                    initial_sidebar_state="expanded")
 
-is_login = 'user' not in st.session_state or not st.session_state['user']
-inject_css(is_login=is_login)
+
 
 # -- CAPTURA DE CALLBACK DO SUPABASE (EMAIL CONFIRMATION PKCE) --
 if 'code' in st.query_params:
