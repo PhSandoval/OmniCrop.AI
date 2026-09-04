@@ -3,7 +3,10 @@ from components.db import login_user, register_user
 from streamlit_cookies_controller import CookieController
 
 def render_auth_page():
-    st.markdown("<h1 style='text-align: center;'>🌱 OmniCrop AI</h1>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        st.image("assets/logo.jpg", use_container_width=True)
+    st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 16px; margin-top: -15px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8);'>SaaS de Inteligência Agronômica</p>", unsafe_allow_html=True)
     st.write("")
     
