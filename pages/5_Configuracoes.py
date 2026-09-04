@@ -10,7 +10,7 @@ from components.db import update_farm
 from components.live_data import fetch_farm_data
 from components.api_client import build_payload, get_prediction
 
-st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="🌾", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="assets/logo.jpg", layout="wide", initial_sidebar_state="expanded")
 inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:

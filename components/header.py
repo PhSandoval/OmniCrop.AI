@@ -7,9 +7,13 @@ from components.farm_config import load_config
 
 def render_sidebar(today: dict, resultado: dict | None) -> None:
     with st.sidebar:
-        # Logo / Brand
+        # Logo / Brand Image
+        st.markdown("<div style='padding: 10px 0px 10px 0px;'>", unsafe_allow_html=True)
+        st.image("assets/logo.jpg", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
         st.markdown("""
-<div style="padding:8px 4px 20px;">
+<div style="padding:0px 4px 15px;">
     <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;">
         OmniCrop AI
     </div>

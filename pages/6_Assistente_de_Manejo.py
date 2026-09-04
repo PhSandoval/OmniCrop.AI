@@ -12,7 +12,7 @@ from components.header import render_sidebar, render_page_header
 
 import google.generativeai as genai
 
-st.set_page_config(page_title="Assistente de Manejo · OmniCrop AI", page_icon="🌾", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Assistente de Manejo · OmniCrop AI", page_icon="assets/logo.jpg", layout="wide", initial_sidebar_state="expanded")
 
 if 'user' not in st.session_state or not st.session_state['user']:
     st.info("A sua sessão expirou. Faça login novamente para acessar o sistema.")
