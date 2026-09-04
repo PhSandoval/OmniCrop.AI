@@ -3,7 +3,8 @@ from components.db import login_user, register_user
 from streamlit_cookies_controller import CookieController
 
 def render_auth_page():
-    c1, c2, c3 = st.columns([1, 2, 1])
+    # Diminui drasticamente o tamanho da logo na tela de login
+    c1, c2, c3 = st.columns([2.5, 1.5, 2.5])
     with c2:
         st.image("assets/logo.jpg", use_container_width=True)
     st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 16px; margin-top: -15px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
