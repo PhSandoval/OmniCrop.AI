@@ -9,7 +9,7 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
     with st.sidebar:
         # Logo / Brand Image
         st.markdown("<div style='padding: 10px 0px 10px 0px;'>", unsafe_allow_html=True)
-        st.image("assets/logo.jpg", use_container_width=True)
+        st.image("assets/logo.png", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("""
