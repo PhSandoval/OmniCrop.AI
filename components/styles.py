@@ -1,13 +1,16 @@
 """Global CSS — glassmorphism + sugarcane field background."""
 import streamlit as st
-from components.assets import BG_B64
+import base64
 
 def inject_css() -> None:
     # Div de fundo com a imagem
+    with open("assets/background.jpg", "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode()
+        
     bg_html = f"""
     <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -999;
                 background: linear-gradient(180deg, rgba(2, 8, 4, 0.50) 0%, rgba(5, 15, 8, 0.75) 100%), 
-                url('data:image/jpeg;base64,{BG_B64}') center/cover no-repeat;">
+                url('data:image/jpeg;base64,{encoded_string}') center/cover no-repeat;">
     </div>
     """
     st.markdown(bg_html, unsafe_allow_html=True)
