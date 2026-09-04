@@ -5,7 +5,7 @@ import base64
 def inject_css(is_login=False) -> None:
     import base64
     bg_file = "assets/fundo_tech.jpg" if is_login else "assets/background.jpg"
-    gradient = "linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.70) 100%)" if is_login else "linear-gradient(180deg, rgba(2, 8, 4, 0.50) 0%, rgba(5, 15, 8, 0.75) 100%)"
+    gradient = "transparent" if is_login else "linear-gradient(180deg, rgba(2, 8, 4, 0.50) 0%, rgba(5, 15, 8, 0.75) 100%)"
     
     with open(bg_file, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
