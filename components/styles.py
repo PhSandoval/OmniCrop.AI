@@ -104,6 +104,13 @@ div[data-testid="InputInstructions"],
     color: #FFFFFF !important;
 }
 
+
+/* ── Estilizacao da Logo ── */
+[data-testid="stImage"] img {
+    border-radius: 50% !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
 </style>
 """
     st.markdown(css, unsafe_allow_html=True)
