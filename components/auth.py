@@ -7,7 +7,6 @@ def render_auth_page():
     with c2:
         st.image("assets/logo.jpg", use_container_width=True)
     st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 16px; margin-top: -15px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8);'>SaaS de Inteligência Agronômica</p>", unsafe_allow_html=True)
     st.write("")
     
     col1, col2, col3 = st.columns([1, 2, 1])
