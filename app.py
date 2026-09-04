@@ -75,8 +75,15 @@ if 'map_zoom' not in st.session_state:
 if 'last_busca' not in st.session_state:
     st.session_state['last_busca'] = ""
 
+# Injeta CSS com o fundo correto: drone (login/onboarding) ou plantação (dashboard)
+_user_logged = bool(st.session_state.get('user'))
+_farm_selected = bool(st.session_state.get('active_farm'))
+_onboarding = st.session_state.get('show_onboarding', False)
+inject_css(is_login=not _user_logged or _onboarding or not _farm_selected)
+
 from components.auth import render_auth_page
 from components.db import get_user_farms, insert_farm
+
 
 
 # 2. Função de Onboarding
