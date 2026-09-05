@@ -327,8 +327,11 @@ def render_main_app():
     # Lê tipo_cultura do session_state diretamente para não perder dados do Supabase
     _active = st.session_state.get('active_farm') or {}
     tipo_cultura = _active.get("tipo_cultura") or cfg.get("tipo_cultura") or "Cana-de-Açúcar"
+
+    # Só redireciona para a tela de treinamento se for UMA DESSAS culturas explicitamente
+    CULTURAS_EM_TREINAMENTO = ["Soja", "Café", "Pecuária (Pasto)"]
     
-    if tipo_cultura != "Cana-de-Açúcar":
+    if tipo_cultura in CULTURAS_EM_TREINAMENTO:
         # Tela de "Módulo em Treinamento" para culturas ainda não suportadas
         icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
         icone = icones.get(tipo_cultura, "🌱")
