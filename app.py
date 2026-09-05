@@ -99,7 +99,9 @@ def render_farm_selector():
         if farms:
             st.write("Selecione um talhão para monitorar:")
             for f in farms:
-                if st.button(f"🌾 {f['farm_name']} ({f['city']})", use_container_width=True):
+                cultura_icon = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}.get(f.get("tipo_cultura", ""), "🌾")
+                btn_label = f"{cultura_icon} {f['farm_name']} ({f['city']})"
+                if st.button(btn_label, key=f"select_farm_{f['id']}", use_container_width=True):
                     # Set active farm and override the local config
                     cfg = f.copy()
                     st.session_state['active_farm'] = cfg
