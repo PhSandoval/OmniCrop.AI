@@ -1,109 +1,333 @@
-# OmniCrop AI - O Satélite Virtual do Agronegócio (SaaS B2B)
+# OmniCrop AI — O Satélite Virtual do Agronegócio
 
-🚀 **Aplicação em Produção (Nuvem):** [Acesse o OmniCrop AI (Web App)](https://omnicrop.streamlit.app)
+<p align="center">
+  <img src="assets/logo.png" width="160" alt="OmniCrop AI Logo"/>
+</p>
 
-Um **Sistema de Suporte à Decisão (DSS)** de ponta a ponta focado na previsão do vigor vegetativo (NDVI) da cana-de-açúcar. Desenvolvido para atuar como um **Satélite Virtual**, o sistema permite o monitoramento contínuo de múltiplos talhões utilizando dados climáticos em tempo real, contornando a limitação física dos satélites ópticos (que ficam cegos em dias nublados).
+<p align="center">
+  <a href="https://omnicropai.streamlit.app"><strong>🚀 Acesse o App em Produção →</strong></a>
+</p>
 
-Criado com uma **Arquitetura Monolítica no Streamlit** e integrado nativamente com o **Supabase (PostgreSQL + Auth)**, é um produto desenhado para ser comercializado no modelo SaaS B2B.
-
----
-
-## O Desafio no Agronegócio (Por que criamos isso?)
-
-Satélites ópticos (como o Sentinel-2) são maravilhosos para ler o vigor da planta (NDVI). O problema? **Eles têm uma janela de revisita de até 16 dias e não conseguem ver através das nuvens.** 
-Curiosamente, a época em que a cana-de-açúcar mais cresce é exatamente no verão tropical, quando chove todo dia e o céu está sempre nublado. O produtor ficava "cego" durante os meses mais cruciais da safra.
-
-**A Solução:** Um modelo de Machine Learning que "prevê" qual é o NDVI atual com base no que a planta sentiu nos últimos 90 dias (temperatura, radiação e chuva acumulada), garantindo 100% de visibilidade, 365 dias por ano.
-
----
-
-## Principais Funcionalidades
-
-* **SaaS Multi-Tenant & Multi-Fazenda:** Sistema de autenticação JWT com Supabase e Row Level Security (RLS). O usuário gerencia toda a sua carteira de fazendas isoladas e alterna entre os talhões rapidamente usando um Dropdown global no menu lateral.
-* **Mapeamento Interativo (Folium/Leaflet):** Onboarding moderno com mapas de satélite (Esri), Geocoding (OpenStreetMap) e captura automática do GPS para fixar a fazenda no mapa.
-* **Ingestão de Dados ao Vivo:** O backend bate na API Open-Meteo em tempo real, agrupando dados meteorológicos da localização exata nos últimos 90 dias e nos próximos 15 dias de previsão.
-* **Dashboard Analytics Profissional:** Uma suíte de gráficos robustos feitos com Plotly (Histogramas, Áreas, Eixos Duplos e Séries Temporais) que cruzam o clima real com a projeção do modelo de IA.
-* **DSS (Matriz de Decisão Agronômica):** O sistema entende a biologia (Crescimento vs Maturação) e gera Checklists de ação automáticos (ex: Liberar colheita, aplicar maturador químico, alertar brigada de incêndio).
-* **Simulador de Intervenções (What-If):** O agrônomo projeta cenários hipotéticos ("E se eu irrigar 40mm hoje?"). O sistema calcula o **Custo de Energia (ROI)** e projeta a melhora na curva de vigor.
-* **Relatórios Automatizados (PDF):** Módulo gerador embarcado no Dashboard (via `fpdf2`) que compila a saúde atual da fazenda, KPIs e Alertas em um arquivo executivo pronto para reuniões.
-* **Motor de Alertas Ativos (CRON):** Um operador robótico (`scripts/daily_alerts.py`) que varre as fazendas durante a madrugada e dispara e-mails de alerta se houver risco extremo na operação diária (Configurável por usuário).
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Produção-brightgreen?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Stack-Streamlit%20%7C%20Supabase%20%7C%20XGBoost-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Modelo-SaaS%20B2B-orange?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Versão-1.0-purple?style=flat-square"/>
+</p>
 
 ---
 
-## Arquitetura do Modelo de IA (XGBoost)
+## O que é o OmniCrop AI?
 
-O motor do sistema utiliza um modelo de **Gradient Boosting (XGBoost)**. Por que essa arquitetura e não Redes Neurais?
+O **OmniCrop AI** é um **Sistema de Suporte à Decisão (DSS)** end-to-end para o agronegócio. Ele atua como um **Satélite Virtual** — combinando dados climáticos em tempo real com um modelo de Machine Learning (XGBoost) para prever o vigor vegetativo (NDVI) de lavouras, mesmo em dias completamente nublados, quando satélites ópticos convencionais ficam cegos.
 
-1. **Relacionamentos Não-Lineares:** Chuva demais afoga a raiz (waterlogging), chuva de menos trava o crescimento. O XGBoost mapeia perfeitamente essas "quebras" de limite biológico.
-2. **Performance em Séries Temporais Tabulares:** Extremamente veloz para inferência no servidor SaaS, superando Deep Learning em tarefas tabulares com features agregadas (ex: *Graus-Dia Acumulados*).
-3. **Explicabilidade (Caixa Branca):** Produtores não confiam em "magia". O algoritmo nos permite expor o *Feature Importance* (ex: Chuva de 30 dias pesa 45% na decisão), dando tranquilidade técnica ao agrônomo.
+Desenhado do zero para ser comercializado no modelo **SaaS B2B Multi-Tenant**, com autenticação segura via JWT, isolamento de dados por Row Level Security (RLS) e suporte à gestão de múltiplas fazendas por usuário.
 
 ---
 
+## O Problema que Resolvemos
 
-## De onde vêm os Dados?
+Satélites ópticos (ex: Sentinel-2) têm janela de revisita de até **16 dias** e **não enxergam através das nuvens**. Justamente no verão tropical — época de máximo crescimento da cana — o céu está sempre coberto. O produtor fica cego durante os meses mais críticos da safra.
 
-O ecossistema de dados do OmniCrop AI opera em duas frentes distintas:
-
-1. **Os Dados de Treinamento (Offline / Passado):**
-   O modelo de Machine Learning (`.pkl`) foi forjado com mais de **10 anos de histórico climático e leituras de satélite** em centenas de fazendas de cana-de-açúcar. A matemática aprendeu como o acúmulo de energia térmica (Graus-Dia) e a umidade do solo impactam a biologia da planta.
-
-2. **Os Dados em Tempo Real (Cloud / Presente e Futuro):**
-   * **Open-Meteo (Clima):** Sem a necessidade de instalar uma estação meteorológica física caríssima na fazenda, a nossa aplicação se conecta ao Open-Meteo (um hub de satélites meteorológicos) para extrair, em tempo real, as condições exatas da Latitude/Longitude do usuário. Nós capturamos a curva dos últimos 90 dias e projetamos os próximos 15 dias de chuva e temperatura.
-   * **OpenStreetMap Geocoding:** Mapeia endereços textuais digitados pelo produtor rural e converte em coordenadas geográficas precisas para "ancorar" o talhão no globo.
+**A Solução:** Um modelo de ML que *prevê* o NDVI atual com base nos últimos 90 dias de dados climáticos (temperatura, radiação, chuva acumulada, Graus-Dia), garantindo **100% de visibilidade, 365 dias por ano**, sem depender de janela de satélite.
 
 ---
 
-## Camadas de Segurança (B2B SaaS)
+## Casos de Uso (Use Cases)
 
-No setor agroindustrial, dados de produtividade e localização de lavouras valem milhões e são alvo constante de espionagem. Nossa arquitetura adota a metodologia de Defesa em Profundidade:
-
-1. **Identity & Auth (JWT):** Nenhum acesso é anônimo. O cadastro, autenticação e renovação de sessões são orquestrados pelo Supabase (GoTrue Auth) via tokens JWT de curta duração.
-2. **Row Level Security (RLS) no Banco de Dados:** Essa é a "jóia da coroa". As tabelas no banco PostgreSQL (Supabase) possuem políticas matemáticas. Mesmo que um atacante burle a interface do Streamlit ou crie um script malicioso, **o próprio banco de dados bloqueia** qualquer tentativa de ler uma fazenda em que a coluna `user_id` não seja exatamente igual ao ID do token JWT de quem está pedindo. É isolamento multilocatário à prova de falhas.
-3. **Ponte Zero-Trust (db.py):** Nossa comunicação interna entre o Streamlit e o banco injeta o Header de Autorização do usuário logado em cada requisição. O backend não roda como "Superadmin" global para buscar dados, ele age estritamente sob as credenciais do usuário requisitante.
-4. **Cofres de Chaves:** As credenciais e URLs vitais nunca sobem para o repositório. Em desenvolvimento local, ficam restritas ao `.streamlit/secrets.toml`, e em produção, ficam em variáveis de ambiente criptografadas do host.
+### UC-01 · Cadastro e Mapeamento de Fazenda
+**Ator:** Produtor Rural / Agrônomo
+**Fluxo:**
+1. Usuário cria conta no sistema (e-mail + senha via Supabase Auth)
+2. Busca a cidade/município pelo nome **ou** insere coordenadas manuais
+3. Clica no mapa de satélite (Esri) para fixar o ponto exato da lavoura
+4. Informa nome do talhão, área (ha) e **seleciona a cultura principal** (Cana-de-Açúcar, Soja, Café, Pecuária)
+5. Sistema salva no Supabase com `user_id` atrelado, aplicando RLS automaticamente
 
 ---
-## Arquitetura do Projeto
 
+### UC-02 · Monitoramento Diário do Talhão (Dashboard)
+**Ator:** Produtor / Agrônomo / Gestor
+**Fluxo:**
+1. Usuário seleciona a fazenda ativa no dropdown da sidebar
+2. Sistema busca 90 dias de histórico climático real na **API Open-Meteo**
+3. Modelo XGBoost infere o NDVI atual e classifica o status de vigor
+4. Dashboard exibe: KPIs climáticos, Gauge de NDVI, Alertas DSS e Checklist de ações
+
+**Resultado esperado:** Em menos de 10 segundos, o agrônomo sabe se a lavoura está Saudável, Em Estresse ou Pronta para Colheita, com um plano de ação concreto.
+
+---
+
+### UC-03 · Roteamento Multi-Cultura
+**Ator:** Produtor com fazendas de diferentes culturas
+**Fluxo:**
+1. Usuário seleciona uma fazenda de **Soja, Café ou Pecuária (Pasto)**
+2. Sistema detecta `tipo_cultura` pertence ao grupo em treinamento
+3. Redireciona para uma **página isolada e dedicada** — sem sidebar, sem PDF, sem ferramentas de cana
+4. Página exibe: ícone da cultura, aviso "Módulo em Treinamento — v2.0", seletor de troca de fazenda e botão de logout
+
+**Resultado esperado:** Experiência limpa sem ferramentas irrelevantes. O usuário entende que o módulo chegará na v2.0 e pode trocar para uma fazenda de Cana com um clique.
+
+---
+
+### UC-04 · Simulador de Intervenções (What-If)
+**Ator:** Agrônomo / Consultor Técnico
+**Fluxo:**
+1. Acessa a aba **Simulador** no menu lateral
+2. Configura um cenário hipotético: volume de irrigação (mm), dose de fertilizante, interrupção de chuvas
+3. Sistema recalcula a projeção do NDVI e exibe o ROI energético do pivô de irrigação
+4. Agrônomo decide se a intervenção é economicamente justificada
+
+---
+
+### UC-05 · Análise de Risco Hídrico e Colheita
+**Ator:** Gestor de Operações
+**Fluxo:**
+1. Acessa a aba **Análise** no menu lateral
+2. Sistema exibe: previsão dos próximos 15 dias, janela ideal de colheita (3 dias consecutivos < 2mm de chuva), déficit hídrico (GDA) e curva de Balança Hídrica
+3. Gestor agenda a frente de colheita mecanizada na janela identificada pelo algoritmo
+
+---
+
+### UC-06 · Relatório Executivo (PDF)
+**Ator:** Gerente Agrícola / Diretor de Operações
+**Fluxo:**
+1. No Dashboard, clica em **"Gerar Relatório Executivo (PDF)"**
+2. Sistema chama a API Gemini para gerar um resumo agronômico
+3. Compila: cabeçalho corporativo, tabela de KPIs, alertas DSS e resumo de IA
+4. Disponibiliza o PDF para download imediato (sem recarregar a página via `@st.fragment`)
+
+---
+
+### UC-07 · Gestão da Fazenda (Renomear / Editar / Deletar)
+**Ator:** Produtor
+**Fluxo:**
+1. Acessa **Minha Fazenda** no menu lateral
+2. Edita nome, cidade, área, variedade da fazenda selecionada
+3. Salva as alterações (Supabase `update`) ou deleta o talhão permanentemente
+
+---
+
+### UC-08 · Assistente de Manejo (Chat IA)
+**Ator:** Produtor / Agrônomo
+**Fluxo:**
+1. Acessa **Assistente de Manejo** no menu lateral
+2. Faz perguntas em linguagem natural: "Posso aplicar maturador agora?" / "Qual o risco de praga?"
+3. IA responde com base no contexto agrícola embarcado no sistema (Gemini + RAG)
+
+---
+
+### UC-09 · Alertas Automáticos por E-mail (CRON)
+**Ator:** Sistema (automático, madrugada)
+**Fluxo:**
+1. Cronjob (`scripts/daily_alerts.py`) varre todas as fazendas cadastradas
+2. Para cada fazenda com risco crítico (déficit hídrico, NDVI abaixo do threshold), dispara e-mail de alerta
+3. Usuário recebe o alerta antes de começar o dia no campo
+
+---
+
+## Arquitetura do Sistema
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                   CAMADA DE APRESENTAÇÃO                 │
+│                                                          │
+│  app.py (Painel Geral)    pages/                         │
+│  ┌─────────────────────┐  ├── 2_Simulador.py             │
+│  │ render_auth_page()  │  ├── 3_Analise.py               │
+│  │ render_onboarding() │  ├── 4_Minha_Fazenda.py         │
+│  │ render_farm_        │  ├── 5_Configuracoes.py         │
+│  │   selector()        │  └── 6_Assistente_de_Manejo.py  │
+│  │ render_cultura_em_  │                                  │
+│  │   treinamento()     │                                  │
+│  │ render_main_app()   │                                  │
+│  └─────────────────────┘                                  │
+└──────────────┬───────────────────────────────────────────┘
+               │
+┌──────────────▼───────────────────────────────────────────┐
+│                   CAMADA DE COMPONENTES                  │
+│                                                          │
+│  auth.py         → Login / Registro / Cookies            │
+│  db.py           → Ponte Zero-Trust Supabase (JWT)       │
+│  farm_config.py  → CRUD de fazendas + session state      │
+│  header.py       → Sidebar global + status do talhão     │
+│  styles.py       → CSS global + fundo dinâmico           │
+│  live_data.py    → Open-Meteo API + Geocoding            │
+│  api_client.py   → Modelo XGBoost + DSS Agronômico       │
+│  charts.py       → Gráficos Plotly                       │
+│  pdf_generator.py→ Relatório PDF (fpdf2 + Gemini)        │
+└──────────────┬───────────────────────────────────────────┘
+               │
+┌──────────────▼───────────────────────────────────────────┐
+│                   CAMADA DE DADOS                        │
+│                                                          │
+│  Supabase (PostgreSQL + RLS)   APIs Externas             │
+│  ├── tabela: fazendas          ├── Open-Meteo (Clima)    │
+│  │   ├── user_id (RLS key)     ├── Nominatim (Geocoding) │
+│  │   ├── lat / lon             └── Google Gemini (IA)    │
+│  │   └── tipo_cultura                                    │
+│  └── Auth GoTrue (JWT)         Modelo Local              │
+│                                models/ndvi_xgb_model.pkl │
+└──────────────────────────────────────────────────────────┘
+               │
+┌──────────────▼───────────────────────────────────────────┐
+│                   CAMADA DE OPERAÇÕES                    │
+│                                                          │
+│  scripts/daily_alerts.py  → CRON noturno + alertas      │
+│  assets/                  → logo.png, background.jpg,    │
+│                               fundo_tech.jpg             │
+│  .github/workflows/       → CI Pipeline                  │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Motor de Roteamento de Páginas
+
+```
+Requisição chegou
+        │
+        ├─ Usuário não autenticado?    → render_auth_page()
+        │                                (Login + fundo drone)
+        │
+        ├─ Flag show_onboarding=True?  → render_onboarding()
+        │                                (Mapa Folium interativo)
+        │
+        ├─ active_farm = None?         → render_farm_selector()
+        │                                (Lista de fazendas)
+        │
+        ├─ tipo_cultura ∈              → render_cultura_em_treinamento()
+        │  {Soja, Café, Pecuária}?      (Página isolada, sem sidebar)
+        │
+        └─ Cana-de-Açúcar (default)   → render_main_app()
+                                         (Dashboard completo)
+```
+
+---
+
+## Segurança — Defesa em Profundidade
+
+| Camada | Mecanismo | Garantia |
+|---|---|---|
+| **Identity & Auth** | Supabase GoTrue (JWT) | Nenhum acesso é anônimo. Tokens de curta duração. |
+| **Row Level Security** | PostgreSQL RLS Policies | O banco rejeita SQL cruzado entre `user_id` no nível do motor |
+| **Ponte Zero-Trust** | `db.py` + header JWT | Cada query carrega o token do usuário logado, não um superadmin |
+| **Cofre de Chaves** | `secrets.toml` / Env Vars | Credenciais nunca sobem ao repositório Git |
+| **Cookies Seguros** | `streamlit_cookies_controller` | Sessão persistente com refresh token criptografado |
+
+---
+
+## Modelo de IA — XGBoost (Gradient Boosting)
+
+Por que XGBoost e não Redes Neurais?
+
+- **Relacionamentos Não-Lineares:** Mapeia quebras biológicas com precisão (waterlogging, estresse hídrico)
+- **Performance Tabular:** Inferência em < 50ms por fazenda — essencial para SaaS multi-usuário
+- **Explicabilidade:** Feature Importance exposta ao agrônomo ("Chuva 30d pesa 45% na decisão")
+
+**Features de entrada:**
+
+| Feature | Janela |
+|---|---|
+| Temperatura Média / Máx / Mín (°C) | Diária |
+| Precipitação acumulada | 7d, 30d, 90d |
+| Graus-Dia Acumulados (GDA) | 90d |
+| Radiação Solar Média (W/m²) | 30d |
+| Umidade do Solo Volumétrica | Diária |
+
+---
+
+## Stack Tecnológico
+
+| Camada | Tecnologia |
+|---|---|
+| **Frontend / App** | Streamlit + Plotly + Folium |
+| **IA Preditiva** | XGBoost (scikit-learn pipeline) |
+| **IA Generativa** | Google Gemini (PDF + Chat) |
+| **Banco de Dados** | Supabase (PostgreSQL + RLS) |
+| **Auth** | Supabase GoTrue (JWT) |
+| **Dados Climáticos** | Open-Meteo API (Real-time) |
+| **Geocoding** | OpenStreetMap Nominatim |
+| **PDF** | fpdf2 |
+| **Deploy** | Streamlit Community Cloud |
+
+---
+
+## Estrutura do Projeto
 
 ```text
-Sugarcane_NDVI_Predictor/
-├── data/                    # Bases de dados brutas e tratadas
-├── models/                  # O Cérebro da aplicação
-│   └── ndvi_xgb_model.pkl   # Modelo treinado exportado
-├── src/                     # A Fábrica (Pipelines locais de ETL e Treino ML)
-├── pages/                   # Telas do SaaS (Simulador, Análise, Config, Conta)
-├── components/              # Componentes modulares
-│   ├── auth.py              # Interface de Login/Registro
-│   ├── db.py                # Ponte Zero-Trust com o Supabase (JWT headers)
-│   ├── live_data.py         # API client (Open-Meteo & Geocoding)
-│   └── charts.py            # Suite de gráficos Plotly
-├── .streamlit/         
-│   └── secrets.toml         # Cofre local de chaves de API
-├── .github/workflows/       # Integração Contínua (CI)
-│   └── ci_pipeline.yml      # Jobs modulares (Dados, DSS, IA)
-├── app.py                   # O Produto Final (Ponto de entrada do SaaS)
-└── requirements.txt         # Dependências essenciais para deploy
+OmniCrop/
+├── assets/
+│   ├── logo.png                    # Logo oficial (PNG transparente)
+│   ├── background.jpg              # Fundo do dashboard (plantação)
+│   └── fundo_tech.jpg              # Fundo da tela de login (drone noturno)
+│
+├── components/
+│   ├── auth.py                     # Tela de Login/Registro com logo centralizada
+│   ├── api_client.py               # Modelo XGBoost + Motor DSS (Matriz de Fases)
+│   ├── charts.py                   # Gráficos Plotly (Gauge, Barras, Linhas)
+│   ├── db.py                       # Ponte Zero-Trust Supabase (JWT por requisição)
+│   ├── farm_config.py              # CRUD de fazendas + sincronização session_state
+│   ├── header.py                   # Sidebar global + logo + status do talhão
+│   ├── live_data.py                # Open-Meteo API (90d histórico + 15d previsão)
+│   ├── pdf_generator.py            # Gerador de PDF executivo (fpdf2 + Gemini)
+│   └── styles.py                   # CSS global: fundo dinâmico login vs dashboard
+│
+├── pages/
+│   ├── 2_Simulador.py              # Cenários What-If + ROI de irrigação
+│   ├── 3_Analise.py                # Janela de Colheita + Balança Hídrica 15d
+│   ├── 4_Minha_Fazenda.py          # CRUD de fazendas (renomear, editar, deletar)
+│   ├── 5_Configuracoes.py          # Preferências do usuário + thresholds de alerta
+│   └── 6_Assistente_de_Manejo.py  # Chat IA com RAG agronômico (Gemini)
+│
+├── scripts/
+│   └── daily_alerts.py             # CRON: varredura noturna + e-mails de risco
+│
+├── models/
+│   └── ndvi_xgb_model.pkl          # Modelo XGBoost treinado e exportado
+│
+├── app.py                          # Ponto de entrada + Motor de Roteamento
+└── requirements.txt                # Dependências de produção
 ```
 
-## Como rodar localmente
+---
 
-Clone o repositório e rode os seguintes comandos no terminal:
+## Como Rodar Localmente
 
 ```bash
-# 1. Crie e ative um ambiente virtual
-python -m venv .venv
-source .venv/bin/activate  # No Windows use: .venv\Scriptsctivate
+# 1. Clone o repositório
+git clone https://github.com/PhSandoval/OmniCrop.AI.git
+cd OmniCrop.AI
 
-# 2. Instale as dependências
+# 2. Crie e ative um ambiente virtual
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 3. Instale as dependências
 pip install -r requirements.txt
 
-# 3. Configure as variáveis de ambiente (Supabase)
+# 4. Configure as variáveis de ambiente
 mkdir -p .streamlit
-echo "SUPABASE_URL = 'sua-url-aqui'" > .streamlit/secrets.toml
-echo "SUPABASE_KEY = 'sua-anon-key-aqui'" >> .streamlit/secrets.toml
+cat > .streamlit/secrets.toml << EOF
+SUPABASE_URL = "sua-url-aqui"
+SUPABASE_KEY = "sua-anon-key-aqui"
+GEMINI_API_KEY = "sua-gemini-key-aqui"
+EOF
 
-# 4. Inicie o Dashboard
+# 5. Inicie o dashboard
 streamlit run app.py
 ```
+
+---
+
+## Roadmap — OmniCrop AI v2.0
+
+| Feature | Status |
+|---|---|
+| Módulo Cana-de-Açúcar (Dashboard, DSS, IA, PDF) | ✅ Produção |
+| Multi-Tenant (múltiplas fazendas por usuário) | ✅ Produção |
+| Relatório PDF Executivo com resumo Gemini | ✅ Produção |
+| Roteamento Multi-Cultura com página de holding | ✅ Produção |
+| Módulo Soja (modelo ML + DSS específico) | 🔄 Em Treinamento |
+| Módulo Café (fenologia + gestão de colheita) | 🔄 Em Treinamento |
+| Módulo Pecuária (taxa de lotação + pastejo) | 🔄 Em Treinamento |
+| App Mobile (React Native / Flutter) | 📋 Planejado |
+| Integração com satélites Sentinel-2 reais | 📋 Planejado |
