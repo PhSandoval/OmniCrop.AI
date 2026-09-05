@@ -323,48 +323,6 @@ def render_main_app():
     render_pdf_section()
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Roteamento Multi-Cultura ─────────────────────────────────
-    # Lê tipo_cultura do session_state diretamente para não perder dados do Supabase
-    _active = st.session_state.get('active_farm') or {}
-    tipo_cultura = _active.get("tipo_cultura") or cfg.get("tipo_cultura") or "Cana-de-Açúcar"
-
-    # Só redireciona para a tela de treinamento se for UMA DESSAS culturas explicitamente
-    CULTURAS_EM_TREINAMENTO = ["Soja", "Café", "Pecuária (Pasto)"]
-    
-    if tipo_cultura in CULTURAS_EM_TREINAMENTO:
-        # Tela de "Módulo em Treinamento" para culturas ainda não suportadas
-        icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
-        icone = icones.get(tipo_cultura, "🌱")
-        st.markdown(f"""
-<div style="
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    margin: 60px auto; padding: 50px 40px; max-width: 700px;
-    background: rgba(10, 40, 20, 0.70);
-    border: 1px solid rgba(105, 240, 174, 0.20);
-    border-radius: 20px;
-    text-align: center;
-">
-    <div style="font-size: 72px; margin-bottom: 20px;">{icone}</div>
-    <div style="font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-bottom: 12px;">
-        Módulo {tipo_cultura} em Treinamento
-    </div>
-    <div style="font-size: 15px; color: rgba(180, 230, 180, 0.70); line-height: 1.7; margin-bottom: 28px;">
-        A Inteligência Artificial preditiva e os modelos agronômicos para esta cultura
-        estarão disponíveis na <strong style="color:#69F0AE;">versão 2.0 do OmniCrop AI</strong>.<br>
-        Estamos coletando dados e treinando modelos específicos para maximizar a precisão das recomendações.
-    </div>
-    <div style="
-        background: rgba(105, 240, 174, 0.10);
-        border: 1px solid rgba(105, 240, 174, 0.25);
-        border-radius: 10px; padding: 14px 24px;
-        font-size: 13px; color: rgba(180,230,180,0.80);
-    ">
-        🚀 <strong>OmniCrop AI v2.0</strong> — Multi-Cultura · Disponível em breve
-    </div>
-</div>
-""", unsafe_allow_html=True)
-        return  # Encerra render sem mostrar ferramentas de cana
-
     with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
         st.markdown('''
         O **OmniCrop AI** atua como um **Satélite Virtual** (um *DSS* - Sistema de Suporte à Decisão). 
@@ -502,6 +460,92 @@ def render_main_app():
                              showlegend=False)
         st.plotly_chart(fig_bh, use_container_width=True, config={"displayModeBar": False})
 
+
+# ── Página Isolada: Cultura em Treinamento ──────────────────────────────────
+def render_cultura_em_treinamento(tipo_cultura: str) -> None:
+    """Página dedicada para culturas ainda não suportadas.
+    Esconde toda a navegação e ferramentas de cana. Só mostra o aviso + troca de fazenda."""
+
+    # Oculta sidebar e qualquer navegação
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] { display: none !important; }
+            [data-testid="collapsedControl"] { display: none !important; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
+    icone = icones.get(tipo_cultura, "🌱")
+
+    # Conteúdo centralizado
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown(f"""
+<div style="
+    display: flex; flex-direction: column; align-items: center;
+    padding: 50px 40px;
+    background: rgba(10, 40, 20, 0.75);
+    border: 1px solid rgba(105, 240, 174, 0.20);
+    border-radius: 20px;
+    text-align: center;
+">
+    <div style="font-size: 80px; margin-bottom: 18px;">{icone}</div>
+    <div style="font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-bottom: 14px;">
+        Módulo {tipo_cultura} em Treinamento
+    </div>
+    <div style="font-size: 15px; color: rgba(180, 230, 180, 0.75); line-height: 1.8; margin-bottom: 30px; max-width: 480px;">
+        A Inteligência Artificial preditiva e os modelos agronômicos para esta cultura
+        estarão disponíveis na <strong style="color:#69F0AE;">versão 2.0 do OmniCrop AI</strong>.<br><br>
+        Estamos coletando dados e treinando modelos específicos para maximizar
+        a precisão das recomendações.
+    </div>
+    <div style="
+        background: rgba(105, 240, 174, 0.10);
+        border: 1px solid rgba(105, 240, 174, 0.25);
+        border-radius: 10px; padding: 14px 28px;
+        font-size: 13px; color: rgba(180,230,180,0.85); margin-bottom: 36px;
+    ">
+        🚀 <strong>OmniCrop AI v2.0</strong> — Multi-Cultura · Disponível em breve
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Seletor de fazendas para trocar sem acessar a sidebar
+        farms = get_user_farms(st.session_state['user'].id)
+        if farms and len(farms) > 1:
+            farm_names = [f.get("farm_name", f"Fazenda {i}") for i, f in enumerate(farms)]
+            active_name = st.session_state.get('active_farm', {}).get('farm_name', farm_names[0])
+            active_idx = next((i for i, n in enumerate(farm_names) if n == active_name), 0)
+
+            chosen = st.selectbox("🔄 Trocar de Fazenda", farm_names, index=active_idx,
+                                  key="switch_farm_treinamento")
+            if chosen != active_name:
+                selected_farm = next(f for f in farms if f.get("farm_name") == chosen)
+                st.session_state['active_farm'] = selected_farm
+                from components.farm_config import save_config
+                save_config(selected_farm)
+                st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🚪 Sair (Logout)", use_container_width=True, key="logout_treinamento"):
+            st.session_state['user'] = None
+            st.session_state['active_farm'] = None
+            try:
+                from streamlit_cookies_controller import CookieController
+                controller = CookieController()
+                controller.remove('sb-access-token')
+                controller.remove('sb-refresh-token')
+            except:
+                pass
+            st.rerun()
+
+
+# ── Culturas que ainda não têm módulo completo ──────────────────────────────
+CULTURAS_EM_TREINAMENTO = ["Soja", "Café", "Pecuária (Pasto)"]
+
 # 4. Gatilho Final
 if not st.session_state['user']:
     render_auth_page()
@@ -510,4 +554,8 @@ elif st.session_state['show_onboarding']:
 elif not st.session_state['active_farm']:
     render_farm_selector()
 else:
-    render_main_app()
+    _tipo = (st.session_state.get('active_farm') or {}).get('tipo_cultura') or ""
+    if _tipo in CULTURAS_EM_TREINAMENTO:
+        render_cultura_em_treinamento(_tipo)
+    else:
+        render_main_app()
