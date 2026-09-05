@@ -28,7 +28,7 @@ def get_user_farms(user_id):
     res = supabase.table("fazendas").select("*").eq("user_id", user_id).execute()
     return res.data
 
-def insert_farm(user_id, farm_name, city, lat, lon):
+def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar"):
     access_token = st.session_state.get('access_token')
     supabase = get_supabase(access_token)
     data = {
@@ -42,7 +42,8 @@ def insert_farm(user_id, farm_name, city, lat, lon):
         "alert_amarelo": 0.6,
         "alert_vermelho": 0.4,
         "chuva_critica": 30,
-        "gda_critico": 150
+        "gda_critico": 150,
+        "tipo_cultura": tipo_cultura
     }
     return supabase.table("fazendas").insert(data).execute()
 

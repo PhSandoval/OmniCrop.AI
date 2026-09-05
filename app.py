@@ -228,6 +228,9 @@ def render_onboarding():
         fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100)
         
+        CULTURAS = ["Cana-de-Açúcar", "Soja", "Café", "Pecuária (Pasto)"]
+        tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS)
+        
         if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
             if not fazenda:
                 st.error("Dê um nome para o talhão!")
@@ -255,7 +258,8 @@ def render_onboarding():
                     "alert_amarelo": 0.6,
                     "alert_vermelho": 0.4,
                     "chuva_critica": 30,
-                    "gda_critico": 150
+                    "gda_critico": 150,
+                    "tipo_cultura": tipo_cultura
                 }
                 
                 from components.farm_config import save_config
@@ -265,7 +269,7 @@ def render_onboarding():
                 
                 from components.db import insert_farm
                 user_id = st.session_state['user'].id
-                insert_farm(user_id, fazenda, city, lat, lon)
+                insert_farm(user_id, fazenda, city, lat, lon, tipo_cultura)
                 
                 st.session_state['show_onboarding'] = False
                 st.session_state['active_farm'] = cfg
@@ -317,6 +321,42 @@ def render_main_app():
     render_pdf_section()
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── Roteamento Multi-Cultura ─────────────────────────────────
+    tipo_cultura = cfg.get("tipo_cultura", "Cana-de-Açúcar")
+    
+    if tipo_cultura != "Cana-de-Açúcar":
+        # Tela de "Módulo em Treinamento" para culturas ainda não suportadas
+        icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
+        icone = icones.get(tipo_cultura, "🌱")
+        st.markdown(f"""
+<div style="
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 60px auto; padding: 50px 40px; max-width: 700px;
+    background: rgba(10, 40, 20, 0.70);
+    border: 1px solid rgba(105, 240, 174, 0.20);
+    border-radius: 20px;
+    text-align: center;
+">
+    <div style="font-size: 72px; margin-bottom: 20px;">{icone}</div>
+    <div style="font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-bottom: 12px;">
+        Módulo {tipo_cultura} em Treinamento
+    </div>
+    <div style="font-size: 15px; color: rgba(180, 230, 180, 0.70); line-height: 1.7; margin-bottom: 28px;">
+        A Inteligência Artificial preditiva e os modelos agronômicos para esta cultura
+        estarão disponíveis na <strong style="color:#69F0AE;">versão 2.0 do OmniCrop AI</strong>.<br>
+        Estamos coletando dados e treinando modelos específicos para maximizar a precisão das recomendações.
+    </div>
+    <div style="
+        background: rgba(105, 240, 174, 0.10);
+        border: 1px solid rgba(105, 240, 174, 0.25);
+        border-radius: 10px; padding: 14px 24px;
+        font-size: 13px; color: rgba(180,230,180,0.80);
+    ">
+        🚀 <strong>OmniCrop AI v2.0</strong> — Multi-Cultura · Disponível em breve
+    </div>
+</div>
+""", unsafe_allow_html=True)
+        return  # Encerra render sem mostrar ferramentas de cana
 
     with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
         st.markdown('''
