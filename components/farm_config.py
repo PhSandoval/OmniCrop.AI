@@ -61,6 +61,7 @@ def save_config(config: dict) -> None:
                 if 'ndvi_critico_lim' in config: update_data['alert_vermelho'] = config['ndvi_critico_lim']
                 if 'deficit_lim' in config: update_data['chuva_critica'] = abs(config['deficit_lim'])
                 if 'dias_calor_lim' in config: update_data['gda_critico'] = config['dias_calor_lim'] * 10 # aprox
+                if 'tipo_cultura' in config: update_data['tipo_cultura'] = config['tipo_cultura']
                 
                 # We can't insert 'receber_alertas' because it doesn't exist in Supabase schema yet.
                 # So we just ignore it for the DB or handle it separately if we had the column.
@@ -74,20 +75,11 @@ def save_config(config: dict) -> None:
                 st.session_state['user_farms'] = get_user_farms_db()
                 return
             else:
-                # Criando pela primeira vez (Ex: app.py Onboarding)
-                res = insert_farm(
-                    user_id=user_id,
-                    farm_name=config.get("farm_name", "Nova Fazenda"),
-                    city=config.get("city", "Localização Desconhecida"),
-                    lat=config["lat"],
-                    lon=config["lon"]
-                )
-                if res.data:
-                    farm = res.data[0]
-                    farm.update(config)
-                    st.session_state['active_farm'] = farm
-                    st.session_state['user_farms'] = get_user_farms_db()
-                    return
+                # Onboarding já chama insert_farm diretamente em app.py.
+                # Aqui só atualizamos o session_state para não duplicar no banco.
+                st.session_state['active_farm'] = config
+                st.session_state['user_farms'] = get_user_farms_db()
+                return
         except Exception as e:
             st.error(f"Erro ao salvar na nuvem: {e}")
 

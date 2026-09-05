@@ -324,7 +324,9 @@ def render_main_app():
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Roteamento Multi-Cultura ─────────────────────────────────
-    tipo_cultura = cfg.get("tipo_cultura", "Cana-de-Açúcar")
+    # Lê tipo_cultura do session_state diretamente para não perder dados do Supabase
+    _active = st.session_state.get('active_farm') or {}
+    tipo_cultura = _active.get("tipo_cultura") or cfg.get("tipo_cultura") or "Cana-de-Açúcar"
     
     if tipo_cultura != "Cana-de-Açúcar":
         # Tela de "Módulo em Treinamento" para culturas ainda não suportadas
