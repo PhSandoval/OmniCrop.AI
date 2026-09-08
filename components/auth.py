@@ -17,7 +17,7 @@ def render_auth_page():
                     text-align:center; margin-bottom:18px;">
             <img src="data:image/png;base64,{_logo_b64}"
                  style="width:170px; height:170px; object-fit:contain;
-                        border-radius:50%; margin-bottom:10px;">
+                        border-radius:50%; margin-bottom:10px; transform: translateX(-8px);">
             <h1 style="color:#ffffff; font-size:30px; font-weight:800;
                        letter-spacing:-0.02em; margin:0 0 4px 0;
                        text-shadow:0 2px 12px rgba(0,0,0,0.55);">
