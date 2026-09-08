@@ -3,30 +3,33 @@ from components.db import login_user, register_user
 from streamlit_cookies_controller import CookieController
 
 def render_auth_page():
-    # Logo centralizada via HTML puro (mix-blend-mode remove fundo branco)
     import base64
     with open("assets/logo.png", "rb") as _f:
         _logo_b64 = base64.b64encode(_f.read()).decode()
-    st.markdown(f"""
-    <div style="display:flex; justify-content:center; margin-bottom:10px;">
-        <img src="data:image/png;base64,{_logo_b64}"
-             style="width:200px; height:200px; object-fit:contain;
-                    border-radius:50%;">
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("""
-    <h1 style='text-align: center; color: #ffffff; font-size: 32px;
-               font-weight: 800; letter-spacing: -0.02em; margin-top: -5px; margin-bottom: 2px;
-               text-shadow: 0 2px 12px rgba(0,0,0,0.5);'>
-        OmniCrop AI
-    </h1>
-    """, unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 15px; margin-top: 0px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
-    st.write("")
-    
+
     col1, col2, col3 = st.columns([1, 2, 1])
-    
+
+
     with col2:
+        # Logo + nome + subtítulo — tudo dentro da coluna central
+        st.markdown(f"""
+        <div style="display:flex; flex-direction:column; align-items:center;
+                    text-align:center; margin-bottom:18px;">
+            <img src="data:image/png;base64,{_logo_b64}"
+                 style="width:170px; height:170px; object-fit:contain;
+                        border-radius:50%; margin-bottom:10px;">
+            <h1 style="color:#ffffff; font-size:30px; font-weight:800;
+                       letter-spacing:-0.02em; margin:0 0 4px 0;
+                       text-shadow:0 2px 12px rgba(0,0,0,0.55);">
+                OmniCrop AI
+            </h1>
+            <p style="color:rgba(200,210,200,0.85); font-size:14px; margin:0;">
+                SaaS de Inteligência Agronômica
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+
         tab1, tab2 = st.tabs(["Login", "Criar Conta"])
         
         with tab1:
