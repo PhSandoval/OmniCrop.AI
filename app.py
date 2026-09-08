@@ -151,10 +151,10 @@ def render_onboarding():
         
         # Smart Search
         st.markdown("📍 **Como deseja encontrar sua lavoura?**")
-        tab_busca, tab_coord = st.tabs(["🏙️ Buscar por Cidade", "🧭 Inserir Coordenadas Manuais"])
+        tab_busca, tab_coord = st.tabs(["🏙️ Buscar por Endereço/CEP", "🧭 Inserir Coordenadas Manuais"])
         
         with tab_busca:
-            busca = st.text_input("Buscar Cidade ou Município:", placeholder="Ex: Ribeirão Preto, SP", label_visibility="collapsed")
+            busca = st.text_input("Buscar Endereço, CEP ou Cidade:", placeholder="Ex: 14020-000 ou Avenida Paulista, SP", label_visibility="collapsed")
             if busca and busca != st.session_state.get('last_busca'):
                 st.session_state['last_busca'] = busca
                 from components.live_data import search_location

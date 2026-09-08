@@ -23,20 +23,21 @@ HOURLY_VARS = [
 
 # ── Geocodificação ──────────────────────────────────────────────
 def search_location(query: str) -> list[dict]:
-    """Retorna lista de locais (nome, lat, lon, country) para a busca."""
+    """Retorna lista de locais (nome, lat, lon) para a busca via OpenStreetMap Nominatim (suporta Endereço e CEP)."""
     try:
         r = requests.get(
-            GEOCODING_URL,
-            params={"name": query, "count": 8, "language": "pt", "format": "json"},
-            timeout=5,
+            "https://nominatim.openstreetmap.org/search",
+            params={"q": query, "format": "json", "limit": 8, "addressdetails": 1},
+            headers={"User-Agent": "OmniCropAI/1.0"},
+            timeout=8,
         )
-        results = r.json().get("results", [])
+        results = r.json()
         return [
             {
-                "label": f"{r.get('name')}, {r.get('admin1', '')}, {r.get('country', '')}",
-                "lat": r["latitude"],
-                "lon": r["longitude"],
-                "elevation": r.get("elevation", 0),
+                "label": r.get("display_name", ""),
+                "lat": float(r["lat"]),
+                "lon": float(r["lon"]),
+                "elevation": 0, # Nominatim doesn't provide elevation, but it's not strictly needed for the UI dropdown
             }
             for r in results
         ]
