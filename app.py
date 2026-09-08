@@ -310,7 +310,8 @@ def render_main_app():
                     cfg.get("farm_name", "Minha Fazenda"),
                     cfg.get("city", "Desconhecida"),
                     payload,
-                    resultado
+                    resultado,
+                    df=df
                 )
                 st.download_button(
                     label="⬇️ PDF Pronto! Clique para Baixar",

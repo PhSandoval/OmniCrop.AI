@@ -5,6 +5,7 @@ requests
 scikit-learn==1.7.2
 joblib
 plotly
+kaleido
 folium
 streamlit-folium
 supabase>=2.0.0
