@@ -250,31 +250,26 @@ def render_onboarding():
                 except:
                     city = "Local Desconhecido"
                 
-                cfg = {
-                    "farm_name": fazenda,
-                    "city": city,
-                    "lat": lat,
-                    "lon": lon,
-                    "variedade": "RB867515",
-                    "area_ha": area_ha,
-                    "alert_amarelo": 0.6,
-                    "alert_vermelho": 0.4,
-                    "chuva_critica": 30,
-                    "gda_critico": 150,
-                    "tipo_cultura": tipo_cultura
-                }
-                
-                from components.farm_config import save_config
-                save_config(cfg)
-                st.session_state['farm_name'] = fazenda
-                st.session_state['city'] = city
-                
-                from components.db import insert_farm
+                from components.db import insert_farm, get_user_farms
                 user_id = st.session_state['user'].id
-                insert_farm(user_id, fazenda, city, lat, lon, tipo_cultura)
                 
+                # Insere no banco primeiro (o banco gera o ID e as configs default)
+                res = insert_farm(user_id, fazenda, city, lat, lon, tipo_cultura)
+                
+                # Atualiza o state com a fazenda REAL (com ID) retornada pelo banco
+                if hasattr(res, 'data') and res.data:
+                    st.session_state['active_farm'] = res.data[0]
+                else:
+                    # Fallback (não deveria acontecer se a API não falhar)
+                    st.session_state['active_farm'] = {
+                        "farm_name": fazenda, "city": city, "lat": lat, "lon": lon,
+                        "tipo_cultura": tipo_cultura, "id": None
+                    }
+                
+                # Atualiza a lista cacheada de fazendas do usuário
+                st.session_state['user_farms'] = get_user_farms(user_id)
                 st.session_state['show_onboarding'] = False
-                st.session_state['active_farm'] = cfg
+                
                 st.rerun()
                 
         if st.button("Cancelar", use_container_width=True):
