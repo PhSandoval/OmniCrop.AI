@@ -147,7 +147,9 @@ def generate_pdf_report(
 
     ndvi_val = resultado.get("ndvi_previsto", 0)
     fase = resultado.get("fase_fenologica", "-")
-    conf = resultado.get("confiabilidade_modelo", "Alta")
+    # Truncate to avoid PDF cell overflow
+    conf_raw = str(resultado.get("confiabilidade_modelo", "Alta"))
+    conf = conf_raw.split("(")[0].strip()
     status = resultado.get("status_geral", "-")
 
     pdf.kpi_card_row(
@@ -200,7 +202,7 @@ def generate_pdf_report(
     try:
         if "GEMINI_API_KEY" in st.secrets:
             genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-            modelo = genai.GenerativeModel("gemini-2.0-flash")
+            modelo = genai.GenerativeModel("gemini-3.6-flash")
             prompt = (
                 f"Você é um agrônomo especialista em cana-de-açúcar. Escreva um parecer executivo "
                 f"objetivo com exatamente 3 frases sobre este talhão. "
