@@ -31,14 +31,14 @@ class PDF(FPDF):
         self.set_y(8)
         self.set_font("helvetica", "B", 16)
         self.set_text_color(255, 255, 255)
-        self.cell(0, 10, "RELATÓRIO EXECUTIVO — OMNICROP AI", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 10, "RELATÓRIO EXECUTIVO - OMNICROP AI", new_x="LMARGIN", new_y="NEXT", align="C")
         self.ln(10)
 
     def footer(self):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Página {self.page_no()}/{{nb}} — Gerado automaticamente por OmniCrop AI", align="C")
+        self.cell(0, 10, f"Página {self.page_no()}/{{nb}} - Gerado automaticamente por OmniCrop AI", align="C")
 
     def section_title(self, number: str, title: str, r: int, g: int, b: int):
         """Barra colorida de seção."""
@@ -80,7 +80,7 @@ def generate_pdf_report(
     pdf = PDF()
     pdf.alias_nb_pages()
 
-    # ① FIX: quebra automática de página — evita corte de texto no rodapé
+    # ① FIX: quebra automática de página - evita corte de texto no rodapé
     pdf.set_auto_page_break(auto=True, margin=20)
 
     pdf.add_page()
@@ -110,7 +110,7 @@ def generate_pdf_report(
             if chart_path:
                 pdf.set_font("helvetica", "B", 10)
                 pdf.set_text_color(22, 160, 133)
-                pdf.cell(0, 6, "Série Histórica de Vigor Vegetativo (NDVI) — Últimos 90 dias", new_x="LMARGIN", new_y="NEXT")
+                pdf.cell(0, 6, "Série Histórica de Vigor Vegetativo (NDVI) - Últimos 90 dias", new_x="LMARGIN", new_y="NEXT")
                 pdf.ln(2)
                 pdf.image(chart_path, x=10, w=190)
                 os.unlink(chart_path)   # limpa o arquivo temp
@@ -122,7 +122,7 @@ def generate_pdf_report(
     pdf.section_title("1", "DADOS MICROCLIMÁTICOS", 41, 128, 185)
 
     pdf.kpi_card_row(
-        ["☁️ Chuva 30d", "☁️ Chuva 60d", "☁️ Chuva 90d", "🌡️ Graus-Dia (GDA)"],
+        ["Chuva 30d", "Chuva 60d", "Chuva 90d", "Graus-Dia (GDA)"],
         [
             f"{payload.get('chuva_acumulada_30d', 0):.1f} mm",
             f"{payload.get('chuva_acumulada_60d', 0):.1f} mm",
@@ -132,7 +132,7 @@ def generate_pdf_report(
     )
 
     pdf.kpi_card_row(
-        ["🌡️ Temp. Média", "🔥 Temp. Máxima", "❄️ Temp. Mínima", "☀️ Radiação Média"],
+        ["Temp. Média", "Temp. Máxima", "Temp. Mínima", "Radiação Média"],
         [
             f"{payload.get('temp_media', 0):.1f} °C",
             f"{payload.get('temp_max', 0):.1f} °C",
@@ -146,12 +146,12 @@ def generate_pdf_report(
     pdf.section_title("2", "INTELIGÊNCIA PREDITIVA (NDVI)", 39, 174, 96)
 
     ndvi_val = resultado.get("ndvi_previsto", 0)
-    fase = resultado.get("fase_fenologica", "—")
+    fase = resultado.get("fase_fenologica", "-")
     conf = resultado.get("confiabilidade_modelo", "Alta")
-    status = resultado.get("status_geral", "—")
+    status = resultado.get("status_geral", "-")
 
     pdf.kpi_card_row(
-        ["📊 NDVI Estimado", "🌱 Fase Fenológica", "🎯 Confiabilidade", "🚦 Status Geral"],
+        ["NDVI Estimado", "Fase Fenológica", "Confiabilidade", "Status Geral"],
         [f"{ndvi_val:.3f}", fase, conf, status],
     )
 
@@ -165,7 +165,7 @@ def generate_pdf_report(
     pdf.ln(4)
 
     # ── 3. ALERTAS OPERACIONAIS (DSS) ─────────────────────────────────────────
-    pdf.section_title("3", "ALERTAS ATIVOS — DSS", 230, 126, 34)
+    pdf.section_title("3", "ALERTAS ATIVOS - DSS", 230, 126, 34)
 
     alertas = resultado.get("fatores_de_risco_identificados", [])
     pdf.set_font("helvetica", "", 11)
@@ -174,7 +174,7 @@ def generate_pdf_report(
         pdf.set_fill_color(232, 248, 240)
         pdf.set_text_color(39, 174, 96)
         pdf.set_draw_color(39, 174, 96)
-        pdf.cell(0, 9, "  ✅  Nenhum risco crítico identificado.", border=1, new_x="LMARGIN", new_y="NEXT", fill=True)
+        pdf.cell(0, 9, "  [OK]  Nenhum risco crítico identificado.", border=1, new_x="LMARGIN", new_y="NEXT", fill=True)
     else:
         for alerta in alertas:
             is_critico = any(w in alerta for w in ["Déficit", "Crítico", "Risco", "Alerta"])
@@ -188,13 +188,13 @@ def generate_pdf_report(
                 pdf.set_text_color(44, 62, 80)
                 pdf.set_draw_color(180, 180, 180)
                 pdf.set_font("helvetica", "", 10)
-            pdf.cell(0, 8, f"  • {alerta}", border=1, new_x="LMARGIN", new_y="NEXT", fill=True)
+            pdf.cell(0, 8, f"  - {alerta}", border=1, new_x="LMARGIN", new_y="NEXT", fill=True)
             pdf.ln(1)
 
     pdf.ln(5)
 
     # ── 4. PARECER DO AGRÔNOMO (GEMINI IA) ───────────────────────────────────
-    pdf.section_title("4", "PARECER DO AGRÔNOMO (IA — GEMINI)", 142, 68, 173)
+    pdf.section_title("4", "PARECER DO AGRÔNOMO (IA - GEMINI)", 142, 68, 173)
 
     parecer_texto = "Análise indisponível."
     try:
