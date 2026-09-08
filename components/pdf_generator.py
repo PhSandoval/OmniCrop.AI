@@ -134,10 +134,10 @@ def generate_pdf_report(
     pdf.kpi_card_row(
         ["Temp. Média", "Temp. Máxima", "Temp. Mínima", "Radiação Média"],
         [
-            f"{payload.get('temp_media', 0):.1f} °C",
-            f"{payload.get('temp_max', 0):.1f} °C",
-            f"{payload.get('temp_min', 0):.1f} °C",
-            f"{payload.get('radiacao_media', 0):.0f} W/m²",
+            f"{payload.get('t_mean', 0):.1f} °C",
+            f"{payload.get('t_max', 0):.1f} °C",
+            f"{payload.get('t_min', 0):.1f} °C",
+            f"{payload.get('radiacao_solar_mean', 0):.0f} W/m²",
         ],
     )
     pdf.ln(4)

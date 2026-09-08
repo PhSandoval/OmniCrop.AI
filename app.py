@@ -304,7 +304,7 @@ def render_main_app():
                 pdf_bytes = generate_pdf_report(
                     cfg.get("farm_name", "Minha Fazenda"),
                     cfg.get("city", "Desconhecida"),
-                    payload,
+                    today,
                     resultado,
                     df=df
                 )
