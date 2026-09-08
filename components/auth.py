@@ -14,7 +14,14 @@ def render_auth_page():
                     border-radius:50%;">
     </div>
     """, unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 16px; margin-top: -15px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
+    st.markdown("""
+    <h1 style='text-align: center; color: #ffffff; font-size: 32px;
+               font-weight: 800; letter-spacing: -0.02em; margin-top: -5px; margin-bottom: 2px;
+               text-shadow: 0 2px 12px rgba(0,0,0,0.5);'>
+        OmniCrop AI
+    </h1>
+    """, unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #aaa; font-size: 15px; margin-top: 0px;'>SaaS de Inteligência Agronômica</h2>", unsafe_allow_html=True)
     st.write("")
     
     col1, col2, col3 = st.columns([1, 2, 1])
