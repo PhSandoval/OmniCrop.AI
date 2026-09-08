@@ -284,9 +284,13 @@ OmniCrop/
 ├── models/
 │   └── ndvi_xgb_model.pkl          # Modelo XGBoost treinado e exportado
 │
+├── .github/workflows/              # CI Pipeline
+├── .streamlit/                     # Configuração do Streamlit (secrets ignorado)
 ├── app.py                          # Ponto de entrada + Motor de Roteamento
 └── requirements.txt                # Dependências de produção
 ```
+
+> **📂 Branch `ml-research`:** O pipeline original de pesquisa do modelo XGBoost (ETL, EDA, treino e testes) está preservado na branch [`ml-research`](https://github.com/PhSandoval/OmniCrop.AI/tree/ml-research) para consulta e portfólio, mantendo o `main` limpo com apenas o código do produto SaaS.
 
 ---
 

@@ -1,19 +1,36 @@
-# Ambientes
+# ── Ambientes Python ─────────────────────────────────────────────────────────
 .venv/
 __pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# ── Variáveis de ambiente e segredos ─────────────────────────────────────────
 .env
-
-# Lixo do Mac
-.DS_Store
-
-# Banco de Dados
-data/raw/
-data/interim/
-# data/processed SObe pro git!
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Streamlit secrets
 .streamlit/secrets.toml
 .streamlit/
+
+# ── Sistema operacional ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Dados brutos e processados (pipeline ML) ─────────────────────────────────
+data/raw/
+data/Raw/
+data/interim/
+data/processed/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Imagens soltas na raiz (ativos devem ficar em assets/) ───────────────────
+/*.jpg
+/*.jpeg
+/*.png
+!assets/
+!assets/**
+
+# ── Cache e builds ────────────────────────────────────────────────────────────
+*.egg-info/
+dist/
+build/
