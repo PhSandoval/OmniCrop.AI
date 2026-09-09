@@ -16,9 +16,10 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
     
     with st.sidebar:
         # Logo / Brand Image
-        st.markdown("<div style='padding: 10px 0px 10px 0px; display: flex; justify-content: center;'>", unsafe_allow_html=True)
-        st.image(logo_path, width=110)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        c1, c2, c3 = st.columns([1, 1.5, 1])
+        with c2:
+            st.image(logo_path, use_container_width=True)
 
         st.markdown("""
 <div style="padding:0px 4px 15px; text-align: center;">

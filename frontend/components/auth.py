@@ -15,10 +15,6 @@ def render_auth_page():
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-        if st.button("⬅️ Voltar", key="btn_back_landing"):
-            st.session_state['show_login'] = False
-            st.rerun()
-            
         # Logo + nome + subtítulo — tudo dentro da coluna central
         st.markdown(f"""
         <div style="display:flex; flex-direction:column; align-items:center;
@@ -64,6 +60,10 @@ def render_auth_page():
                             st.rerun()
                     except Exception as e:
                         st.error(f"Falha no login. Verifique suas credenciais.")
+            
+            if st.button("⬅️ Voltar", key="btn_back_login", use_container_width=True):
+                st.session_state['show_login'] = False
+                st.rerun()
                         
         with tab2:
             with st.form("register_form"):
@@ -78,3 +78,7 @@ def render_auth_page():
                             st.success("Conta criada com sucesso! Por favor, verifique sua caixa de entrada (e spam) e confirme seu e-mail antes de fazer login.")
                     except Exception as e:
                         st.error(f"Falha ao registrar: {e}")
+            
+            if st.button("⬅️ Voltar", key="btn_back_register", use_container_width=True):
+                st.session_state['show_login'] = False
+                st.rerun()
