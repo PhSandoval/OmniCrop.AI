@@ -49,19 +49,21 @@ with col_pref:
     
     if st.button("💾 Salvar Preferências", type="primary"):
         if cfg:
-            update_data = {
+            update_data_db = {
                 "alert_amarelo": ndvi_medio_lim,
                 "alert_vermelho": ndvi_critico_lim,
                 "chuva_critica": deficit_lim,
-                "gda_critico": dias_calor_lim,
-                "receber_alertas": receber_alertas
+                "gda_critico": dias_calor_lim
             }
-            update_farm(cfg["id"], st.session_state['user'].id, update_data)
-            
-            cfg.update(update_data)
-            st.session_state['active_farm'] = cfg
-            save_config(cfg)
-            st.success("Configurações de sistema salvas com sucesso!")
+            try:
+                update_farm(cfg["id"], st.session_state['user'].id, update_data_db)
+                
+                cfg.update(update_data_db)
+                cfg["receber_alertas"] = receber_alertas
+                st.session_state['active_farm'] = cfg
+                st.success("Configurações de sistema salvas com sucesso!")
+            except Exception as e:
+                st.error("Erro ao salvar no banco de dados. Tente novamente.")
 
 with col_conta:
     st.markdown('<div class="sec-header">Seu Perfil</div>', unsafe_allow_html=True)

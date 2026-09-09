@@ -95,12 +95,20 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
                 try:
                     # In 2026, old session states might hold references to deprecated 1.5 models. 
                     # If we catch an error, we wipe the session state and try again.
-                    response = st.session_state['chat_session'].send_message(prompt_usuario)
+                    response = st.session_state['chat_session'].send_message(prompt_usuario, stream=True)
+                    
                     try:
-                        resposta_texto = response.text
+                        def parse_stream():
+                            for chunk in response:
+                                yield chunk.text
+                        
+                        # Usa o write_stream para criar o efeito maquina de escrever
+                        resposta_texto = st.write_stream(parse_stream())
+                        
                     except ValueError:
                         resposta_texto = "Desculpe, o filtro de segurança do Google bloqueou esta resposta. Por favor, reformule sua pergunta para mantê-la no contexto agronômico."
-                    st.markdown(resposta_texto)
+                        st.markdown(resposta_texto)
+                        
                     st.session_state['mensagens_chat'].append({"role": "assistant", "content": resposta_texto})
                 except Exception as e:
                     if "404" in str(e) or "not found" in str(e).lower():
@@ -113,12 +121,16 @@ Responda de forma profissional, direta e concisa. Forneça conselhos práticos d
                         
                         # Tenta enviar de novo
                         try:
-                            response = st.session_state['chat_session'].send_message(prompt_usuario)
+                            response = st.session_state['chat_session'].send_message(prompt_usuario, stream=True)
                             try:
-                                resposta_texto2 = response.text
+                                def parse_stream2():
+                                    for chunk in response:
+                                        yield chunk.text
+                                resposta_texto2 = st.write_stream(parse_stream2())
                             except ValueError:
                                 resposta_texto2 = "Desculpe, o filtro de segurança do Google bloqueou esta resposta. Por favor, reformule sua pergunta para mantê-la no contexto agronômico."
-                            st.markdown(resposta_texto2)
+                                st.markdown(resposta_texto2)
+                                
                             st.session_state['mensagens_chat'].append({"role": "assistant", "content": resposta_texto2})
                         except Exception as e2:
                             st.error(f"Erro persistente na API do Google: {e2}")
