@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from frontend.components.styles import inject_css
 from frontend.components.header import render_sidebar, render_page_header
 from backend.db import get_user_farms, update_farm, delete_farm
