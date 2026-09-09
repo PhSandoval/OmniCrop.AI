@@ -1,5 +1,5 @@
 import streamlit as st
-from components.db import login_user, register_user
+from backend.db import login_user, register_user
 from streamlit_cookies_controller import CookieController
 
 def render_auth_page():

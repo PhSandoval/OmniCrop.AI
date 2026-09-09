@@ -7,12 +7,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
-from components.styles import inject_css
-from components.farm_config import load_config, is_configured, save_config
-from components.live_data import fetch_farm_data, search_location
-from components.api_client import build_payload, get_prediction, badge_html, calcular_dss
-from components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
-from components.header import render_sidebar, render_page_header
+from frontend.components.styles import inject_css
+from backend.farm_config import load_config, is_configured, save_config
+from backend.live_data import fetch_farm_data, search_location
+from backend.api_client import build_payload, get_prediction, badge_html, calcular_dss
+from frontend.components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
+from frontend.components.header import render_sidebar, render_page_header
 
 st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_icon="assets/logo.jpg", layout="wide",
                    initial_sidebar_state="expanded")
@@ -22,7 +22,7 @@ st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_ic
 # -- CAPTURA DE CALLBACK DO SUPABASE (EMAIL CONFIRMATION PKCE) --
 if 'code' in st.query_params:
     try:
-        from components.db import get_supabase
+        from backend.db import get_supabase
         auth_code = st.query_params['code']
         # Troca o auth_code por uma sessao real
         res = get_supabase().auth.exchange_code_for_session({"auth_code": auth_code})
@@ -52,7 +52,7 @@ if 'user' not in st.session_state:
         refresh_token = controller.get('sb-refresh-token')
         
         if access_token and refresh_token:
-            from components.db import get_supabase
+            from backend.db import get_supabase
             res = get_supabase().auth.set_session(access_token, refresh_token)
             if res and getattr(res, 'user', None):
                 st.session_state['user'] = res.user
@@ -81,8 +81,8 @@ _farm_selected = bool(st.session_state.get('active_farm'))
 _onboarding = st.session_state.get('show_onboarding', False)
 inject_css(is_login=not _user_logged or _onboarding or not _farm_selected)
 
-from components.auth import render_auth_page
-from components.db import get_user_farms, insert_farm
+from frontend.components.auth import render_auth_page
+from backend.db import get_user_farms, insert_farm
 
 
 
@@ -108,7 +108,7 @@ def render_farm_selector():
                     st.session_state['farm_name'] = cfg['farm_name']
                     st.session_state['city'] = cfg['city']
                     
-                    from components.farm_config import save_config
+                    from backend.farm_config import save_config
                     save_config(cfg) # Sync with local config so pages can read it
                     st.rerun()
             st.markdown("<hr>", unsafe_allow_html=True)
@@ -157,7 +157,7 @@ def render_onboarding():
             busca = st.text_input("Buscar Endereço, CEP ou Cidade:", placeholder="Ex: 14020-000 ou Avenida Paulista, SP", label_visibility="collapsed")
             if busca and busca != st.session_state.get('last_busca'):
                 st.session_state['last_busca'] = busca
-                from components.live_data import search_location
+                from backend.live_data import search_location
                 pts = search_location(busca)
                 if pts:
                     st.session_state['map_center'] = [pts[0]['lat'], pts[0]['lon']]
@@ -250,7 +250,7 @@ def render_onboarding():
                 except:
                     city = "Local Desconhecido"
                 
-                from components.db import insert_farm, get_user_farms
+                from backend.db import insert_farm, get_user_farms
                 user_id = st.session_state['user'].id
                 
                 # Insere no banco primeiro (o banco gera o ID e as configs default)
@@ -300,7 +300,7 @@ def render_main_app():
     def render_pdf_section():
         if st.button("📄 Gerar Relatório Executivo (PDF)", type="primary"):
             with st.spinner("Analisando dados com IA e compilando PDF..."):
-                from components.pdf_generator import generate_pdf_report
+                from frontend.components.pdf_generator import generate_pdf_report
                 pdf_bytes = generate_pdf_report(
                     cfg.get("farm_name", "Minha Fazenda"),
                     cfg.get("city", "Desconhecida"),
@@ -521,7 +521,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
             if chosen != active_name:
                 selected_farm = next(f for f in farms if f.get("farm_name") == chosen)
                 st.session_state['active_farm'] = selected_farm
-                from components.farm_config import save_config
+                from backend.farm_config import save_config
                 save_config(selected_farm)
                 st.rerun()
 

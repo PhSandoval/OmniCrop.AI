@@ -101,7 +101,7 @@ def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
 
     # Aplicar XGBoost no Histórico e na Previsão Futura!
     try:
-        from components.api_client import load_model, FEATURE_KEYS
+        from backend.api_client import load_model, FEATURE_KEYS
         model = load_model()
         df["ndvi_medio"] = model.predict(df[FEATURE_KEYS].bfill().ffill())
     except Exception as e:

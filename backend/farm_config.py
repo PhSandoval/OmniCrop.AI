@@ -7,7 +7,7 @@ CONFIG_PATH = Path(__file__).resolve().parents[1] / "data" / "farm_config.json"
 def get_user_farms_db():
     if 'user' in st.session_state:
         try:
-            from components.db import get_user_farms
+            from backend.db import get_user_farms
             return get_user_farms(st.session_state['user'].id)
         except:
             pass
@@ -26,7 +26,7 @@ def load_config() -> dict | None:
         for f in farms:
             if f.get("farm_name") == "Nova Fazenda":
                 try:
-                    from components.db import delete_farm
+                    from backend.db import delete_farm
                     delete_farm(f["id"], st.session_state['user'].id)
                     deleted_any = True
                 except:
@@ -46,7 +46,7 @@ def load_config() -> dict | None:
 def save_config(config: dict) -> None:
     if 'user' in st.session_state:
         try:
-            from components.db import insert_farm, update_farm
+            from backend.db import insert_farm, update_farm
             user_id = st.session_state['user'].id
             
             # Se ja tem uma fazenda ativa, so atualiza as configs dela

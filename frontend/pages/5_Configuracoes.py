@@ -3,12 +3,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from components.styles import inject_css
-from components.header import render_sidebar, render_page_header
-from components.farm_config import save_config, load_config
-from components.db import update_farm
-from components.live_data import fetch_farm_data
-from components.api_client import build_payload, get_prediction
+from frontend.components.styles import inject_css
+from frontend.components.header import render_sidebar, render_page_header
+from backend.farm_config import save_config, load_config
+from backend.db import update_farm
+from backend.live_data import fetch_farm_data
+from backend.api_client import build_payload, get_prediction
 
 st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="assets/logo.jpg", layout="wide", initial_sidebar_state="expanded")
 inject_css()

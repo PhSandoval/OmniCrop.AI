@@ -25,7 +25,7 @@ import joblib
 
 @st.cache_resource
 def load_model():
-    path = Path(__file__).resolve().parents[1] / "models" / "ndvi_xgb_model.pkl"
+    path = Path(__file__).resolve().parents[1] / "data_science" / "models" / "ndvi_xgb_model.pkl"
     return joblib.load(path)
 
 def get_prediction(payload: dict) -> dict | None:

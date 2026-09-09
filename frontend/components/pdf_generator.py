@@ -98,7 +98,7 @@ def generate_pdf_report(
     # ── ③ GRÁFICO NDVI (O "EFEITO UAU") ─────────────────────────────────────
     if df is not None:
         try:
-            from components.charts import ndvi_line
+            from frontend.components.charts import ndvi_line
             fig = ndvi_line(df)
             # Fundo branco para o PNG do PDF
             fig.update_layout(

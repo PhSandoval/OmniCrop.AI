@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from components.farm_config import load_config
+from backend.farm_config import load_config
 
 
 def render_sidebar(today: dict, resultado: dict | None) -> None:
