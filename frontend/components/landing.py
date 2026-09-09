@@ -1,9 +1,6 @@
 import streamlit as st
 
 def render_landing_page():
-    from frontend.components.header import render_sidebar
-    render_sidebar(None, None)
-    
     # Usando o estilo de injecao de CSS base da aplicacao
     st.markdown("""
     <style>

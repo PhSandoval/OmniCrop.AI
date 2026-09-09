@@ -66,7 +66,18 @@ footer { display: none !important; }
 }
 [data-testid="stSidebar"] * { color: #CBD5E1 !important; font-weight: 400; }
 [data-testid="stSidebarNav"] { display: none !important; }
+"""
+    if is_login:
+        css += """
+<style>
+/* Oculta totalmente a sidebar em páginas de login e landing */
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
+</style>
+"""
 
+    css += """
+<style>
 /* ── Metricas com Cards (Opacidade) ── */
 [data-testid="metric-container"] {
     background: rgba(10, 25, 15, 0.6) !important;
