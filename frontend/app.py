@@ -14,7 +14,7 @@ from backend.api_client import build_payload, get_prediction, badge_html, calcul
 from frontend.components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
 from frontend.components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_icon="assets/logo.jpg", layout="wide",
+st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_icon="frontend/assets/logo.jpg", layout="wide",
                    initial_sidebar_state="expanded")
 
 
@@ -89,8 +89,12 @@ from backend.db import get_user_farms, insert_farm
 # 2. Função de Onboarding
 
 def render_farm_selector():
-    st.markdown("<style>[data-testid='stSidebar'] { display: none; }</style>", unsafe_allow_html=True)
+    from frontend.components.header import render_sidebar
+    from datetime import datetime
+    render_sidebar({"date": datetime.now()}, None)
+    
     st.markdown("<h2 style='text-align: center;'>Suas Fazendas</h2>", unsafe_allow_html=True)
+
     
     farms = get_user_farms(st.session_state['user'].id)
     
@@ -460,15 +464,13 @@ def render_main_app():
 # ── Página Isolada: Cultura em Treinamento ──────────────────────────────────
 def render_cultura_em_treinamento(tipo_cultura: str) -> None:
     """Página dedicada para culturas ainda não suportadas.
-    Esconde toda a navegação e ferramentas de cana. Só mostra o aviso + troca de fazenda."""
-
-    # Oculta sidebar e qualquer navegação
-    st.markdown("""
-        <style>
-            [data-testid="stSidebar"] { display: none !important; }
-            [data-testid="collapsedControl"] { display: none !important; }
-        </style>
-    """, unsafe_allow_html=True)
+    Esconde as ferramentas de cana desabilitando os links na sidebar."""
+    
+    # We will pass a dummy today dict just so the sidebar renders
+    from datetime import datetime
+    today = {"date": datetime.now()}
+    from frontend.components.header import render_sidebar
+    render_sidebar(today, None)
 
     icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
     icone = icones.get(tipo_cultura, "🌱")
@@ -479,25 +481,25 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
         st.markdown("<br><br>", unsafe_allow_html=True)
         st.markdown(f"""
 <div style="
-    display: flex; flex-direction: column; align-items: center;
-    padding: 50px 40px;
-    background: rgba(10, 40, 20, 0.75);
-    border: 1px solid rgba(105, 240, 174, 0.20);
-    border-radius: 20px;
+    background: rgba(10, 30, 15, 0.65);
+    border: 1px solid rgba(100, 220, 100, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 40px;
     text-align: center;
 ">
-    <div style="font-size: 80px; margin-bottom: 18px;">{icone}</div>
-    <div style="font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-bottom: 14px;">
+    <div style="font-size: 64px; margin-bottom: 20px;">{icone}</div>
+    <h2 style="color: #fff; font-weight: 700; margin-bottom: 16px;">
         Módulo {tipo_cultura} em Treinamento
-    </div>
-    <div style="font-size: 15px; color: rgba(180, 230, 180, 0.75); line-height: 1.8; margin-bottom: 30px; max-width: 480px;">
-        A Inteligência Artificial preditiva e os modelos agronômicos para esta cultura
-        estarão disponíveis na <strong style="color:#69F0AE;">versão 2.0 do OmniCrop AI</strong>.<br><br>
-        Estamos coletando dados e treinando modelos específicos para maximizar
-        a precisão das recomendações.
-    </div>
+    </h2>
+    <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+        A Inteligência Artificial preditiva e os modelos agronômicos para esta 
+        cultura estarão disponíveis na <b>versão 2.0</b> do OmniCrop AI.
+        <br><br>
+        Estamos coletando dados e treinando modelos específicos para 
+        maximizar a precisão das recomendações.
+    </p>
     <div style="
-        background: rgba(105, 240, 174, 0.10);
         border: 1px solid rgba(105, 240, 174, 0.25);
         border-radius: 10px; padding: 14px 28px;
         font-size: 13px; color: rgba(180,230,180,0.85); margin-bottom: 36px;

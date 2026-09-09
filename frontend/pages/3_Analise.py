@@ -15,7 +15,7 @@ from backend.live_data import fetch_farm_data
 from backend.api_client import build_payload, get_prediction
 from frontend.components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="Analytics · OmniCrop AI", page_icon="assets/logo.jpg", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Analytics · OmniCrop AI", page_icon="frontend/assets/logo.jpg", layout="wide", initial_sidebar_state="expanded")
 inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:

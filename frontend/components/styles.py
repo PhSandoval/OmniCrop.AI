@@ -4,7 +4,7 @@ import base64
 
 def inject_css(is_login=False) -> None:
     import base64
-    bg_file = "assets/fundo_tech.jpg" if is_login else "assets/background.jpg"
+    bg_file = "frontend/assets/fundo_tech.jpg" if is_login else "frontend/assets/background.jpg"
 
     with open(bg_file, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
@@ -19,7 +19,7 @@ def inject_css(is_login=False) -> None:
     else:
         bg_html = f"""
     <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -999;
-                background: linear-gradient(180deg, rgba(2, 8, 4, 0.50) 0%, rgba(5, 15, 8, 0.75) 100%),
+                background: linear-gradient(180deg, rgba(2, 8, 4, 0.70) 0%, rgba(5, 15, 8, 0.95) 100%),
                 url('data:image/jpeg;base64,{encoded_string}') center/cover no-repeat;">
     </div>
     """
@@ -60,13 +60,15 @@ footer { display: none !important; }
 [data-testid="stSidebar"] * { color: #CBD5E1 !important; font-weight: 400; }
 [data-testid="stSidebarNav"] { display: none !important; }
 
-/* ── Metricas Minimalistas (Sem Caixas) ── */
+/* ── Metricas com Cards (Opacidade) ── */
 [data-testid="metric-container"] {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+    background: rgba(10, 25, 15, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    padding: 16px !important;
     margin-bottom: 24px !important;
+    backdrop-filter: blur(8px);
 }
 [data-testid="stMetricLabel"] {
     color: #94A3B8 !important; 
@@ -85,6 +87,18 @@ footer { display: none !important; }
 }
 [data-testid="stMetricDelta"] { color: #4ADE80 !important; font-weight: 500 !important; }
 [data-testid="stMetricDelta"] svg { display: none !important; }
+
+/* ── Botoes (Logout Hover Fix) ── */
+[data-testid="baseButton-secondary"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #E2E8F0 !important;
+}
+[data-testid="baseButton-secondary"]:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #FFF !important;
+}
 
 /* ── Esconder "Press Enter to Submit" do Formulario ── */
 [data-testid="InputInstructions"], 

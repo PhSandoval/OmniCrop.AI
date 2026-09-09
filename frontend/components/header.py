@@ -6,14 +6,16 @@ from backend.farm_config import load_config
 
 
 def render_sidebar(today: dict, resultado: dict | None) -> None:
+    cfg = load_config() or {}
+    crop_type = cfg.get("tipo_cultura", "Cana-de-Açúcar")
     with st.sidebar:
         # Logo / Brand Image
-        st.markdown("<div style='padding: 10px 0px 10px 0px;'>", unsafe_allow_html=True)
-        st.image("assets/logo.png", use_container_width=True)
+        st.markdown("<div style='padding: 10px 0px 10px 0px; display: flex; justify-content: center;'>", unsafe_allow_html=True)
+        st.image("frontend/assets/logo.png", width=110)
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("""
-<div style="padding:0px 4px 15px;">
+<div style="padding:0px 4px 15px; text-align: center;">
     <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;">
         OmniCrop AI
     </div>
@@ -25,8 +27,6 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
         st.markdown("---")
 
-        # Navegação links (Streamlit renders page links natively, 
-        # but we add a label for context)
         st.markdown("""
 <div style="font-size:10px;font-weight:700;color:rgba(105,240,174,.7);
             text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;">
@@ -34,12 +34,15 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 </div>
 """, unsafe_allow_html=True)
 
+        # Links
+        is_cana = crop_type == "Cana-de-Açúcar"
+        
         st.page_link("app.py",                    label="Painel Geral")
-        st.page_link("pages/2_Simulador.py",      label="Simulador")
-        st.page_link("pages/3_Analise.py",        label="Análise")
+        st.page_link("pages/2_Simulador.py",      label="Simulador", disabled=not is_cana)
+        st.page_link("pages/3_Analise.py",        label="Análise", disabled=not is_cana)
         st.page_link("pages/4_Minha_Fazenda.py",       label="Minha Fazenda")
         st.page_link("pages/5_Configuracoes.py",         label="Configurações")
-        st.page_link("pages/6_Assistente_de_Manejo.py", label="Assistente de Manejo")
+        st.page_link("pages/6_Assistente_de_Manejo.py", label="Assistente de Manejo", disabled=not is_cana)
 
         st.markdown("---")
 
