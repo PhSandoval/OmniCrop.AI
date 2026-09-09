@@ -5,7 +5,7 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from frontend.components.styles import inject_css
 from backend.farm_config import load_config, is_configured, save_config

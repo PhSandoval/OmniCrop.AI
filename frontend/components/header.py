@@ -6,12 +6,18 @@ from backend.farm_config import load_config
 
 
 def render_sidebar(today: dict, resultado: dict | None) -> None:
+    from pathlib import Path
     cfg = load_config() or {}
     crop_type = cfg.get("tipo_cultura", "Cana-de-Açúcar")
+    
+    # Absolute path to logo
+    base_dir = Path(__file__).resolve().parents[1] # points to frontend
+    logo_path = str(base_dir / "assets" / "logo.png")
+    
     with st.sidebar:
         # Logo / Brand Image
         st.markdown("<div style='padding: 10px 0px 10px 0px; display: flex; justify-content: center;'>", unsafe_allow_html=True)
-        st.image("frontend/assets/logo.png", width=110)
+        st.image(logo_path, width=110)
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("""

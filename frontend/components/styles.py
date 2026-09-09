@@ -4,7 +4,14 @@ import base64
 
 def inject_css(is_login=False) -> None:
     import base64
-    bg_file = "frontend/assets/fundo_tech.jpg" if is_login else "frontend/assets/background.jpg"
+    from pathlib import Path
+    
+    base_dir = Path(__file__).resolve().parents[1] # points to frontend/
+    
+    if is_login:
+        bg_file = base_dir / "assets" / "fundo_tech.jpg"
+    else:
+        bg_file = base_dir / "assets" / "background.jpg"
 
     with open(bg_file, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()

@@ -4,7 +4,12 @@ from streamlit_cookies_controller import CookieController
 
 def render_auth_page():
     import base64
-    with open("frontend/assets/logo.png", "rb") as _f:
+    from pathlib import Path
+    
+    base_dir = Path(__file__).resolve().parents[1]
+    logo_path = base_dir / "assets" / "logo.png"
+    
+    with open(logo_path, "rb") as _f:
         _logo_b64 = base64.b64encode(_f.read()).decode()
 
     col1, col2, col3 = st.columns([1, 2, 1])
