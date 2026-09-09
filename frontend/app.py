@@ -45,6 +45,7 @@ if 'code' in st.query_params:
 # 1. Controle de Estado
 if 'user' not in st.session_state:
     st.session_state['user'] = None
+    st.session_state['show_login'] = False
     try:
         from streamlit_cookies_controller import CookieController
         controller = CookieController()
@@ -125,6 +126,7 @@ def render_farm_selector():
         st.write("")
         if st.button("🚪 Sair (Logout)", use_container_width=True):
             st.session_state['user'] = None
+            st.session_state['show_login'] = False
             st.session_state['active_farm'] = None
             try:
                 from streamlit_cookies_controller import CookieController
@@ -530,6 +532,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚪 Sair (Logout)", use_container_width=True, key="logout_treinamento"):
             st.session_state['user'] = None
+            st.session_state['show_login'] = False
             st.session_state['active_farm'] = None
             try:
                 from streamlit_cookies_controller import CookieController
@@ -545,8 +548,12 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
 CULTURAS_EM_TREINAMENTO = ["Soja", "Café", "Pecuária (Pasto)"]
 
 # 4. Gatilho Final
-if not st.session_state['user']:
-    render_auth_page()
+if not st.session_state.get('user'):
+    if st.session_state.get('show_login', False):
+        render_auth_page()
+    else:
+        from frontend.components.landing import render_landing_page
+        render_landing_page()
 elif st.session_state['show_onboarding']:
     render_onboarding()
 elif not st.session_state['active_farm']:

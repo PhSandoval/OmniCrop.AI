@@ -9,8 +9,11 @@ def render_auth_page():
 
     col1, col2, col3 = st.columns([1, 2, 1])
 
-
     with col2:
+        if st.button("⬅️ Voltar", key="btn_back_landing"):
+            st.session_state['show_login'] = False
+            st.rerun()
+            
         # Logo + nome + subtítulo — tudo dentro da coluna central
         st.markdown(f"""
         <div style="display:flex; flex-direction:column; align-items:center;

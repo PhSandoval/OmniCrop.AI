@@ -74,6 +74,7 @@ with col_conta:
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("🚪 Sair do Sistema (Logout)", type="primary"):
         st.session_state['user'] = None
+        st.session_state['show_login'] = False
         st.session_state['active_farm'] = None
         st.session_state['access_token'] = None
         st.switch_page("app.py")
