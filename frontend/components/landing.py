@@ -2,45 +2,26 @@ import streamlit as st
 from pathlib import Path
 
 def render_landing_page():
-    # Navbar SaaS
+    # Configurar paths
     base_dir = Path(__file__).resolve().parents[1] # points to frontend
     logo_path = str(base_dir / "assets" / "logo.png")
 
-    nav_left, nav_mid, nav_right = st.columns([1, 8, 1])
-    with nav_left:
-        st.image(logo_path, width=70)
-    with nav_right:
-        st.write("")
-        if st.button("Login / Entrar", use_container_width=True):
-            st.session_state['show_login'] = True
-            st.rerun()
+    # 1. Navbar (Topo Direito)
+    col_space, col_login = st.columns([8, 2])
+    with col_login:
+        if 'user' in st.session_state and st.session_state['user']:
+            if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
+                st.session_state['show_landing'] = False
+                st.rerun()
+        else:
+            if st.button("Acessar Plataforma", use_container_width=True, type="primary"):
+                st.session_state['show_login'] = True
+                st.session_state['show_landing'] = False
+                st.rerun()
 
-    # Usando o estilo de injecao de CSS base da aplicacao
+    # Estilos CSS dos cards
     st.markdown("""
     <style>
-    .landing-hero {
-        text-align: center;
-        padding: 60px 20px;
-        background: rgba(10, 25, 15, 0.55);
-        border: 1px solid rgba(105, 240, 174, 0.15);
-        border-radius: 24px;
-        backdrop-filter: blur(10px);
-        margin-bottom: 40px;
-    }
-    .landing-title {
-        font-size: 56px;
-        font-weight: 800;
-        color: #FFFFFF;
-        letter-spacing: -0.02em;
-        margin-bottom: 16px;
-    }
-    .landing-subtitle {
-        font-size: 20px;
-        color: rgba(180, 230, 180, 0.8);
-        font-weight: 400;
-        margin-bottom: 32px;
-        line-height: 1.5;
-    }
     .feature-card {
         background: rgba(8, 20, 12, 0.65);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -51,7 +32,7 @@ def render_landing_page():
         transition: transform 0.2s;
     }
     .feature-card:hover {
-        border-color: rgba(105, 240, 174, 0.3);
+        border-color: rgba(16, 185, 129, 0.4);
         transform: translateY(-2px);
     }
     .feature-icon {
@@ -72,32 +53,36 @@ def render_landing_page():
     </style>
     """, unsafe_allow_html=True)
 
-    # Hero Section
-    st.markdown("""
-    <div class="landing-hero">
-        <div class="landing-title">OmniCrop <span style="color: #69F0AE;">AI</span></div>
-        <div class="landing-subtitle">
-            Inteligência Agronômica e Machine Learning para gestão de safras e previsibilidade climática em tempo real.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # CTA Dinâmico
-    _, col_cta, _ = st.columns([2, 1, 2])
-    
-    with col_cta:
-        if 'user' in st.session_state and st.session_state['user']:
-            if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
-                st.session_state['show_landing'] = False
-                st.rerun()
-        else:
-            if st.button("Entrar na Plataforma", use_container_width=True, type="primary"):
-                st.session_state['show_login'] = True
-                st.rerun()
-
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # Features Grid
+    # 2. O Centro da Tela (Logo e Textos)
+    _, col_center, _ = st.columns([1, 2, 1])
+    
+    with col_center:
+        # Centralizar a logo usando colunas aninhadas
+        _, col_logo, _ = st.columns([1, 0.5, 1])
+        with col_logo:
+            st.image(logo_path, width=180)
+            
+        st.markdown("<h1 style='text-align: center; color: white; font-size: 56px; font-weight: 800; letter-spacing: -0.02em; margin-top: 10px;'>OmniCrop AI</h1>", unsafe_allow_html=True)
+        
+        st.markdown(
+            "<h3 style='text-align: center; color: #10b981; font-size: 22px; font-weight: 400; margin-bottom: 24px;'>"
+            "O seu Satélite Virtual e Assistente Agronômico."
+            "</h3>", 
+            unsafe_allow_html=True
+        )
+        
+        st.markdown(
+            "<p style='text-align: center; color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6;'>"
+            "Não dependa de dias ensolarados para saber a saúde da sua lavoura. O OmniCrop AI cruza dados de clima em tempo real para dizer exatamente como estão as suas plantas hoje. Descubra o risco de estresse hídrico, a janela ideal de colheita e receba planos de ação automáticos para evitar perdas na safra, tudo em um painel simples e direto."
+            "</p>", 
+            unsafe_allow_html=True
+        )
+
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
+
+    # 3. Features Grid (Cards Inferiores - Mantidos Intactos)
     c1, c2, c3 = st.columns(3)
     
     with c1:
