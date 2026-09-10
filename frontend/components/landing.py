@@ -67,6 +67,22 @@ def render_landing_page():
     </style>
     """, unsafe_allow_html=True)
 
+    # 1.5 Navbar no Topo (Logo na esquerda, Botão na direita)
+    col_nav_logo, _, col_nav_btn = st.columns([1, 4, 1])
+    with col_nav_logo:
+        st.image(logo_path, width=80)
+    with col_nav_btn:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if 'user' in st.session_state and st.session_state['user']:
+            if st.button("Painel", use_container_width=True):
+                st.session_state['show_landing'] = False
+                st.rerun()
+        else:
+            if st.button("Login", use_container_width=True):
+                st.session_state['show_login'] = True
+                st.session_state['show_landing'] = False
+                st.rerun()
+
     st.markdown("<br><br>", unsafe_allow_html=True)
 
     # 2. O Centro da Tela (Logo e Textos)
@@ -154,13 +170,13 @@ def render_landing_page():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.info("📍 **1. Mapeamento**\n\nAdicione a sua fazenda com um clique. O sistema regista as coordenadas e conecta-se aos satélites climáticos instantaneamente.")
+        st.info("📍 **1. Mapeamento**\n\nAdicione a sua fazenda com um clique. O sistema regista as coordenadas e conecta-se aos satélites instantaneamente.")
     with col2:
         st.warning("☁️ **2. Monitoramento**\n\nColeta automática e contínua de dados de chuva, temperatura e radiação solar da sua região.")
     with col3:
-        st.success("🧠 **3. Análise da IA**\n\nO nosso Satélite Virtual calcula a saúde da planta cruzando o clima com a biologia da cultura, mesmo em dias nublados.")
+        st.success("🧠 **3. Análise da IA**\n\nO nosso Satélite Virtual calcula a saúde da planta cruzando o clima com a biologia da cultura.")
     with col4:
-        st.error("📊 **4. Ação e Decisão**\n\nReceba alertas de risco hídrico, simule cenários de manejo e descarregue relatórios em PDF automáticos.")
+        st.error("📊 **4. Ação e Decisão**\n\nReceba alertas de risco hídrico, simule cenários e descarregue relatórios automáticos.")
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("---")
