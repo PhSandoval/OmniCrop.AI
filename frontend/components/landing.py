@@ -22,6 +22,16 @@ def render_landing_page():
     # Estilos CSS dos cards
     st.markdown("""
     <style>
+    .landing-hero {
+        text-align: center;
+        padding: 40px 30px;
+        background: rgba(10, 25, 15, 0.55);
+        border: 1px solid rgba(105, 240, 174, 0.15);
+        border-radius: 24px;
+        backdrop-filter: blur(10px);
+        margin-top: 20px;
+        margin-bottom: 40px;
+    }
     .feature-card {
         background: rgba(8, 20, 12, 0.65);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -64,21 +74,17 @@ def render_landing_page():
         with col_logo:
             st.image(logo_path, width=180)
             
-        st.markdown("<h1 style='text-align: center; color: white; font-size: 56px; font-weight: 800; letter-spacing: -0.02em; margin-top: 10px;'>OmniCrop AI</h1>", unsafe_allow_html=True)
-        
-        st.markdown(
-            "<h3 style='text-align: center; color: #10b981; font-size: 22px; font-weight: 400; margin-bottom: 24px;'>"
-            "O seu Satélite Virtual e Assistente Agronômico."
-            "</h3>", 
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(
-            "<p style='text-align: center; color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6;'>"
-            "Não dependa de dias ensolarados para saber a saúde da sua lavoura. O OmniCrop AI cruza dados de clima em tempo real para dizer exatamente como estão as suas plantas hoje. Descubra o risco de estresse hídrico, a janela ideal de colheita e receba planos de ação automáticos para evitar perdas na safra, tudo em um painel simples e direto."
-            "</p>", 
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <div class="landing-hero">
+            <h1 style='text-align: center; color: white; font-size: 56px; font-weight: 800; letter-spacing: -0.02em; margin-top: 0px;'>OmniCrop AI</h1>
+            <h3 style='text-align: center; color: #10b981; font-size: 22px; font-weight: 400; margin-bottom: 24px;'>
+                O seu Satélite Virtual e Assistente Agronômico.
+            </h3>
+            <p style='text-align: center; color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6; margin-bottom: 0px;'>
+                Não dependa de dias ensolarados para saber a saúde da sua lavoura. O OmniCrop AI cruza dados de clima em tempo real para dizer exatamente como estão as suas plantas hoje. Descubra o risco de estresse hídrico, a janela ideal de colheita e receba planos de ação automáticos para evitar perdas na safra, tudo em um painel simples e direto.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
 
