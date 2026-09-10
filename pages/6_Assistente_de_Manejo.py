@@ -15,8 +15,8 @@ import google.generativeai as genai
 st.set_page_config(page_title="Assistente de Manejo · OmniCrop AI", page_icon="frontend/assets/logo.jpg", layout="wide", initial_sidebar_state="expanded")
 
 if 'user' not in st.session_state or not st.session_state['user']:
-    st.info("A sua sessão expirou. Faça login novamente para acessar o sistema.")
-    st.page_link("app.py", label="Ir para Login 🔒")
+    st.session_state["show_landing"] = True
+    st.switch_page("app.py")
     st.stop()
 
 inject_css()

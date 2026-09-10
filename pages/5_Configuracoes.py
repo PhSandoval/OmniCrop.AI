@@ -14,8 +14,8 @@ st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="front
 inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:
-    st.info("Você precisa estar logado para acessar esta página.")
-    st.page_link("app.py", label="Ir para Login")
+    st.session_state["show_landing"] = True
+    st.switch_page("app.py")
     st.stop()
 
 # Sidebar config (to show current active farm)
