@@ -25,7 +25,7 @@ def get_user_farms(user_id):
     # Pega o token da sessao segura do Streamlit
     access_token = st.session_state.get('access_token')
     supabase = get_supabase(access_token)
-    res = supabase.table("fazendas").select("*").eq("user_id", user_id).execute()
+    res = supabase.table("fazendas").select("*").eq("user_id", user_id).order("farm_name").execute()
     return res.data
 
 def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar"):
