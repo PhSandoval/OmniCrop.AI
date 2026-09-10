@@ -72,7 +72,7 @@ def render_landing_page():
         # Centralizar a logo usando colunas aninhadas
         _, col_logo, _ = st.columns([1, 0.5, 1])
         with col_logo:
-            st.image(logo_path, width=180)
+            st.image(logo_path, width=216)
             
         st.markdown("""
         <div class="landing-hero">
