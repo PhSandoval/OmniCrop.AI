@@ -74,6 +74,20 @@ footer { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 """
+    else:
+        # Efeito Glassmorphism para os textos e graficos no app principal
+        css += """
+[data-testid="block-container"] {
+    background: rgba(10, 25, 15, 0.45) !important;
+    border: 1px solid rgba(105, 240, 174, 0.15) !important;
+    border-radius: 24px !important;
+    backdrop-filter: blur(8px);
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
+}
+"""
 
     css += """
 /* ── Metricas com Cards (Opacidade) ── */
