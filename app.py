@@ -14,8 +14,18 @@ from backend.api_client import build_payload, get_prediction, badge_html, calcul
 from frontend.components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
 from frontend.components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="OmniCrop AI - Inteligência Agronômica", page_icon="frontend/assets/logo.jpg", layout="wide",
-                   initial_sidebar_state="expanded")
+# Determine if we should show the sidebar
+_user_logged = 'user' in st.session_state and st.session_state['user'] is not None
+_onboarding = st.session_state.get('show_onboarding', False)
+_farm_selected = st.session_state.get('active_farm') is not None
+_hide_sidebar = not _user_logged or _onboarding or not _farm_selected
+
+st.set_page_config(
+    page_title="OmniCrop AI - Inteligência Agronômica", 
+    page_icon="frontend/assets/logo.jpg", 
+    layout="wide",
+    initial_sidebar_state="collapsed" if _hide_sidebar else "expanded"
+)
 
 
 
