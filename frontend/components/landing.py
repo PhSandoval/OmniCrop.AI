@@ -73,8 +73,8 @@ def render_landing_page():
         </div>
         """, unsafe_allow_html=True)
         
-        _, col_btn, _ = st.columns([1, 1, 1])
-        with col_btn:
+        _, col_btn1, col_btn2, _ = st.columns([1, 1.5, 1.5, 1])
+        with col_btn1:
             if 'user' in st.session_state and st.session_state['user']:
                 if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
                     st.session_state['show_landing'] = False
@@ -84,6 +84,9 @@ def render_landing_page():
                     st.session_state['show_login'] = True
                     st.session_state['show_landing'] = False
                     st.rerun()
+        with col_btn2:
+            if st.button("📖 Como Funciona", use_container_width=True):
+                st.switch_page("pages/1_Como_Funciona.py")
 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
 
