@@ -77,11 +77,12 @@ footer { display: none !important; }
     else:
         # Efeito Glassmorphism para os textos e graficos no app principal
         css += """
-[data-testid="block-container"] {
+.block-container, [data-testid="stAppViewBlockContainer"], [data-testid="stMainBlockContainer"] {
     background: rgba(10, 25, 15, 0.45) !important;
     border: 1px solid rgba(105, 240, 174, 0.15) !important;
     border-radius: 24px !important;
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     padding-top: 3rem !important;
     padding-bottom: 3rem !important;
     margin-top: 2rem !important;
@@ -102,6 +103,7 @@ footer { display: none !important; }
     padding: 16px !important;
     margin-bottom: 24px !important;
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 [data-testid="stMetricLabel"] {
     color: #94A3B8 !important; 
