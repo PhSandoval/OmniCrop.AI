@@ -312,34 +312,31 @@ def render_main_app():
         f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
     )
 
-    @st.fragment
-    def render_pdf_section():
-        pdf_key = f"pdf_bytes_{cfg.get('id', 'default')}"
-        if pdf_key not in st.session_state:
-            if st.button("📄 Gerar Relatório Executivo (PDF)", type="primary"):
-                with st.spinner("Analisando dados com IA e compilando PDF..."):
-                    from frontend.components.pdf_generator import generate_pdf_report
-                    pdf_bytes = generate_pdf_report(
-                        cfg.get("farm_name", "Minha Fazenda"),
-                        cfg.get("city", "Desconhecida"),
-                        today,
-                        resultado,
-                        df=df
-                    )
-                    st.session_state[pdf_key] = pdf_bytes
-                    st.rerun()
-        
-        if pdf_key in st.session_state:
-            st.download_button(
-                label="⬇️ PDF Pronto! Clique para Baixar",
-                data=st.session_state[pdf_key],
-                file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf",
-                mime="application/pdf",
-                type="primary"
-            )
-            st.button("🔄 Gerar Novo", on_click=lambda: st.session_state.pop(pdf_key))
+    pdf_key = f"pdf_bytes_{cfg.get('id', 'default')}"
+    if pdf_key not in st.session_state:
+        if st.button("📄 Gerar Relatório Executivo (PDF)", type="primary"):
+            with st.spinner("Analisando dados com IA e compilando PDF..."):
+                from frontend.components.pdf_generator import generate_pdf_report
+                pdf_bytes = generate_pdf_report(
+                    cfg.get("farm_name", "Minha Fazenda"),
+                    cfg.get("city", "Desconhecida"),
+                    today,
+                    resultado,
+                    df=df
+                )
+                st.session_state[pdf_key] = pdf_bytes
+                st.rerun()
     
-    render_pdf_section()
+    if pdf_key in st.session_state:
+        st.download_button(
+            label="⬇️ PDF Pronto! Clique para Baixar",
+            data=st.session_state[pdf_key],
+            file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf",
+            mime="application/pdf",
+            type="primary"
+        )
+        st.button("🔄 Gerar Novo", on_click=lambda: st.session_state.pop(pdf_key))
+    
     st.markdown("<br>", unsafe_allow_html=True)
 
     with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
