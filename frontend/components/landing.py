@@ -128,9 +128,26 @@ def render_landing_page():
         """, unsafe_allow_html=True)
         
     st.markdown("<br><br>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; margin-top: 40px;">
-        OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>
-        v1.0 (Módulo Cana-de-Açúcar)
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
+    
+    st.markdown("<h4 style='text-align: center; color: #a1a1aa; margin-bottom: 20px;'>Culturas Monitoradas</h4>", unsafe_allow_html=True)
+    
+    cc1, cc2, cc3, cc4 = st.columns(4)
+    with cc1: 
+        st.success("🌱 Cana-de-Açúcar (Operacional)")
+    with cc2: 
+        st.warning("🌾 Soja (Treinando V2.0)")
+    with cc3: 
+        st.info("☕ Café (Em Breve)")
+    with cc4: 
+        st.info("🐄 Pastagens (Em Breve)")
+        
+    st.markdown("---")
+    st.markdown("<p style='text-align: center; color: #a1a1aa; font-size: 14px;'><b>INFRAESTRUTURA:</b> Python • Streamlit • Supabase (Auth/RLS) • XGBoost • Google Gemini AI (RAG)</p>", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_copy, col_links = st.columns(2)
+    with col_copy:
+        st.markdown("<p style='color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'>OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>v1.0 (Módulo Cana-de-Açúcar)</p>", unsafe_allow_html=True)
+    with col_links:
+        st.markdown("<p style='text-align: right; color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'><a href='#' style='color: #10b981; text-decoration: none;'>LinkedIn</a> • <a href='#' style='color: #10b981; text-decoration: none;'>GitHub</a></p>", unsafe_allow_html=True)
