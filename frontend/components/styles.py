@@ -86,6 +86,9 @@ footer { display: none !important; }
     padding-bottom: 3rem !important;
     margin-top: 2rem !important;
     margin-bottom: 2rem !important;
+    max-width: 1200px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 """
 
