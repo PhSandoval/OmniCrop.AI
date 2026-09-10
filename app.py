@@ -316,8 +316,17 @@ def render_main_app():
     )
 
     pdf_key = f"pdf_bytes_{cfg.get('id', 'default')}"
+    flag_key = f"flag_generate_{cfg.get('id', 'default')}"
+
     if pdf_key not in st.session_state:
-        if st.button("📄 Solicitar Relatório à IA (Gerar PDF)", type="primary", key=f"btn_gerar_pdf_{cfg.get('id', 'default')}"):
+        st.button(
+            "📄 Solicitar Relatório à IA (Gerar PDF)", 
+            type="primary", 
+            key=f"btn_gerar_pdf_{cfg.get('id', 'default')}",
+            on_click=lambda: st.session_state.update({flag_key: True})
+        )
+        
+        if st.session_state.get(flag_key):
             with st.spinner("Analisando dados com IA e compilando PDF..."):
                 from frontend.components.pdf_generator import generate_pdf_report
                 pdf_bytes = generate_pdf_report(
@@ -328,6 +337,7 @@ def render_main_app():
                     df=df
                 )
                 st.session_state[pdf_key] = pdf_bytes
+                st.session_state[flag_key] = False
                 st.rerun()
     else:
         st.download_button(
@@ -337,7 +347,11 @@ def render_main_app():
             mime="application/pdf",
             type="primary"
         )
-        st.button("🔄 Refazer Relatório", key=f"btn_reset_pdf_{cfg.get('id', 'default')}", on_click=lambda: st.session_state.pop(pdf_key))
+        def reset_pdf():
+            st.session_state.pop(pdf_key, None)
+            st.session_state.pop(flag_key, None)
+            
+        st.button("🔄 Refazer Relatório", key=f"btn_reset_pdf_{cfg.get('id', 'default')}", on_click=reset_pdf)
     
     st.markdown("<br>", unsafe_allow_html=True)
 
