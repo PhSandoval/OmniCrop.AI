@@ -6,19 +6,6 @@ def render_landing_page():
     base_dir = Path(__file__).resolve().parents[1] # points to frontend
     logo_path = str(base_dir / "assets" / "logo.png")
 
-    # 1. Navbar (Topo Direito)
-    col_space, col_login = st.columns([8, 2])
-    with col_login:
-        if 'user' in st.session_state and st.session_state['user']:
-            if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
-                st.session_state['show_landing'] = False
-                st.rerun()
-        else:
-            if st.button("Acessar Plataforma", use_container_width=True, type="primary"):
-                st.session_state['show_login'] = True
-                st.session_state['show_landing'] = False
-                st.rerun()
-
     # Estilos CSS dos cards
     st.markdown("""
     <style>
@@ -85,6 +72,18 @@ def render_landing_page():
             </p>
         </div>
         """, unsafe_allow_html=True)
+        
+        _, col_btn, _ = st.columns([1, 1, 1])
+        with col_btn:
+            if 'user' in st.session_state and st.session_state['user']:
+                if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
+                    st.session_state['show_landing'] = False
+                    st.rerun()
+            else:
+                if st.button("Acessar Plataforma", use_container_width=True, type="primary"):
+                    st.session_state['show_login'] = True
+                    st.session_state['show_landing'] = False
+                    st.rerun()
 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
 
