@@ -316,7 +316,7 @@ def render_main_app():
 
     pdf_key = f"pdf_bytes_{cfg.get('id', 'default')}"
     if pdf_key not in st.session_state:
-        if st.button("📄 Gerar Relatório Executivo (PDF)", type="primary"):
+        if st.button("📄 Gerar Relatório Executivo (PDF)", type="primary", key=f"btn_gerar_pdf_{cfg.get('id', 'default')}"):
             with st.spinner("Analisando dados com IA e compilando PDF..."):
                 from frontend.components.pdf_generator import generate_pdf_report
                 pdf_bytes = generate_pdf_report(
@@ -337,7 +337,7 @@ def render_main_app():
             mime="application/pdf",
             type="primary"
         )
-        st.button("🔄 Gerar Novo", on_click=lambda: st.session_state.pop(pdf_key))
+        st.button("🔄 Gerar Novo", key=f"btn_reset_pdf_{cfg.get('id', 'default')}", on_click=lambda: st.session_state.pop(pdf_key))
     
     st.markdown("<br>", unsafe_allow_html=True)
 
