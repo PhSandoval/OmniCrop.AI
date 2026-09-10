@@ -16,18 +16,6 @@ from frontend.components.header import render_sidebar, render_page_header
 
 import base64
 import streamlit.components.v1 as components
-
-def auto_download_pdf(pdf_bytes, filename):
-    b64 = base64.b64encode(pdf_bytes).decode()
-    html = f'''
-        <a id="download-link" href="data:application/pdf;base64,{b64}" download="{filename}"></a>
-        <script>
-            document.getElementById('download-link').click();
-        </script>
-    '''
-    components.html(html, height=0)
-
-# Determine if we should show the sidebar
 _user_logged = 'user' in st.session_state and st.session_state['user'] is not None
 _onboarding = st.session_state.get('show_onboarding', False)
 _farm_selected = st.session_state.get('active_farm') is not None
@@ -327,18 +315,29 @@ def render_main_app():
         f"MONITORAMENTO OPERACIONAL · {cfg['lat']:.4f}, {cfg['lon']:.4f} · DADOS REAIS OPEN-METEO"
     )
 
-    if st.button("📄 Gerar e Baixar Relatório (PDF)", type="primary", key=f"btn_gerar_pdf_{cfg.get('id', 'default')}"):
-        with st.spinner("Analisando dados com IA e compilando PDF..."):
-            from frontend.components.pdf_generator import generate_pdf_report
-            pdf_bytes = generate_pdf_report(
-                cfg.get("farm_name", "Minha Fazenda"),
-                cfg.get("city", "Desconhecida"),
-                today,
-                resultado,
-                df=df
-            )
-            filename = f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf".replace(" ", "_")
-            auto_download_pdf(pdf_bytes, filename)
+    pdf_key = f"pdf_bytes_{cfg.get('id', 'default')}"
+    if pdf_key not in st.session_state:
+        if st.button("📄 Solicitar Relatório à IA (Gerar PDF)", type="primary", key=f"btn_gerar_pdf_{cfg.get('id', 'default')}"):
+            with st.spinner("Analisando dados com IA e compilando PDF..."):
+                from frontend.components.pdf_generator import generate_pdf_report
+                pdf_bytes = generate_pdf_report(
+                    cfg.get("farm_name", "Minha Fazenda"),
+                    cfg.get("city", "Desconhecida"),
+                    today,
+                    resultado,
+                    df=df
+                )
+                st.session_state[pdf_key] = pdf_bytes
+                st.rerun()
+    else:
+        st.download_button(
+            label="⬇️ PDF Pronto! Baixar Arquivo",
+            data=st.session_state[pdf_key],
+            file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf".replace(" ", "_"),
+            mime="application/pdf",
+            type="primary"
+        )
+        st.button("🔄 Refazer Relatório", key=f"btn_reset_pdf_{cfg.get('id', 'default')}", on_click=lambda: st.session_state.pop(pdf_key))
     
     st.markdown("<br>", unsafe_allow_html=True)
 
