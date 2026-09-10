@@ -214,7 +214,12 @@ def generate_pdf_report(
             res = modelo.generate_content(prompt)
             parecer_texto = res.text.strip().replace("\n", " ")
     except Exception as e:
-        parecer_texto = f"Erro ao contatar IA: {str(e)}"
+        error_msg = str(e).lower()
+        if "429" in error_msg or "quota" in error_msg:
+            st.error("⚠️ O assistente IA está sobrecarregado no momento (Limite de requisições). Por favor, aguarde 20 segundos e clique em gerar novamente.")
+            st.stop()
+        else:
+            parecer_texto = "Parecer indisponível no momento devido a uma falha de conexão com os servidores de IA. Tente novamente mais tarde."
 
     # Box visual com fundo lilás suave
     pdf.set_fill_color(245, 240, 252)
