@@ -18,7 +18,9 @@ from frontend.components.header import render_sidebar, render_page_header
 _user_logged = 'user' in st.session_state and st.session_state['user'] is not None
 _onboarding = st.session_state.get('show_onboarding', False)
 _farm_selected = st.session_state.get('active_farm') is not None
-_hide_sidebar = not _user_logged or _onboarding or not _farm_selected
+_is_landing = st.session_state.get('show_landing', not _user_logged)
+
+_hide_sidebar = _is_landing or _onboarding or not _farm_selected
 
 st.set_page_config(
     page_title="OmniCrop AI - Inteligência Agronômica", 
@@ -90,7 +92,7 @@ if 'last_busca' not in st.session_state:
 _user_logged = bool(st.session_state.get('user'))
 _farm_selected = bool(st.session_state.get('active_farm'))
 _onboarding = st.session_state.get('show_onboarding', False)
-inject_css(is_login=not _user_logged or _onboarding or not _farm_selected)
+inject_css(is_login=_hide_sidebar)
 
 from frontend.components.auth import render_auth_page
 from backend.db import get_user_farms, insert_farm
@@ -562,15 +564,19 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
 CULTURAS_EM_TREINAMENTO = ["Soja", "Café", "Pecuária (Pasto)"]
 
 # 4. Gatilho Final
-if not st.session_state.get('user'):
-    if st.session_state.get('show_login', False):
+if st.session_state.get('show_landing', not st.session_state.get('user')):
+    # Se show_landing estiver explicitamente True, ou se for o padrao (não logado e sem tentar login)
+    if not st.session_state.get('user') and st.session_state.get('show_login', False):
         render_auth_page()
     else:
         from frontend.components.landing import render_landing_page
         render_landing_page()
-elif st.session_state['show_onboarding']:
+elif not st.session_state.get('user'):
+    # Garantia para nao logados
+    render_auth_page()
+elif st.session_state.get('show_onboarding'):
     render_onboarding()
-elif not st.session_state['active_farm']:
+elif not st.session_state.get('active_farm'):
     render_farm_selector()
 else:
     _tipo = (st.session_state.get('active_farm') or {}).get('tipo_cultura') or ""

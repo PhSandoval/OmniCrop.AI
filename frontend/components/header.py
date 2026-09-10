@@ -51,6 +51,10 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
         st.page_link("pages/5_Configuracoes.py",         label="Configurações")
         st.page_link("pages/6_Assistente_de_Manejo.py", label="Assistente de Manejo", disabled=not is_cana)
 
+        if st.button("🏠 Voltar para Landing Page", use_container_width=True):
+            st.session_state['show_landing'] = True
+            st.switch_page("app.py")
+
         st.markdown("---")
 
         # Farm Switcher (Multi-Tenant)
