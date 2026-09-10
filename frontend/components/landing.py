@@ -1,6 +1,20 @@
 import streamlit as st
+from pathlib import Path
 
 def render_landing_page():
+    # Navbar SaaS
+    base_dir = Path(__file__).resolve().parents[1] # points to frontend
+    logo_path = str(base_dir / "assets" / "logo.png")
+
+    nav_left, nav_mid, nav_right = st.columns([1, 4, 1])
+    with nav_left:
+        st.image(logo_path, use_container_width=True)
+    with nav_right:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Login / Entrar", use_container_width=True):
+            st.session_state['show_login'] = True
+            st.rerun()
+
     # Usando o estilo de injecao de CSS base da aplicacao
     st.markdown("""
     <style>
@@ -63,28 +77,21 @@ def render_landing_page():
     <div class="landing-hero">
         <div class="landing-title">OmniCrop <span style="color: #69F0AE;">AI</span></div>
         <div class="landing-subtitle">
-            A revolução do <b>Machine Learning</b> e <b>Inteligência Artificial Generativa</b><br>
-            aplicada à gestão e previsão de safras.
+            Inteligência Agronômica e Machine Learning para gestão de safras e previsibilidade climática em tempo real.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Botao CTA (Logica do Streamlit)
-    _, col_btn1, col_btn2, _ = st.columns([2, 2, 2, 2])
+    # CTA Dinâmico
+    _, col_cta, _ = st.columns([1.5, 2, 1.5])
     
-    with col_btn1:
-        if st.button("🔐 Fazer Login / Cadastrar", use_container_width=True, type="primary"):
-            st.session_state['show_login'] = True
-            st.rerun()
-            
-    with col_btn2:
-        if st.button("🌾 Acessar Minhas Fazendas", use_container_width=True):
-            if 'user' in st.session_state and st.session_state['user']:
-                # Ja esta logado, apenas ignora a landing
+    with col_cta:
+        if 'user' in st.session_state and st.session_state['user']:
+            if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
                 st.session_state['show_landing'] = False
                 st.rerun()
-            else:
-                st.toast("⚠️ Você precisa fazer login primeiro!")
+        else:
+            if st.button("Entrar na Plataforma", use_container_width=True, type="primary"):
                 st.session_state['show_login'] = True
                 st.rerun()
 
