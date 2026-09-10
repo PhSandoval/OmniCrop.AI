@@ -6,11 +6,11 @@ def render_landing_page():
     base_dir = Path(__file__).resolve().parents[1] # points to frontend
     logo_path = str(base_dir / "assets" / "logo.png")
 
-    nav_left, nav_mid, nav_right = st.columns([1, 4, 1])
+    nav_left, nav_mid, nav_right = st.columns([1, 8, 1])
     with nav_left:
-        st.image(logo_path, use_container_width=True)
+        st.image(logo_path, width=70)
     with nav_right:
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.write("")
         if st.button("Login / Entrar", use_container_width=True):
             st.session_state['show_login'] = True
             st.rerun()
@@ -83,7 +83,7 @@ def render_landing_page():
     """, unsafe_allow_html=True)
 
     # CTA Dinâmico
-    _, col_cta, _ = st.columns([1.5, 2, 1.5])
+    _, col_cta, _ = st.columns([2, 1, 2])
     
     with col_cta:
         if 'user' in st.session_state and st.session_state['user']:
