@@ -58,19 +58,17 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
         st.markdown("---")
 
         # Farm Switcher (Multi-Tenant)
-        if 'user_farms' in st.session_state and isinstance(st.session_state['user_farms'], list) and len(st.session_state['user_farms']) > 1:
+        if 'active_farm' in st.session_state and st.session_state['active_farm'] and 'user_farms' in st.session_state and isinstance(st.session_state['user_farms'], list) and len(st.session_state['user_farms']) > 1:
             farm_names = [f.get("farm_name", f"Fazenda {i}") for i, f in enumerate(st.session_state['user_farms'])]
             
             # Find active index
-            active_idx = 0
-            if 'active_farm' in st.session_state and st.session_state['active_farm']:
-                active_id = st.session_state['active_farm'].get("id")
-                active_idx = next((i for i, f in enumerate(st.session_state['user_farms']) if f.get("id") == active_id), 0)
+            active_id = st.session_state['active_farm'].get("id")
+            active_idx = next((i for i, f in enumerate(st.session_state['user_farms']) if f.get("id") == active_id), 0)
                 
             selected_name = st.selectbox("Mudar Fazenda", farm_names, index=active_idx)
             
             # If changed, update active farm and rerun
-            if 'active_farm' in st.session_state and st.session_state['active_farm'].get("farm_name") != selected_name:
+            if st.session_state['active_farm'].get("farm_name") != selected_name:
                 selected_farm = next(f for f in st.session_state['user_farms'] if f.get("farm_name") == selected_name)
                 st.session_state['active_farm'] = selected_farm
                 st.rerun()
