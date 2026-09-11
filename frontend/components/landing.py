@@ -175,7 +175,7 @@ def render_landing_page():
 
     # SEÇÃO: RESILIÊNCIA CLIMÁTICA (EL NIÑO)
     st.markdown('''
-    <div style="background: rgba(239, 83, 80, 0.1); border: 1px solid rgba(239, 83, 80, 0.3); border-radius: 16px; padding: 32px; margin-bottom: 0px;">
+    <div style="background: rgba(30, 10, 10, 0.75); border: 1px solid rgba(239, 83, 80, 0.35); border-radius: 16px; padding: 32px; margin-bottom: 0px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
         <h3 style='color: #EF5350; font-weight: 700; margin-top: 0; margin-bottom: 12px;'>🌍 Previsão à Prova de El Niño</h3>
         <p style='color: rgba(255,255,255,0.85); font-size: 15.5px; line-height: 1.6; margin-bottom: 0;'>
             O clima extremo quebra as médias históricas. O <b>OmniCrop AI</b> é o primeiro sistema que ensina o oceano à Inteligência Artificial. Nossa plataforma ingere o <strong>Índice ENSO (Oceanic Niño Index)</strong> em tempo real. Se o algoritmo detectar um El Niño forte ou La Niña, ele ajusta os <i>Lags</i> de umidade e alerta o agricultor para mitigar a seca com antecedência.
