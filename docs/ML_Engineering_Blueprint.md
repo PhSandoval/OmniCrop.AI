@@ -49,3 +49,21 @@ Produtores e Engenheiros Agrônomos não confiam em "caixas pretas" preditivas.
   * A biblioteca **SHAP (SHapley Additive exPlanations)** será integrada ao pipeline de inferência.
   * O painel frontal (Streamlit) renderizará gráficos (ex: *Waterfall Plots* usando `st.pyplot()`) mostrando a contribuição exata de cada feature para a decisão do modelo.
   * *Exemplo prático de UX:* "O NDVI projetado cairá em 12% na próxima semana. O modelo tomou esta decisão impactado em 60% pelas noites excessivamente quentes (GDA) e 40% pela forte anomalia do índice El Niño (ONI)."
+
+---
+
+## 4. Front-End de Decisão (UX/UI Streamlit)
+
+A melhor arquitetura de dados perde seu valor se o produtor rural não conseguir interpretá-la. Para tangibilizar a engenharia pesada do modelo, o OmniCrop AI deverá implementar 4 componentes visuais chave:
+
+1. **Raio-X da Decisão (SHAP Waterfall):** 
+   * Um bloco expansível *"Entenda o Cálculo da IA"* onde o `st.pyplot(fig)` renderiza o impacto de cada variável. 
+   * Exemplo: NDVI Base (0.80) - Falta de Chuva (-0.05) - Anomalia de Temperatura (-0.10) = Previsão (0.65).
+2. **Badge Dinâmico de Anomalia & Score de Confiança:** 
+   * Alerta visual no topo do dashboard ativado automaticamente se a Feature Store apontar um El Niño intenso.
+   * Acompanhado pela incerteza estatística (ex: *"Confiança da previsão: 88%"*).
+3. **Simulador "What-If" (Análise de Cenários):** 
+   * Um ambiente de estresse (`st.slider()`) onde o agricultor aumenta a temperatura ou zera a chuva manualmente e vê o modelo matemático reagir com previsões na mesma hora, sem recarregar a página (via `st.session_state`).
+4. **Auditoria da IA (Backtesting Visual):** 
+   * Gráfico (Plotly via `st.plotly_chart`) cruzando as duas linhas dos últimos 12 meses: *"Saúde Real (Satélite)"* vs *"Saúde Prevista (XGBoost)"*.
+   * Prova definitiva e visual de que o *Walk-Forward Validation* funciona e de que a IA não está sofrendo alucinações.
