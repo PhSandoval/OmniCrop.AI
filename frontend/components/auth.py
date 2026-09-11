@@ -87,6 +87,7 @@ def render_auth_page():
         
         if st.button("⬅️ Voltar", key="btn_back_login", use_container_width=True):
             st.session_state['show_login'] = False
+            st.session_state['show_landing'] = True
             st.rerun()
                     
     with tab2:
@@ -105,4 +106,5 @@ def render_auth_page():
         
         if st.button("⬅️ Voltar", key="btn_back_register", use_container_width=True):
             st.session_state['show_login'] = False
+            st.session_state['show_landing'] = True
             st.rerun()
