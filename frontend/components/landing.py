@@ -48,20 +48,20 @@ def render_landing_page():
         line-height: 1.6;
     }
     
-    /* Leitura de textos soltos e expanders sobre a imagem */
-    [data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] h2, [data-testid="stMarkdownContainer"] h3 {
-        text-shadow: 0px 2px 4px rgba(0,0,0,0.8);
-        font-weight: 500;
+    /* Leitura de textos soltos e caixas de alerta sobre a imagem */
+    [data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] h2, [data-testid="stMarkdownContainer"] h3, [data-testid="stMarkdownContainer"] h4 {
+        text-shadow: 0px 2px 10px rgba(0,0,0,0.9), 0px 4px 20px rgba(0,0,0,0.7) !important;
+        font-weight: 600;
     }
-    [data-testid="stExpander"] {
-        background: rgba(10, 25, 15, 0.75) !important;
-        border: 1px solid rgba(105, 240, 174, 0.15) !important;
+    [data-testid="stAlert"] {
+        background: rgba(8, 20, 12, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 12px;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
-    [data-testid="stExpander"] * {
-        color: #E2E8F0 !important;
+    [data-testid="stAlert"] * {
+        color: #ffffff !important;
         text-shadow: none !important;
     }
     </style>
