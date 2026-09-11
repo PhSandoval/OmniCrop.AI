@@ -107,7 +107,27 @@ def render_farm_selector():
     from datetime import datetime
     render_sidebar({"date": datetime.now()}, None)
     
-    st.markdown("<h2 style='text-align: center;'>Suas Fazendas</h2>", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    .glass-label {
+        background: rgba(8, 20, 12, 0.70) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px;
+        padding: 12px 24px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: inline-block;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 20px;">
+        <div class="glass-label">
+            <h2 style='margin: 0; color: #fff;'>Suas Fazendas</h2>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     
     farms = get_user_farms(st.session_state['user'].id)
@@ -115,7 +135,13 @@ def render_farm_selector():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if farms:
-            st.write("Selecione um talhão para monitorar:")
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div class="glass-label" style="padding: 8px 16px;">
+                    <p style='margin: 0; color: #E2E8F0; font-size: 16px;'>Selecione um talhão para monitorar:</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             for f in farms:
                 cultura_icon = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}.get(f.get("tipo_cultura", ""), "🌾")
                 btn_label = f"{cultura_icon} {f['farm_name']} ({f['city']})"
@@ -131,7 +157,13 @@ def render_farm_selector():
                     st.rerun()
             st.markdown("<hr>", unsafe_allow_html=True)
             
-        st.write("Ou adicione uma nova área de manejo:")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 16px; margin-top: 16px;">
+            <div class="glass-label" style="padding: 8px 16px;">
+                <p style='margin: 0; color: #E2E8F0; font-size: 16px;'>Ou adicione uma nova área de manejo:</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("➕ Cadastrar Novo Talhão", type="primary", use_container_width=True):
             st.session_state['show_onboarding'] = True
             st.rerun()
