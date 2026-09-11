@@ -4,6 +4,10 @@ OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestã
 
 A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (XGBoost) para estimativa de vigor vegetativo, e Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos instantâneos.
 
+
+## 🌍 Resiliência Climática & Feature Engineering (El Niño)
+O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Diferente de modelos tradicionais que dependem de médias históricas (que falham durante quebras de clima), nossa arquitetura de Machine Learning incorpora o **Índice ENSO (Oceanic Niño Index - ONI)** como uma *feature* direta no algoritmo (XGBoost). O cálculo de deltas de anomalias e o rigoroso controle de *Walk-Forward Validation* e RMSE garantem que o produtor receba projeções de quebra de safra validadas mesmo durante os extremos do El Niño e La Niña.
+
 ---
 
 ## 📚 Documentação
