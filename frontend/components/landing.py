@@ -64,6 +64,16 @@ def render_landing_page():
         color: #ffffff !important;
         text-shadow: none !important;
     }
+    
+    .glass-label {
+        background: rgba(8, 20, 12, 0.70) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px;
+        padding: 12px 24px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: inline-block;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -164,8 +174,14 @@ def render_landing_page():
     st.markdown("---")
 
     # SEÇÃO: COMO FUNCIONA (Foco no Utilizador)
-    st.markdown("<h2 style='text-align: center;'>Como Funciona o OmniCrop AI?</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #a1a1aa; font-size: 16px; margin-bottom: 40px;'>A jornada da informação: do satélite até à sua tomada de decisão em 4 passos simples.</p>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 40px;">
+        <div class="glass-label">
+            <h2 style='margin-bottom: 8px; margin-top: 0;'>Como Funciona o OmniCrop AI?</h2>
+            <p style='color: #a1a1aa; font-size: 16px; margin-bottom: 0;'>A jornada da informação: do satélite até à sua tomada de decisão em 4 passos simples.</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -181,7 +197,13 @@ def render_landing_page():
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("---")
     
-    st.markdown("<h4 style='text-align: center; color: #a1a1aa; margin-bottom: 20px;'>Culturas Monitoradas</h4>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 20px;">
+        <div class="glass-label" style="padding: 10px 24px;">
+            <h4 style='color: #E2E8F0; margin: 0;'>Culturas Monitoradas</h4>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     cc1, cc2, cc3, cc4 = st.columns(4)
     with cc1: 
@@ -194,11 +216,17 @@ def render_landing_page():
         st.info("🐄 Pastagens (Em Breve)")
         
     st.markdown("---")
-    st.markdown("<p style='text-align: center; color: #a1a1aa; font-size: 14px;'><b>INFRAESTRUTURA:</b> Python • Streamlit • Supabase (Auth/RLS) • XGBoost • Google Gemini AI (RAG)</p>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: center;">
+        <div class="glass-label" style="padding: 8px 20px;">
+            <p style='color: #a1a1aa; font-size: 14px; margin: 0;'><b>INFRAESTRUTURA:</b> Python • Streamlit • Supabase (Auth/RLS) • XGBoost • Google Gemini AI (RAG)</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     col_copy, col_links = st.columns(2)
     with col_copy:
         st.markdown("<p style='color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'>OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>v1.0 (Módulo Cana-de-Açúcar)</p>", unsafe_allow_html=True)
     with col_links:
-        st.markdown("<p style='text-align: right; color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'><a href='#' style='color: #10b981; text-decoration: none;'>LinkedIn</a> • <a href='#' style='color: #10b981; text-decoration: none;'>GitHub</a></p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: right; color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'><a href='https://www.linkedin.com/in/pedro-henrique-sandoval/' target='_blank' style='color: #10b981; text-decoration: none;'>LinkedIn</a> • <a href='https://github.com/PhSandoval' target='_blank' style='color: #10b981; text-decoration: none;'>GitHub</a></p>", unsafe_allow_html=True)
