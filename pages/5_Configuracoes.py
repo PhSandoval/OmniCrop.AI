@@ -45,7 +45,7 @@ with col_pref:
     dias_calor_lim = st.slider("GDA Crítico (Mensal)", 0, 30, cfg.get("gda_critico", 150))
     
     st.markdown("<br>", unsafe_allow_html=True)
-    receber_alertas = st.toggle("📧 Ativar Relatório Diário por E-mail (CRON)", value=cfg.get("receber_alertas", True), help="Receba um e-mail às 06:00 caso o DSS detecte risco.")
+    receber_alertas = st.toggle("📧 Ativar Relatório Diário por E-mail (CRON)", value=cfg.get("receber_alertas", False), help="Receba um e-mail às 06:00 caso o DSS detecte risco.")
     
     if st.button("💾 Salvar Preferências", type="primary"):
         if cfg:
