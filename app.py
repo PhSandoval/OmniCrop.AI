@@ -368,9 +368,14 @@ def render_main_app():
                     resultado,
                     df=df
                 )
-                st.session_state[pdf_key] = pdf_bytes
-                st.session_state[flag_key] = False
-                st.rerun()
+                if pdf_bytes:
+                    st.session_state[pdf_key] = pdf_bytes
+                    st.session_state[flag_key] = False
+                    st.rerun()
+                else:
+                    # Se falhou (ex: rate limit), apenas reseta a flag e não faz rerun
+                    # para que o st.error() continue visível e o resto da página carregue.
+                    st.session_state[flag_key] = False
     else:
         st.download_button(
             label="⬇️ PDF Pronto! Baixar Arquivo",
