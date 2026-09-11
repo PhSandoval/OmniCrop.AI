@@ -37,9 +37,10 @@ def load_config() -> dict | None:
     # ------------------------
 
     if farms and len(farms) > 0:
-        st.session_state['active_farm'] = farms[0]
         st.session_state['user_farms'] = farms
-        return farms[0]
+        # Removemos a auto-seleção (st.session_state['active_farm'] = farms[0]) 
+        # para que o usuário seja levado à tela de seleção de fazendas corretamente.
+        return None
         
     return None
 

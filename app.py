@@ -164,12 +164,12 @@ def render_farm_selector():
             </div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("➕ Cadastrar Novo Talhão", type="primary", use_container_width=True):
+        if st.button("➕ Cadastrar Novo Talhão", type="primary", use_container_width=True, key="btn_cadastrar_novo_talhao"):
             st.session_state['show_onboarding'] = True
             st.rerun()
         
         st.write("")
-        if st.button("🚪 Sair (Logout)", use_container_width=True):
+        if st.button("🚪 Sair (Logout)", use_container_width=True, key="btn_logout_farm_selector"):
             st.session_state['user'] = None
             st.session_state['show_login'] = False
             st.session_state['active_farm'] = None
