@@ -4,13 +4,13 @@ Este documento estabelece as diretrizes estratégicas para a transição do Omni
 
 ---
 
-## 1. Feature Engineering: Ensinando o Oceano ao Modelo (XGBoost)
+## 1. Feature Engineering: Ensinando o Oceano ao Modelo (Gradient Boosting)
 
 O clima extremo quebra as médias históricas. Para prever safras e riscos com precisão, o modelo deve "entender" o estado macroclimático do planeta.
 
 * **Ingestão do Índice ONI (Oceanic Niño Index):** 
   * A variável ENSO (El Niño-Southern Oscillation) deve ser ingerida continuamente da NOAA.
-  * O índice numérico (ex: `+1.8` para El Niño forte, `-1.0` para La Niña) entra como uma feature direta no modelo (XGBoost).
+  * O índice numérico (ex: `+1.8` para El Niño forte, `-1.0` para La Niña) entra como uma feature direta no modelo (Gradient Boosting / `HistGradientBoostingRegressor`).
   * *Objetivo:* O algoritmo ajusta dinamicamente os pesos de temperatura e precipitação dependendo da fase do oceano, evitando falsos positivos durante secas ou chuvas anômalas.
 
 * **Deltas de Anomalia Histórica:**
@@ -65,7 +65,7 @@ A melhor arquitetura de dados perde seu valor se o produtor rural não conseguir
 3. **Simulador "What-If" (Análise de Cenários):** 
    * Um ambiente de estresse (`st.slider()`) onde o agricultor aumenta a temperatura ou zera a chuva manualmente e vê o modelo matemático reagir com previsões na mesma hora, sem recarregar a página (via `st.session_state`).
 4. **Auditoria da IA (Backtesting Visual):** 
-   * Gráfico (Plotly via `st.plotly_chart`) cruzando as duas linhas dos últimos 12 meses: *"Saúde Real (Satélite)"* vs *"Saúde Prevista (XGBoost)"*.
+   * Gráfico (Plotly via `st.plotly_chart`) cruzando as duas linhas dos últimos 12 meses: *"Saúde Real (Satélite)"* vs *"Saúde Prevista (Gradient Boosting)"*.
    * Prova definitiva e visual de que o *Walk-Forward Validation* funciona e de que a IA não está sofrendo alucinações.
 
 ---
@@ -110,4 +110,4 @@ O dataset atual (`Dataset_SugarCane_historico`) é um excelente repositório de 
 
 ### 5.4 Integração com a Arquitetura Existente
 
-A ingestão de dados IoT será orquestrada pelo **Apache Airflow** (Fase 2), recebendo *streaming* via protocolo **MQTT** e armazenando os dados brutos no **AWS S3**. O PySpark cruzará esses dados com as leituras diárias da Open-Meteo e as imagens quinzenais do Copernicus, criando um **feedback loop** que valida e melhora continuamente o modelo XGBoost da Fase 1.
+A ingestão de dados IoT será orquestrada pelo **Apache Airflow** (Fase 2), recebendo *streaming* via protocolo **MQTT** e armazenando os dados brutos no **AWS S3**. O PySpark cruzará esses dados com as leituras diárias da Open-Meteo e as imagens quinzenais do Copernicus, criando um **feedback loop** que valida e melhora continuamente o modelo Gradient Boosting da Fase 1.

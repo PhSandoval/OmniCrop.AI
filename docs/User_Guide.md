@@ -27,7 +27,7 @@ Ao acessar um talhão, o usuário vê instantaneamente a precipitação (chuva) 
 - **Ação:** Ler o painel principal superior.
 
 ### UC05: Ver Previsão Inteligente de Vigor Vegetativo (NDVI)
-Em vez de esperar dias até a passagem de um satélite limpo (sem nuvens), o usuário utiliza o painel central "Satélite Virtual", onde a Inteligência Artificial da OmniCrop (baseada em XGBoost) estima o vigor atual da planta.
+Em vez de esperar dias até a passagem de um satélite limpo (sem nuvens), o usuário utiliza o painel central "Satélite Virtual", onde a Inteligência Artificial da OmniCrop (baseada em Gradient Boosting) estima o vigor atual da planta.
 - **Ação:** O painel "NDVI" no meio da tela mostra o nível atual (velocímetro) e a série temporal.
 
 ### UC06: Obter Parecer Agronômico Generativo

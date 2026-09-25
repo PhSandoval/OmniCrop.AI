@@ -137,7 +137,7 @@ def render_landing_page():
         st.markdown("""
         <div class="feature-card">
             <div class="feature-icon">🛰️</div>
-            <div class="feature-title">Satélite Virtual (XGBoost)</div>
+            <div class="feature-title">Satélite Virtual (Gradient Boosting)</div>
             <div class="feature-text">
                 Não dependa de dias sem nuvens. Nosso motor de Machine Learning infere 
                 o Índice de Vegetação (NDVI) usando cruzamento de dados térmicos e hídricos 
@@ -232,7 +232,7 @@ def render_landing_page():
     st.markdown("""
     <div style="text-align: center;">
         <div class="glass-label" style="padding: 8px 20px;">
-            <p style='color: #a1a1aa; font-size: 14px; margin: 0;'><b>INFRAESTRUTURA:</b> Python • Streamlit • Supabase (Auth/RLS) • XGBoost • Google Gemini AI (RAG)</p>
+            <p style='color: #a1a1aa; font-size: 14px; margin: 0;'><b>INFRAESTRUTURA:</b> Python • Streamlit • Supabase (Auth/RLS) • Gradient Boosting (scikit-learn) • Google Gemini AI (RAG)</p>
         </div>
     </div>
     """, unsafe_allow_html=True)

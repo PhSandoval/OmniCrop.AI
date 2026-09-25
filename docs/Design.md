@@ -22,7 +22,7 @@ OmniCrop/
 │
 ├── data_science/         # Modelos Treinados
 │   └── models/
-│       └── ndvi_xgb_model.pkl  # Binário XGBoost para predição
+│       └── ndvi_xgb_model.pkl  # Binário Gradient Boosting (HistGradientBoosting) para predição
 │
 └── docs/                 # Documentação
 ```
@@ -52,7 +52,7 @@ Requisição chegou
 |---|---|---|
 | **Frontend / Roteamento** | Streamlit | Iteração rápida para protótipos de Data Apps e IA. |
 | **Gráficos** | Plotly + Folium | Componentes altamente interativos (mapas e dashboards de clima). |
-| **Modelagem Preditiva** | XGBoost | Alta performance em dados tabulares com relação não linear. |
+| **Modelagem Preditiva** | Gradient Boosting (scikit-learn) | `HistGradientBoostingRegressor` — equivalente nativo ao XGBoost, sem dependência de `libomp`. |
 | **Inteligência Generativa** | Google Gemini (3.6) | Geração de parecer executivo interpretando dados climáticos em tempo real. |
 | **Banco de Dados** | Supabase (PostgreSQL) | Fornece DB relacional potente e Row-Level-Security (RLS) out-of-the-box. |
 | **Autenticação** | Supabase GoTrue | Tokens JWT seguros validados diretamente no DB. |

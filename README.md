@@ -2,13 +2,13 @@
 
 OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestão inteligente de culturas agrícolas. Inicialmente focado em Cana-de-Açúcar, o sistema funciona como um agrônomo virtual, ajudando no monitoramento de lavouras e fornecendo recomendações preditivas para operações de campo.
 
-A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (XGBoost) para estimativa de vigor vegetativo, e Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos instantâneos.
+A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (Gradient Boosting) para estimativa de vigor vegetativo, e Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos instantâneos.
 
 ---
 
 ## 🌍 Resiliência Climática & Feature Engineering (El Niño)
 
-O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Diferente de modelos tradicionais que dependem de médias históricas (que falham durante quebras de clima), nossa arquitetura de Machine Learning incorpora o **Índice ENSO (Oceanic Niño Index - ONI)** como uma *feature* direta no algoritmo (XGBoost). O cálculo de deltas de anomalias e o rigoroso controle de *Walk-Forward Validation* e RMSE garantem que o produtor receba projeções de quebra de safra validadas mesmo durante os extremos do El Niño e La Niña.
+O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Diferente de modelos tradicionais que dependem de médias históricas (que falham durante quebras de clima), nossa arquitetura de Machine Learning incorpora o **Índice ENSO (Oceanic Niño Index - ONI)** como uma *feature* direta no algoritmo (Gradient Boosting). O cálculo de deltas de anomalias e o rigoroso controle de *Walk-Forward Validation* e RMSE garantem que o produtor receba projeções de quebra de safra validadas mesmo durante os extremos do El Niño e La Niña.
 
 ---
 
@@ -24,7 +24,7 @@ O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Dif
 | **Backend (BaaS)** | Supabase | Autenticação, API e gestão de dados |
 | **Banco de Dados** | PostgreSQL + PostGIS | Relacional com extensão espacial para coordenadas |
 | **Segurança** | Row Level Security (RLS) | Isolamento de dados por utilizador |
-| **Motor Preditivo** | XGBoost | Cálculo do Vigor Vegetativo (NDVI) |
+| **Motor Preditivo** | Gradient Boosting (scikit-learn) | Cálculo do Vigor Vegetativo (NDVI) via `HistGradientBoostingRegressor` |
 | **Explainability (XAI)** | SHAP | Justificação matemática de cada previsão |
 | **Manipulação de Dados** | Pandas | Tratamento e transformação em memória |
 | **Visualização** | Plotly | Gráficos interativos (RMSE, ENSO, Anomalias) |

@@ -131,7 +131,7 @@ col5, col6 = st.columns(2)
 # 5. Níveis do El Niño (ONI)
 with col5:
     st.markdown('<div style="font-size: 0.9rem; font-weight: 600; color: #E2E8F0; margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 1px;">Índice ENSO (Oceanic Niño Index)</div>', unsafe_allow_html=True)
-    st.caption("Acompanhamento da temperatura do oceano. Valores acima de +0.5 ativam os pesos de El Niño no XGBoost.")
+    st.caption("Acompanhamento da temperatura do oceano. Valores acima de +0.5 ativam os pesos de El Niño no Gradient Boosting.")
     
     # Gerando dados simulados de ONI (2023 a 2026)
     dates_oni = pd.date_range(start="2023-01-01", end=hoje + pd.DateOffset(months=6), freq="MS")

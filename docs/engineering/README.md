@@ -12,7 +12,7 @@ Este documento detalha o plano de execução prático para cada fase do OmniCrop
 │   FASE 1 (Em Produção)          FASE 2 (Em Construção)                 │
 │   ┌─────────────────┐           ┌─────────────────┐                    │
 │   │   Streamlit      │           │   Docker         │                   │
-│   │   XGBoost        │──────────▶│   Airflow        │                   │
+│   │   Grad. Boosting │──────────▶│   Airflow        │                   │
 │   │   Gemini RAG     │           │   AWS S3         │                   │
 │   │   Supabase       │           │   PySpark        │                   │
 │   └─────────────────┘           └────────┬────────┘                    │
@@ -53,7 +53,7 @@ Este documento detalha o plano de execução prático para cada fase do OmniCrop
 | 1 | **Bug do "Ghost Routing"** — Logout e criação de fazenda redirecionavam sempre para a fazenda "Boa Vista" | `farm_config.py` sobrescrevia o estado com `active_farm = farms[0]`, que era a primeira fazenda em ordem alfabética | Removida a mutação automática; o estado `None` agora é preservado até o usuário escolher explicitamente |
 | 2 | **Página em branco ao gerar PDF** — A dashboard inteira desaparecia quando a API do Gemini retornava erro 429 (quota) | `pdf_generator.py` chamava `st.stop()` no bloco de exceção, matando toda a árvore de renderização do Streamlit | Substituído `st.stop()` por `return None`; o `app.py` trata o `None` graciosamente sem chamar `st.rerun()` |
 | 3 | **Toggle de alertas vinha ligado** — Usuários novos recebiam alertas sem ter ativado | O valor padrão do `st.toggle()` era `True` | Alterado para `value=cfg.get("receber_alertas", False)` |
-| 4 | **Modelo ignorava anomalias do El Niño** — Previsões falhavam durante eventos ENSO extremos | O XGBoost recebia apenas variáveis meteorológicas brutas sem contexto macroclimático | Arquitetura de Feature Engineering com ONI, Deltas de Anomalia e Lag Features (60, 90, 120 dias) |
+| 4 | **Modelo ignorava anomalias do El Niño** — Previsões falhavam durante eventos ENSO extremos | O modelo recebia apenas variáveis meteorológicas brutas sem contexto macroclimático | Arquitetura de Feature Engineering com ONI, Deltas de Anomalia e Lag Features (60, 90, 120 dias) |
 | 5 | **Recrutadores não entendiam o valor técnico** — O projeto parecia "só um dashboard bonito" | Faltava visualização explícita das métricas de validação do modelo | Adição dos painéis de Índice ENSO, RMSE vs MAE e Feature Importance (SHAP) na aba de Análise |
 
 ---
@@ -113,7 +113,7 @@ Migrar a ingestão de dados de "on-the-fly" (que é lenta e não escala) para um
 ## 🌾 Fase 3: IoT Ground Truth (PLANEJADA)
 
 ### Objetivo
-Introduzir sensores físicos no talhão para validar e calibrar o modelo XGBoost com dados reais de campo (*Ground Truth*), elevando o OmniCrop AI de ferramenta de estimativa para sistema de precisão absoluta.
+Introduzir sensores físicos no talhão para validar e calibrar o modelo Gradient Boosting com dados reais de campo (*Ground Truth*), elevando o OmniCrop AI de ferramenta de estimativa para sistema de precisão absoluta.
 
 ### Sensores Prioritários
 
@@ -133,7 +133,7 @@ Introduzir sensores físicos no talhão para validar e calibrar o modelo XGBoost
 - [ ] Configurar broker MQTT (Mosquitto via Docker)
 - [ ] Criar DAG no Airflow para consumir tópicos MQTT e persistir no S3
 - [ ] Schema unificado no Delta Lake cruzando dados IoT + API + Satélite
-- [ ] Retreinar o XGBoost com as novas features de Ground Truth
+- [ ] Retreinar o Gradient Boosting com as novas features de Ground Truth
 - [ ] Implementar o módulo de Fitossanidade Preditiva (Molhamento Foliar)
 
 ---
