@@ -4,18 +4,70 @@ OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestã
 
 A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (XGBoost) para estimativa de vigor vegetativo, e Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos instantâneos.
 
+---
 
 ## 🌍 Resiliência Climática & Feature Engineering (El Niño)
+
 O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Diferente de modelos tradicionais que dependem de médias históricas (que falham durante quebras de clima), nossa arquitetura de Machine Learning incorpora o **Índice ENSO (Oceanic Niño Index - ONI)** como uma *feature* direta no algoritmo (XGBoost). O cálculo de deltas de anomalias e o rigoroso controle de *Walk-Forward Validation* e RMSE garantem que o produtor receba projeções de quebra de safra validadas mesmo durante os extremos do El Niño e La Niña.
+
+---
+
+## 🛠 Stack Tecnológica
+
+### 🚀 Fase 1: Em Produção (Frontend, ML e GenAI)
+
+| Camada | Tecnologia | Função |
+|--------|-----------|--------|
+| **Linguagem** | Python | Espinha dorsal de toda a aplicação e modelagem |
+| **Frontend** | Streamlit | Interface web com gestão avançada via `session_state` |
+| **UI/UX** | Glassmorphism + Dark Mode | Design customizado com efeito de vidro fosco |
+| **Backend (BaaS)** | Supabase | Autenticação, API e gestão de dados |
+| **Banco de Dados** | PostgreSQL + PostGIS | Relacional com extensão espacial para coordenadas |
+| **Segurança** | Row Level Security (RLS) | Isolamento de dados por utilizador |
+| **Motor Preditivo** | XGBoost | Cálculo do Vigor Vegetativo (NDVI) |
+| **Explainability (XAI)** | SHAP | Justificação matemática de cada previsão |
+| **Manipulação de Dados** | Pandas | Tratamento e transformação em memória |
+| **Visualização** | Plotly | Gráficos interativos (RMSE, ENSO, Anomalias) |
+| **IA Generativa** | Google Gemini 3.6 | Assistente virtual e geração de relatórios PDF |
+| **Arquitetura GenAI** | RAG (Retrieval-Augmented Generation) | Injeção de contexto real nos prompts |
+| **Dados Meteorológicos** | Open-Meteo | Histórico e previsão climática |
+| **Dados Oceânicos** | NOAA (ONI) | Índice ENSO em tempo real |
+| **Sensoriamento Remoto** | Copernicus / Rasterio | Imagens de satélite multiespectrais |
+
+### 🏗️ Fase 2: Próximos Passos (Engenharia de Dados & Infraestrutura)
+
+| Camada | Tecnologia | Função |
+|--------|-----------|--------|
+| **Containers** | Docker | Isolamento do ambiente local (`docker-compose.yml`) |
+| **Orquestração** | Apache Airflow | Agendamento e controle das extrações diárias (ETL/ELT) |
+| **Data Lake** | AWS S3 | Armazenamento bruto dos ficheiros JSON e TIFF |
+| **Processamento** | PySpark | Processamento distribuído de dados climáticos históricos |
+| **Formato Analítico** | Delta Lake | Armazenamento colunar otimizado para o histórico das safras |
+| **Feature Store** | Redis + Feast | Servir variáveis de stress hídrico em baixa latência |
+
+### 🌾 Fase 3: Visão Futura (IoT Ground Truth)
+
+| Camada | Tecnologia | Função |
+|--------|-----------|--------|
+| **Solo** | Tensiômetro IoT | Tensão da água no solo (kPa) — gatilho definitivo de irrigação |
+| **Solo** | Sensor de CE (Condutividade Elétrica) | Proxy para salinidade e absorção de fertilizantes |
+| **Solo** | Sensor de pH | Monitoramento da acidez em tempo real |
+| **Planta** | Termometria Infravermelha (Dossel) | Detecção de stress hídrico dias antes da queda do NDVI |
+| **Planta** | Dendrômetro | Expansão milimétrica diária do colmo |
+| **Microclima** | Pluviômetro IoT | Calibração local da precipitação (corrigindo erro da API) |
+| **Fitossanidade** | Sensor de Molhamento Foliar | Predição de eclosão de doenças fúngicas (Ferrugem, Carvão) |
+| **Protocolo** | MQTT + Airflow Streaming | Ingestão de dados IoT em tempo real |
 
 ---
 
 ## 📚 Documentação
 
-Para manter o repositório organizado, separamos a documentação em dois guias principais:
-
-1. **[Guia do Desenvolvedor (Design.md)](docs/Design.md):** Contém toda a arquitetura, estrutura de pastas, tecnologias utilizadas e detalhes sobre como o modelo de Machine Learning e o banco de dados operam. Use este guia se você for contribuir com código.
-2. **[Guia do Usuário (User_Guide.md)](docs/User_Guide.md):** Contém os Casos de Uso (UCs) da plataforma, explicando funcionalidade por funcionalidade o que o usuário final pode fazer dentro do aplicativo.
+| Documento | Descrição |
+|-----------|-----------|
+| [Guia do Desenvolvedor (Design.md)](docs/Design.md) | Arquitetura, estrutura de pastas e detalhes do modelo de ML |
+| [Guia do Usuário (User_Guide.md)](docs/User_Guide.md) | Casos de Uso (UCs) da plataforma |
+| [ML Engineering Blueprint](docs/ML_Engineering_Blueprint.md) | Estratégia de Feature Engineering, Validação e XAI |
+| [Plano de Engenharia](docs/engineering/README.md) | Roadmap de execução das Fases 1, 2 e 3 |
 
 ---
 
@@ -38,4 +90,12 @@ pip install -r requirements.txt
 
 # 5. Inicie o dashboard
 streamlit run frontend/app.py
+```
+
+### Levantar a Plataforma de Dados (Fase 2)
+
+```bash
+cd omnicrop-data-platform
+docker compose up -d
+# Acesse o Airflow em: http://localhost:8080 (user: airflow / pass: airflow)
 ```

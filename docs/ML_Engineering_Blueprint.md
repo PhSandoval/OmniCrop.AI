@@ -1,4 +1,4 @@
-# OmniCrop AI - ML Engineering & Data Science Blueprint (v2.0)
+# OmniCrop AI - ML Engineering & Data Science Blueprint (v3.0)
 
 Este documento estabelece as diretrizes estratégicas para a transição do OmniCrop AI de um protótipo regressor simples para uma **plataforma preditiva de inteligência agronômica de nível empresarial**. O foco principal é a mitigação de riscos climáticos extremos (ex: El Niño/La Niña) e a garantia de alta confiança por parte do usuário final.
 
@@ -67,3 +67,47 @@ A melhor arquitetura de dados perde seu valor se o produtor rural não conseguir
 4. **Auditoria da IA (Backtesting Visual):** 
    * Gráfico (Plotly via `st.plotly_chart`) cruzando as duas linhas dos últimos 12 meses: *"Saúde Real (Satélite)"* vs *"Saúde Prevista (XGBoost)"*.
    * Prova definitiva e visual de que o *Walk-Forward Validation* funciona e de que a IA não está sofrendo alucinações.
+
+---
+
+## 5. IoT Ground Truth: Sensores Físicos (Fase 3)
+
+O dataset atual (`Dataset_SugarCane_historico`) é um excelente repositório de dados meteorológicos globais via APIs e satélite. A introdução de sensores físicos IoT instalados diretamente no talhão elevará o OmniCrop AI de uma ferramenta de **estimativa** para um sistema de **Ground Truth (verdade absoluta)**.
+
+### 5.1 Sensores de Solo e Nutrição
+
+* **Tensão da Água no Solo (Tensiômetro):**
+  * O dataset atual mede umidade volumétrica (`umidade_solo_9_27cm`). O tensiômetro mede a **força (em kPa)** que a raiz precisa fazer para extrair a água.
+  * *Impacto:* Gatilho definitivo e preciso para acionar o pivô no Simulador de Irrigação.
+
+* **Condutividade Elétrica do Solo (CE):**
+  * Proxy direto para salinidade e presença de macronutrientes (fertilizantes dissolvidos).
+  * *Impacto:* O Agrônomo GenAI poderá auditar se a ureia aplicada foi absorvida ou lixiviada.
+
+* **pH do Solo em Tempo Real:**
+  * pH baixo "trava" a absorção de fósforo e potássio na cana-de-açúcar, tornando a adubação inútil.
+  * *Impacto:* Alertas automáticos de correção de calagem.
+
+### 5.2 Sensores Fisiológicos da Planta (Canopy)
+
+* **Temperatura do Dossel (Termometria Infravermelha):**
+  * Quando a planta entra em stress hídrico, fecha os estômatos e para de transpirar, aquecendo a folha.
+  * *Impacto:* Detecção de stress hídrico **dias antes** do NDVI cair nas imagens de satélite. Transforma o alerta de "reativo" para "preventivo".
+
+* **Crescimento do Colmo (Dendrômetro):**
+  * Sensor abraçado ao caule que mede a expansão milimétrica diária.
+  * *Impacto:* Cruzamento exato de mm de crescimento por mm de chuva ou irrigação.
+
+### 5.3 Sensores de Microclima e Fitossanidade
+
+* **Pluviometria Física (Pluviômetro IoT):**
+  * A `precipitacao_mm` de APIs erra gravemente em chuvas convectivas de verão (chove muito numa fazenda e nada na vizinha).
+  * *Impacto:* Calibração do erro da API diretamente no talhão.
+
+* **Molhamento Foliar (Leaf Wetness):**
+  * Sensor que simula a superfície de uma folha para detetar presença e duração do orvalho.
+  * *Impacto:* Variável matemática mais importante para prever a eclosão de doenças fúngicas graves (Ferrugem Marrom, Carvão). Habilita o módulo futuro de **Fitossanidade Preditiva**.
+
+### 5.4 Integração com a Arquitetura Existente
+
+A ingestão de dados IoT será orquestrada pelo **Apache Airflow** (Fase 2), recebendo *streaming* via protocolo **MQTT** e armazenando os dados brutos no **AWS S3**. O PySpark cruzará esses dados com as leituras diárias da Open-Meteo e as imagens quinzenais do Copernicus, criando um **feedback loop** que valida e melhora continuamente o modelo XGBoost da Fase 1.
