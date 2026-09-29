@@ -15,7 +15,7 @@ class TestMonolithicPipeline(unittest.TestCase):
         self.assertIsNotNone(model, "O modelo não foi carregado corretamente.")
 
     def test_feature_keys_match(self):
-        """As chaves que vao para o payload do XGBoost devem ser as mesmas treinadas."""
+        """As chaves que vao para o payload do Gradient Boosting devem ser as mesmas treinadas."""
         expected_keys = ['chuva_acumulada_30d', 'chuva_acumulada_60d', 'chuva_acumulada_90d', 'GDA_mensal']
         self.assertEqual(FEATURE_KEYS, expected_keys, "As features do modelo mudaram e quebrarão a previsão.")
         

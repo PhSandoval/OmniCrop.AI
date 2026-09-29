@@ -58,7 +58,7 @@ def run_daily_cron():
             # 1. Puxa os dados climáticos reais dos satelites
             df_live, today = fetch_farm_data(farm['lat'], farm['lon'])
             
-            # 2. Roda pelo XGBoost
+            # 2. Roda pelo Gradient Boosting
             payload = build_payload(today)
             resultado = get_prediction(payload)
             

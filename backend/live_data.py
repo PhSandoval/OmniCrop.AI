@@ -99,7 +99,7 @@ def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
     df["chuva_acumulada_60d"]  = df["precipitacao_total"].rolling(60, min_periods=1).sum()
     df["chuva_acumulada_90d"]  = df["precipitacao_total"].rolling(90, min_periods=1).sum()
 
-    # Aplicar XGBoost no Histórico e na Previsão Futura!
+    # Aplicar Gradient Boosting no Histórico e na Previsão Futura!
     try:
         from backend.api_client import load_model, FEATURE_KEYS
         model = load_model()

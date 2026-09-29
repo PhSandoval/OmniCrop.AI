@@ -161,7 +161,7 @@ def generate_pdf_report(
     pdf.set_text_color(70, 70, 70)
     pdf.multi_cell(
         0, 5,
-        "O Índice NDVI foi estimado pelo modelo XGBoost treinado com 10 anos de histórico climático e "
+        "O Índice NDVI foi estimado pelo modelo Gradient Boosting treinado com 10 anos de histórico climático e "
         "leituras de satélite. Valores próximos a 1.0 indicam lavoura saudável e em pleno crescimento.",
     )
     pdf.ln(4)
