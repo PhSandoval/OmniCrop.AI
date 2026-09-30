@@ -41,3 +41,43 @@ class TestMockAPI(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+from src.data.ingest_azure import fetch_weather_data
+from src.data.contracts import OpenMeteoResponse, OpenMeteoDaily
+from pydantic import ValidationError
+
+class TestDataIntegration(unittest.TestCase):
+    @patch('src.data.ingest_azure.requests.get')
+    def test_fetch_weather_retries_on_500(self, mock_get):
+        """Teste de Integração com Mocks: Falha 2 vezes com 500, sucesso na 3a."""
+        import requests
+        # Configura o mock para disparar erro HTTP nas primeiras 2 vezes
+        mock_resp_500 = MagicMock()
+        mock_resp_500.raise_for_status.side_effect = requests.exceptions.HTTPError("500 Server Error")
+        
+        mock_resp_ok = MagicMock()
+        mock_resp_ok.json.return_value = {
+            "latitude": -21.17, "longitude": -47.81, "timezone": "America/Sao_Paulo",
+            "daily": {"time": ["2026-09-30"], "temperature_2m_max": [30.0], "temperature_2m_min": [15.0], "precipitation_sum": [0.0]}
+        }
+        
+        # Side_effect iterável: falha, falha, sucesso
+        mock_get.side_effect = [mock_resp_500, mock_resp_500, mock_resp_ok]
+        
+        # A tenacity retry logic (retry) vai tentar 3 vezes
+        resultado = fetch_weather_data()
+        
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertIn("daily", resultado)
+        
+    def test_pydantic_contract_fails_on_negative_precipitation(self):
+        """Teste de Contrato: Garante que Pydantic bloqueia precipitação negativa."""
+        bad_payload = {
+            "latitude": -21.17, "longitude": -47.81, "timezone": "America/Sao_Paulo",
+            "daily": {"time": ["2026-09-30"], "temperature_2m_max": [30.0], "temperature_2m_min": [15.0], "precipitation_sum": [-5.0]} # ERRO!
+        }
+        
+        with self.assertRaises(ValidationError) as context:
+            OpenMeteoResponse(**bad_payload)
+            
+        self.assertIn("Precipitação não pode ser negativa", str(context.exception))

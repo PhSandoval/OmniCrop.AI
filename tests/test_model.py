@@ -35,3 +35,32 @@ class TestMonolithicPipeline(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+import numpy as np
+
+class TestModelLogic(unittest.TestCase):
+    def test_model_static_matrix_bounds(self):
+        """Teste de Unidade (Cérebro): Injeta matrizes extremas para ver se o modelo respeita o limite do NDVI (0 a 1)."""
+        model = load_model()
+        
+        # Cria matrizes numéricas sintéticas para limites climáticos absurdos (Seca severa x Enchente)
+        payload_seca_extrema = pd.DataFrame([{
+            'chuva_acumulada_30d': 0.0, 
+            'chuva_acumulada_60d': 0.0, 
+            'chuva_acumulada_90d': 0.0, 
+            'GDA_mensal': 500.0  # Muito calor
+        }])
+        
+        payload_enchente = pd.DataFrame([{
+            'chuva_acumulada_30d': 1000.0, 
+            'chuva_acumulada_60d': 2000.0, 
+            'chuva_acumulada_90d': 3000.0, 
+            'GDA_mensal': 10.0  # Frio
+        }])
+        
+        pred_seca = model.predict(payload_seca_extrema)[0]
+        pred_enchente = model.predict(payload_enchente)[0]
+        
+        # NDVI em Cana de açúcar, mesmo nas piores condições, nunca sai do range natural de 0 a 1
+        self.assertTrue(0.0 <= pred_seca <= 1.0, f"NDVI da seca fora dos limites: {pred_seca}")
+        self.assertTrue(0.0 <= pred_enchente <= 1.0, f"NDVI da enchente fora dos limites: {pred_enchente}")
