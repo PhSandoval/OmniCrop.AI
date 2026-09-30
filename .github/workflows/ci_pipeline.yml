@@ -15,16 +15,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - test_layer: "Contratos e Nuvem (Data)"
-            path: "tests/test_data.py"
-          - test_layer: "Fronteiras Matemáticas (Modelo)"
-            path: "tests/test_model.py"
-          - test_layer: "Engenharia de Variáveis (Features)"
-            path: "tests/test_features.py"
-          - test_layer: "Regras de Decisão (DSS)"
-            path: "tests/test_dss.py"
-          - test_layer: "Navegação e Estado (UI)"
-            path: "tests/test_ui.py"
+          - test_layer: "Contratos e Nuvem (Integration Data)"
+            path: "tests/integration/test_data.py"
+          - test_layer: "Conexão Zero-Trust (Integration DB)"
+            path: "tests/integration/test_db.py"
+          - test_layer: "Fronteiras Matemáticas (Unit Model)"
+            path: "tests/unit/test_model.py"
+          - test_layer: "Engenharia de Variáveis (Unit Features)"
+            path: "tests/unit/test_features.py"
+          - test_layer: "Regras de Decisão (Unit DSS)"
+            path: "tests/unit/test_dss.py"
+          - test_layer: "Navegação e Estado (E2E UI)"
+            path: "tests/e2e/test_ui.py"
 
     steps:
     - name: 📥 Clonar repositório
