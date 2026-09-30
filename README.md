@@ -25,7 +25,7 @@ OmniCrop/
 ├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio)
 │   ├── 📂 data/                 # Conexões (DB, Ingestão Azure, Pydantic Contracts)
 │   ├── 📂 features/             # Feature Engineering (Limpeza e Matemática)
-│   ├── 📂 models/               # Inteligência (Treino, Inferência XGBoost)
+│   ├── 📂 models/               # Inteligência (Treino, Inferência Gradient Boosting)
 │   └── 📂 utils/                # Utilitários globais
 │
 └── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps
@@ -70,7 +70,7 @@ O que gestores, produtores e engenheiros agrônomos podem fazer no sistema:
 **✅ Fase 1: MVP Streamlit e GenAI (Concluída)**
 - Autenticação e Multi-Tenancy (Supabase).
 - Renderização do mapa de lavouras e dashboards analíticos dinâmicos.
-- Integração do modelo XGBoost base e Google Gemini.
+- Integração do modelo Gradient Boosting base e Google Gemini.
 
 **✅ Fase 2: Cloud Data Engineering e MLOps (Concluída)**
 - Migração de infraestrutura pesada (Airflow/Docker local) para **Cloud Serverless**.

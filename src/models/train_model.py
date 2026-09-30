@@ -5,9 +5,9 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import joblib
 
 def train_model():
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = Path(__file__).resolve().parents[2]
     input_file = project_root / "data" / "processed" / "dados_features.csv"
-    model_path = project_root / "models" / "ndvi_xgb_model.pkl"
+    model_path = project_root / "src" / "models" / "ndvi_model.pkl"
     
     df = pd.read_csv(input_file)
     df['date'] = pd.to_datetime(df['date'])
@@ -25,10 +25,7 @@ def train_model():
     X_test = test_df[features]
     y_test = test_df[target]
     
-    # O user pediu XGBoost, mas por causa do problema da libomp no mac os x, 
-    # vamos usar o HistGradientBoostingRegressor do sklearn que e o exato equivalente nativo (e nao quebra a maquina local).
-    # Exportaremos usando joblib para o mesmo arquivo ndvi_xgb_model.pkl.
-    print("Treinando o modelo de Gradient Boosting...")
+    print("Treinando o modelo de Gradient Boosting (Native Scikit-Learn)...")
     model = HistGradientBoostingRegressor(random_state=42)
     model.fit(X_train, y_train)
     
