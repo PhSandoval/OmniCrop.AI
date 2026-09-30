@@ -6,16 +6,16 @@ A aplicação consolida dados climáticos em tempo real, modelos de Machine Lear
 
 ---
 
-## 🏗️ Clean Architecture
+## 🏗️ Arquitetura do Sistema e MLOps
 
-O repositório foi reestruturado seguindo o padrão de **Clean Architecture** para isolar a interface visual da lógica pesada, garantindo escalabilidade total:
+O repositório está estruturado no padrão **Clean Architecture**, isolando totalmente a interface visual da lógica pesada de machine learning e engenharia de dados.
 
 ```text
 OmniCrop/
 │
-├── 📂 .github/workflows/        # Orquestração Serverless (Substitui Airflow)
-│   ├── ci_pipeline.yml          # Integração Contínua (Pytest)
-│   └── ingest_weather_azure.yml # Pipeline de Ingestão Diária
+├── 📂 .github/workflows/        # ☁️ Orquestração Serverless
+│   ├── ci_pipeline.yml          # Integração Contínua (Matrix Strategy Pytest)
+│   └── ingest_weather_azure.yml # Pipeline de Ingestão Diária programada
 │
 ├── 📂 app/                      # 🎨 A VITRINE (Interface Visual isolada)
 │   ├── 📂 pages/                # Telas do Streamlit
@@ -28,41 +28,64 @@ OmniCrop/
 │   ├── 📂 models/               # Inteligência (Treino, Inferência XGBoost)
 │   └── 📂 utils/                # Utilitários globais
 │
-└── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (Data, Model, UI)
+└── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps
+    ├── 📂 unit/                 # Testes unitários puros (Cálculos e Modelo)
+    ├── 📂 integration/          # Testes com Mocks (Simulando nuvem e APIs)
+    └── 📂 e2e/                  # Testes End-to-End da interface via AppTest
 ```
 
----
-
-## 🛠 Stack Tecnológica Atualizada
-
-### 🚀 A Vitrine (Frontend) e IA
-- **Frontend Web**: Streamlit (Executado via `app/main.py`)
-- **Autenticação e API**: Supabase com Row Level Security (RLS)
-- **Generative AI**: Google Gemini Pro (Assistente Virtual e RAG)
-
-### ⚙️ Engenharia de Dados (A Fábrica)
-Em vez de depender do computador local ou infraestruturas monolíticas, migramos para a **Nuvem (Azure)** usando fluxos **Serverless**:
-- **Data Lake (Bronze)**: Azure Blob Storage (`omnicrop-data-lake-bronze`)
-- **Orquestração de Dados**: GitHub Actions (`ingest_weather_azure.yml`) executado automaticamente via cron.
-- **Extração**: Open-Meteo API.
-
-### 🛡️ Pirâmide de Testes e MLOps
-Temos **100% de cobertura** nas camadas críticas de falha:
-1. **Contrato de Dados (Fábrica):** Validação rígida com `Pydantic` (impede anomalias como chuva negativa no Data Lake).
-2. **Integração e Mocks (Memória):** O `Tenacity` assegura retentativas progressivas (Exponential Backoff) e o `unittest.mock` simula quedas e erros 500 das APIs.
-3. **Unidade do Modelo (Cérebro):** Testes de estresse com `Pandas` e `pytest` jogando matrizes sintéticas (seca/enchente) extremas contra o XGBoost, garantindo o limite estrito do NDVI (0 a 1).
-4. **Interface Nativa (Palco):** `AppTest` (Framework oficial do Streamlit) testa a árvore de estado (`session_state`) virtualmente, impedindo bugs de cliques desordenados.
+### 🛠 Stack Tecnológica
+- **A Vitrine (Frontend) e IA:** Streamlit (UI), Supabase (PostgreSQL + RLS), Google Gemini Pro.
+- **Engenharia de Dados (A Fábrica):** Azure Blob Storage (Data Lake Bronze), GitHub Actions (Orquestração Serverless), Open-Meteo.
+- **Inteligência Preditiva:** `HistGradientBoostingRegressor` (Scikit-Learn). 
+- **Garantia de Qualidade:** `pytest`, `tenacity` (resiliência), `Pydantic` (contratos).
 
 ---
 
-## 📚 Documentação
+## 🧠 Design Matemático e Segurança (Blueprint)
 
-- [Guia do Desenvolvedor (Design.md)](docs/Design.md) - Detalhes profundos da modelagem matemática.
-- [Guia do Usuário (User_Guide.md)](docs/User_Guide.md) - Telas e Fluxos.
+O cérebro do OmniCrop AI não usa médias históricas simples, ele é alimentado por variáveis agronômicas profundas (Oceano e Planta):
+
+- **Feature Engineering Avançado:** Ingestão de Graus-Dia Acumulados (GDA) e janelas móveis de chuva de longo prazo (Lags de 30, 60, 90 dias) para simular a "memória hídrica" da cultura.
+- **Time-Series Walk-Forward:** O modelo preditivo foi testado via validação de janela deslizante para evitar vazamento de dados (*Data Leakage*), simulando o mundo real.
+- **Testes de Fronteira Extrema:** A esteira de testes injeta anomalias de "Seca Severa" e "Enchente" para forçar e validar os limites estritos da predição matemática do índice NDVI (0 a 1).
+- **Zero-Trust (RLS):** Toda comunicação com o banco de dados trafega o token JWT do usuário ativo, impossibilitando o acesso cruzado de dados entre fazendas concorrentes na plataforma (Row-Level Security).
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## 🌾 Funcionalidades (Visão do Usuário)
+
+O que gestores, produtores e engenheiros agrônomos podem fazer no sistema:
+
+1. **Dashboard de Satélite Virtual (NDVI):** Acompanha o vigor vegetativo atual e futuro da cultura sem depender da passagem de satélites reais (mitigação de nuvens e *delay* temporal).
+2. **Simulador "What-if" de Intervenção:** Simula gastos (ex: ligar o pivô de irrigação) ou cenários de desastre climático, observando a reação matemática da produtividade antes de tomar a decisão no mundo real.
+3. **Gerador de Laudos Executivos:** Emite pareceres formais formatados em PDF redigidos pelo Agrônomo Virtual (GenAI).
+4. **Onboarding Georreferenciado:** Criação interativa de fazendas mapeadas fisicamente por coordenadas de Latitude e Longitude para cruzar dados climáticos precisos.
+5. **Assistente de Manejo:** Chatbot agronômico inteligente (RAG via Gemini) isolado para discussão do contexto da fazenda selecionada.
+
+---
+
+## 🗓️ Roadmap de Engenharia
+
+**✅ Fase 1: MVP Streamlit e GenAI (Concluída)**
+- Autenticação e Multi-Tenancy (Supabase).
+- Renderização do mapa de lavouras e dashboards analíticos dinâmicos.
+- Integração do modelo XGBoost base e Google Gemini.
+
+**✅ Fase 2: Cloud Data Engineering e MLOps (Concluída)**
+- Migração de infraestrutura pesada (Airflow/Docker local) para **Cloud Serverless**.
+- Implantação do Data Lake Bronze no **Azure Blob Storage**.
+- Implantação da Pirâmide de Testes nativa usando matrizes independentes no GitHub Actions.
+- Implementação de defesa defensiva contra rate limit e lixo de API (`Tenacity` + `Pydantic`).
+
+**⏳ Fase 3: IoT Ground Truth (Planejada)**
+- Expansão do Data Lake via orquestração MQTT.
+- Coleta primária via Tensiômetros (Força de água) e Termometria Infravermelha no dossel (Folha).
+- Retreinamento do Gradient Boosting usando Ground Truth para precisão milimétrica.
+
+---
+
+## 🚀 Como Executar Localmente
 
 ```bash
 # 1. Clone o repositório
