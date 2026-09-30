@@ -8,9 +8,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  testes_gerais:
-    name: "Pipeline Unificado de Testes"
+  mlops_test_pyramid:
+    name: "🧪 ${{ matrix.test_layer }}"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test_layer: "Contratos e Nuvem (Data)"
+            path: "tests/test_data.py"
+          - test_layer: "Fronteiras Matemáticas (Modelo)"
+            path: "tests/test_model.py"
+          - test_layer: "Engenharia de Variáveis (Features)"
+            path: "tests/test_features.py"
+          - test_layer: "Regras de Decisão (DSS)"
+            path: "tests/test_dss.py"
+          - test_layer: "Navegação e Estado (UI)"
+            path: "tests/test_ui.py"
+
     steps:
     - name: 📥 Clonar repositório
       uses: actions/checkout@v4
@@ -27,7 +42,6 @@ jobs:
         pip install pytest pytest-cov
         pip install -r requirements.txt
 
-    - name: 🧪 Executar Testes Unitários
+    - name: 🚀 Executar ${{ matrix.test_layer }}
       run: |
-        # Rodar todos os testes na pasta tests/
-        pytest tests/ -v
+        pytest ${{ matrix.path }} -v
