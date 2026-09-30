@@ -4,11 +4,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from frontend.components.styles import inject_css
-from backend.farm_config import load_config, is_configured
-from backend.live_data import fetch_farm_data
-from backend.api_client import build_payload, get_prediction
-from frontend.components.header import render_sidebar, render_page_header
+from app.components.styles import inject_css
+from src.utils.farm_config import load_config, is_configured
+from src.data.fetch_api import fetch_farm_data
+from src.models.predict import build_payload, get_prediction
+from app.components.header import render_sidebar, render_page_header
 
 import google.generativeai as genai
 

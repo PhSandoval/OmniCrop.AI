@@ -6,7 +6,7 @@ import pandas as pd
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.api_client import load_model, FEATURE_KEYS, get_prediction
+from src.models.predict import load_model, FEATURE_KEYS, get_prediction
 
 class TestMonolithicPipeline(unittest.TestCase):
     def test_model_loading(self):

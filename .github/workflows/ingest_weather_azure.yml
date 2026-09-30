@@ -31,4 +31,4 @@ jobs:
         env:
           AZURE_CONNECTION_STRING: ${{ secrets.AZURE_CONNECTION_STRING }}
         run: |
-          python scripts/ingest_weather_azure.py
+          python src/data/ingest_azure.py

@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from backend.api_client import calcular_dss
+from src.models.predict import calcular_dss
 
 class TestDSSLogic(unittest.TestCase):
     def test_fase_crescimento_critico(self):

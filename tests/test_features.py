@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from backend.live_data import _build_features
+from src.data.fetch_api import _build_features
 
 class TestFeatureEngineering(unittest.TestCase):
     def test_gda_mensal_calculation(self):
