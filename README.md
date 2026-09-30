@@ -2,72 +2,63 @@
 
 OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestão inteligente de culturas agrícolas. Inicialmente focado em Cana-de-Açúcar, o sistema funciona como um agrônomo virtual, ajudando no monitoramento de lavouras e fornecendo recomendações preditivas para operações de campo.
 
-A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (Gradient Boosting) para estimativa de vigor vegetativo, e Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos instantâneos.
+A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (Gradient Boosting) para estimativa de vigor vegetativo, Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos e Data Engineering Serverless na nuvem (Azure).
 
 ---
 
-## 🌍 Resiliência Climática & Feature Engineering (El Niño)
+## 🏗️ Clean Architecture
 
-O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Diferente de modelos tradicionais que dependem de médias históricas (que falham durante quebras de clima), nossa arquitetura de Machine Learning incorpora o **Índice ENSO (Oceanic Niño Index - ONI)** como uma *feature* direta no algoritmo (Gradient Boosting). O cálculo de deltas de anomalias e o rigoroso controle de *Walk-Forward Validation* e RMSE garantem que o produtor receba projeções de quebra de safra validadas mesmo durante os extremos do El Niño e La Niña.
+O repositório foi reestruturado seguindo o padrão de **Clean Architecture** para isolar a interface visual da lógica pesada, garantindo escalabilidade total:
+
+```text
+OmniCrop/
+│
+├── 📂 .github/workflows/        # Orquestração Serverless (Substitui Airflow)
+│   ├── ci_pipeline.yml          # Integração Contínua (Pytest)
+│   └── ingest_weather_azure.yml # Pipeline de Ingestão Diária
+│
+├── 📂 app/                      # 🎨 A VITRINE (Interface Visual isolada)
+│   ├── 📂 pages/                # Telas do Streamlit
+│   ├── 📂 components/           # Componentes modulares (UI, PDFs, Gráficos)
+│   └── main.py                  # Ponto de entrada (antigo app.py)
+│
+├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio)
+│   ├── 📂 data/                 # Conexões (DB, Ingestão Azure, Pydantic Contracts)
+│   ├── 📂 features/             # Feature Engineering (Limpeza e Matemática)
+│   ├── 📂 models/               # Inteligência (Treino, Inferência XGBoost)
+│   └── 📂 utils/                # Utilitários globais
+│
+└── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (Data, Model, UI)
+```
 
 ---
 
-## 🛠 Stack Tecnológica
+## 🛠 Stack Tecnológica Atualizada
 
-### 🚀 Fase 1: Em Produção (Frontend, ML e GenAI)
+### 🚀 A Vitrine (Frontend) e IA
+- **Frontend Web**: Streamlit (Executado via `app/main.py`)
+- **Autenticação e API**: Supabase com Row Level Security (RLS)
+- **Generative AI**: Google Gemini Pro (Assistente Virtual e RAG)
 
-| Camada | Tecnologia | Função |
-|--------|-----------|--------|
-| **Linguagem** | Python | Espinha dorsal de toda a aplicação e modelagem |
-| **Frontend** | Streamlit | Interface web com gestão avançada via `session_state` |
-| **UI/UX** | Glassmorphism + Dark Mode | Design customizado com efeito de vidro fosco |
-| **Backend (BaaS)** | Supabase | Autenticação, API e gestão de dados |
-| **Banco de Dados** | PostgreSQL + PostGIS | Relacional com extensão espacial para coordenadas |
-| **Segurança** | Row Level Security (RLS) | Isolamento de dados por utilizador |
-| **Motor Preditivo** | Gradient Boosting (scikit-learn) | Cálculo do Vigor Vegetativo (NDVI) via `HistGradientBoostingRegressor` |
-| **Explainability (XAI)** | SHAP | Justificação matemática de cada previsão |
-| **Manipulação de Dados** | Pandas | Tratamento e transformação em memória |
-| **Visualização** | Plotly | Gráficos interativos (RMSE, ENSO, Anomalias) |
-| **IA Generativa** | Google Gemini 3.6 | Assistente virtual e geração de relatórios PDF |
-| **Arquitetura GenAI** | RAG (Retrieval-Augmented Generation) | Injeção de contexto real nos prompts |
-| **Dados Meteorológicos** | Open-Meteo | Histórico e previsão climática |
-| **Dados Oceânicos** | NOAA (ONI) | Índice ENSO em tempo real |
-| **Sensoriamento Remoto** | Copernicus / Rasterio | Imagens de satélite multiespectrais |
+### ⚙️ Engenharia de Dados (A Fábrica)
+Em vez de depender do computador local ou infraestruturas monolíticas, migramos para a **Nuvem (Azure)** usando fluxos **Serverless**:
+- **Data Lake (Bronze)**: Azure Blob Storage (`omnicrop-data-lake-bronze`)
+- **Orquestração de Dados**: GitHub Actions (`ingest_weather_azure.yml`) executado automaticamente via cron.
+- **Extração**: Open-Meteo API.
 
-### 🏗️ Fase 2: Próximos Passos (Engenharia de Dados & Infraestrutura)
-
-| Camada | Tecnologia | Função |
-|--------|-----------|--------|
-| **Containers** | Docker | Isolamento do ambiente local (`docker-compose.yml`) |
-| **Orquestração** | Apache Airflow | Agendamento e controle das extrações diárias (ETL/ELT) |
-| **Data Lake** | AWS S3 | Armazenamento bruto dos ficheiros JSON e TIFF |
-| **Processamento** | PySpark | Processamento distribuído de dados climáticos históricos |
-| **Formato Analítico** | Delta Lake | Armazenamento colunar otimizado para o histórico das safras |
-| **Feature Store** | Redis + Feast | Servir variáveis de stress hídrico em baixa latência |
-
-### 🌾 Fase 3: Visão Futura (IoT Ground Truth)
-
-| Camada | Tecnologia | Função |
-|--------|-----------|--------|
-| **Solo** | Tensiômetro IoT | Tensão da água no solo (kPa) — gatilho definitivo de irrigação |
-| **Solo** | Sensor de CE (Condutividade Elétrica) | Proxy para salinidade e absorção de fertilizantes |
-| **Solo** | Sensor de pH | Monitoramento da acidez em tempo real |
-| **Planta** | Termometria Infravermelha (Dossel) | Detecção de stress hídrico dias antes da queda do NDVI |
-| **Planta** | Dendrômetro | Expansão milimétrica diária do colmo |
-| **Microclima** | Pluviômetro IoT | Calibração local da precipitação (corrigindo erro da API) |
-| **Fitossanidade** | Sensor de Molhamento Foliar | Predição de eclosão de doenças fúngicas (Ferrugem, Carvão) |
-| **Protocolo** | MQTT + Airflow Streaming | Ingestão de dados IoT em tempo real |
+### 🛡️ Pirâmide de Testes e MLOps
+Temos **100% de cobertura** nas camadas críticas de falha:
+1. **Contrato de Dados (Fábrica):** Validação rígida com `Pydantic` (impede anomalias como chuva negativa no Data Lake).
+2. **Integração e Mocks (Memória):** O `Tenacity` assegura retentativas progressivas (Exponential Backoff) e o `unittest.mock` simula quedas e erros 500 das APIs.
+3. **Unidade do Modelo (Cérebro):** Testes de estresse com `Pandas` e `pytest` jogando matrizes sintéticas (seca/enchente) extremas contra o XGBoost, garantindo o limite estrito do NDVI (0 a 1).
+4. **Interface Nativa (Palco):** `AppTest` (Framework oficial do Streamlit) testa a árvore de estado (`session_state`) virtualmente, impedindo bugs de cliques desordenados.
 
 ---
 
 ## 📚 Documentação
 
-| Documento | Descrição |
-|-----------|-----------|
-| [Guia do Desenvolvedor (Design.md)](docs/Design.md) | Arquitetura, estrutura de pastas e detalhes do modelo de ML |
-| [Guia do Usuário (User_Guide.md)](docs/User_Guide.md) | Casos de Uso (UCs) da plataforma |
-| [ML Engineering Blueprint](docs/ML_Engineering_Blueprint.md) | Estratégia de Feature Engineering, Validação e XAI |
-| [Plano de Engenharia](docs/engineering/README.md) | Roadmap de execução das Fases 1, 2 e 3 |
+- [Guia do Desenvolvedor (Design.md)](docs/Design.md) - Detalhes profundos da modelagem matemática.
+- [Guia do Usuário (User_Guide.md)](docs/User_Guide.md) - Telas e Fluxos.
 
 ---
 
@@ -78,24 +69,19 @@ O OmniCrop AI foi construído para operar sob anomalias climáticas severas. Dif
 git clone https://github.com/PhSandoval/OmniCrop.AI.git
 cd OmniCrop.AI
 
-# 2. Crie e ative um ambiente virtual
-python -m venv .venv
+# 2. Ative um ambiente virtual
+python3 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # 3. Instale as dependências
 pip install -r requirements.txt
 
-# 4. Configure as variáveis de ambiente (Crie o arquivo .streamlit/secrets.toml)
-# Adicione: SUPABASE_URL, SUPABASE_KEY, e GEMINI_API_KEY
+# 4. Configure as variáveis (.env ou .streamlit/secrets.toml)
+# Requer: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY, AZURE_CONNECTION_STRING
 
-# 5. Inicie o dashboard
-streamlit run frontend/app.py
-```
+# 5. Rode a suíte de testes (Garantia de Qualidade)
+pytest tests/
 
-### Levantar a Plataforma de Dados (Fase 2)
-
-```bash
-cd omnicrop-data-platform
-docker compose up -d
-# Acesse o Airflow em: http://localhost:8080 (user: airflow / pass: airflow)
+# 6. Inicie o dashboard
+streamlit run app/main.py
 ```

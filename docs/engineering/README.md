@@ -58,55 +58,38 @@ Este documento detalha o plano de execução prático para cada fase do OmniCrop
 
 ---
 
-## 🏗️ Fase 2: Engenharia de Dados & Infraestrutura (EM CONSTRUÇÃO)
+## 🏗️ Fase 2: Engenharia de Dados Cloud & MLOps (EM PRODUÇÃO)
 
 ### Objetivo
-Migrar a ingestão de dados de "on-the-fly" (que é lenta e não escala) para um pipeline **orquestrado, agendado e resiliente** usando containers Docker e armazenamento em nuvem.
+Migrar a ingestão de dados para um pipeline **Serverless, orquestrado e resiliente** usando a nuvem da Azure e automações do GitHub Actions, eliminando a dependência do computador local e infraestruturas pesadas (como Airflow/Docker). Adicionar testes rigorosos para garantir a integridade da inteligência artificial.
 
-### Checklist de Execução
+### O que já está entregue (Fase 2 - Serverless Data Engineering)
 
-#### Etapa 2.1 — Infraestrutura Base (Docker + Airflow)
-- [x] Criar a pasta `omnicrop-data-platform/`
-- [x] Gerar `docker-compose.yml` com Airflow 2.7.1 + Postgres 13
-- [x] Configurar rede interna `airflow-tier`
-- [x] Auto-instalação do `apache-airflow-providers-amazon` via `_PIP_ADDITIONAL_REQUIREMENTS`
-- [x] Mapear volumes locais (`./dags`, `./logs`, `./plugins`)
-- [ ] Validar deploy local com `docker compose up -d`
-- [ ] Confirmar acesso ao Airflow UI em `http://localhost:8080`
+| Módulo | Status | Descrição |
+|--------|--------|-----------|
+| Data Lake Bronze | ✅ Completo | Criado contêiner na Azure Blob Storage (`omnicrop-data-lake-bronze`). |
+| Orquestração | ✅ Completo | Script `ingest_weather_azure.yml` no GitHub Actions orquestra extrações via cron (cronograma diário) e manualmente. |
+| Pipeline Ingestão | ✅ Completo | Script `src/data/ingest_azure.py` coleta, particiona e envia dados para a Nuvem de forma segura. |
 
-#### Etapa 2.2 — Conexão com AWS S3 (Data Lake Bronze)
-- [ ] Criar bucket S3 na AWS (ex: `omnicrop-data-lake-bronze`)
-- [ ] Configurar as credenciais AWS no Airflow (via Admin > Connections)
-- [ ] Criar a Connection ID: `aws_s3_conn` (tipo Amazon Web Services)
-- [ ] Testar a conectividade com um DAG simples de `S3CreateBucketOperator`
+### Pirâmide de Testes MLOps (Implementada)
 
-#### Etapa 2.3 — DAGs de Ingestão (ETL)
-- [ ] **DAG 1: `ingest_weather_daily`** — Buscar dados diários da Open-Meteo (JSON) → Salvar no S3 particionado por data (`s3://bronze/weather/YYYY-MM-DD/`)
-- [ ] **DAG 2: `ingest_oni_monthly`** — Buscar o Índice ONI da NOAA (CSV) → Salvar no S3 (`s3://bronze/enso/`)
-- [ ] **DAG 3: `ingest_satellite_biweekly`** — Buscar imagens do Copernicus (TIFF) → Salvar no S3 (`s3://bronze/satellite/`)
-- [ ] Configurar schedule: DAG 1 (`@daily`), DAG 2 (`@monthly`), DAG 3 (`0 6 1,15 * *`)
+Para garantir que o modelo e o Data Lake nunca corrompam por dados sujos ou APIs fora do ar, implementamos uma Pirâmide de Testes (`pytest tests/`) em 4 frentes:
+1. **Contratos (Fábrica):** Pydantic (`contracts.py`) filtra JSONs mal formados antes de baterem na nuvem (Azure).
+2. **Resiliência (Memória):** Biblioteca `Tenacity` força retentativas com *Exponential Backoff*. O `unittest.mock` simula quedas 500 do servidor.
+3. **Cérebro (Unitários):** Pandas cria dataframes sintéticos de *seca extrema* e *enchente*, testando matematicamente o XGBoost para assegurar bounds lógicos (NDVI entre 0 e 1).
+4. **Palco (Nativos UI):** `AppTest` executa sessões virtuais no Streamlit para bloquear os famosos bugs de UI.
 
-#### Etapa 2.4 — Processamento e Lakehouse (Camada Prata)
-- [ ] Configurar ambiente PySpark (local ou EMR Serverless)
-- [ ] Script de limpeza e normalização dos JSONs meteorológicos
-- [ ] Script de extração de bandas espectrais dos TIFFs (Rasterio)
-- [ ] Escrita dos dados tratados em **Delta Lake** no S3 (`s3://silver/weather_cleaned/`)
-- [ ] Merge incremental (upsert) para evitar duplicatas
+### Próximos Passos (Evolução da Nuvem)
 
-#### Etapa 2.5 — Feature Store e Baixa Latência
-- [ ] Deploy do Redis (local via Docker ou ElastiCache)
-- [ ] Configuração do Feast (Feature Store)
-- [ ] Materialização das features de stress hídrico (GDA, ONI, Lags) para o Redis
-- [ ] Endpoint de serving: o Streamlit consulta o Redis em vez de recalcular tudo on-the-fly
+- [ ] **Integração Prata/Ouro (Databricks/Spark):** Limpeza e normalização dos JSONs da Azure Blob para tabelas Delta Lake.
+- [ ] **Feature Store Integrada:** Servir as variáveis matemáticas (GDA, Chuva_Acumulada) via Redis na nuvem.
 
 ### Problemas Antecipados (Fase 2)
 
 | Risco | Mitigação |
 |-------|-----------|
-| Custos da AWS S3 descontrolados | Usar lifecycle policies: mover dados de Bronze para Glacier após 90 dias |
-| Airflow consumir muita RAM local | Manter `LocalExecutor` (não usar CeleryExecutor); limitar paralelismo a 4 |
-| API Open-Meteo com rate limit | Implementar retry com backoff exponencial no DAG (`retries=3, retry_delay=timedelta(minutes=5)`) |
-| Delta Lake com schema evolution | Ativar `mergeSchema=True` no PySpark para aceitar novas colunas sem quebrar |
+| API Open-Meteo com rate limit ou falha (HTTP 500) | Retentativas implementadas com o módulo `tenacity` (`@retry`). |
+| Injeção de dados negativos (e.g. precipitação) | Pydantic v2 levanta o erro antes da gravação no Data Lake. |
 
 ---
 
