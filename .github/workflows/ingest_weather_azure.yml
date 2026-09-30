@@ -1,0 +1,34 @@
+name: Ingestão Diária - Azure Blob Storage
+
+on:
+  schedule:
+    # Roda todos os dias às 4:00 AM UTC (1:00 AM horário de Brasília)
+    - cron: '0 4 * * *'
+  
+  # A opção workflow_dispatch permite que você clique em um botão no GitHub para rodar na hora que quiser!
+  workflow_dispatch:
+
+jobs:
+  ingestao_dados_bronze:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Clonar o repositório
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Instalar Bibliotecas
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests azure-storage-blob
+
+      - name: 🚀 Executar Script de Ingestão para Azure
+        # Puxa o "segredo" que vamos cadastrar lá nas configurações do GitHub
+        env:
+          AZURE_CONNECTION_STRING: ${{ secrets.AZURE_CONNECTION_STRING }}
+        run: |
+          python scripts/ingest_weather_azure.py
