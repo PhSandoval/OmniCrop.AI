@@ -44,7 +44,7 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
         # Links
         is_cana = crop_type == "Cana-de-Açúcar"
         
-        st.page_link("app.py",                    label="Painel Geral")
+        st.page_link("app/main.py",                    label="Painel Geral")
         st.page_link("pages/2_Simulador.py",      label="Simulador", disabled=not is_cana)
         st.page_link("pages/3_Analise.py",        label="Análise", disabled=not is_cana)
         st.page_link("pages/4_Minha_Fazenda.py",       label="Minha Fazenda")
@@ -53,7 +53,7 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
         if st.button("🏠 Voltar para Landing Page", use_container_width=True):
             st.session_state['show_landing'] = True
-            st.switch_page("app.py")
+            st.switch_page("app/main.py")
 
         st.markdown("---")
 

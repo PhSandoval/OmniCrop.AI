@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from app.components.styles import inject_css
 from src.utils.farm_config import load_config, is_configured
@@ -16,7 +16,7 @@ st.set_page_config(page_title="Assistente de Manejo · OmniCrop AI", page_icon="
 
 if 'user' not in st.session_state or not st.session_state['user']:
     st.session_state["show_landing"] = True
-    st.switch_page("app.py")
+    st.switch_page("app/main.py")
     st.stop()
 
 inject_css()

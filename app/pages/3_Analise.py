@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from app.components.styles import inject_css
 from src.utils.farm_config import load_config, is_configured
@@ -20,7 +20,7 @@ inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:
     st.session_state["show_landing"] = True
-    st.switch_page("app.py")
+    st.switch_page("app/main.py")
     st.stop()
 
 

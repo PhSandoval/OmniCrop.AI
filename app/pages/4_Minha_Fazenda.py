@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from app.components.styles import inject_css
 from app.components.header import render_sidebar, render_page_header
 from src.data.db import get_user_farms, update_farm, delete_farm
@@ -15,7 +15,7 @@ inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:
     st.session_state["show_landing"] = True
-    st.switch_page("app.py")
+    st.switch_page("app/main.py")
     st.stop()
 
 # Load real data for sidebar
@@ -40,7 +40,7 @@ if not farms:
     st.info("Você ainda não possui fazendas cadastradas.")
     if st.button("➕ Cadastrar Novo Talhão (Mapa)", use_container_width=True):
         st.session_state['show_onboarding'] = True
-        st.switch_page("app.py")
+        st.switch_page("app/main.py")
     st.stop()
 
 # Farm Selection for Editing
@@ -111,4 +111,4 @@ with col_btn2:
 st.markdown("<hr>", unsafe_allow_html=True)
 if st.button("➕ Adicionar Outro Talhão", use_container_width=False):
     st.session_state['show_onboarding'] = True
-    st.switch_page("app.py")
+    st.switch_page("app/main.py")
