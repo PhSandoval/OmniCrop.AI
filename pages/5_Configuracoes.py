@@ -2,9 +2,9 @@ import streamlit as st
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.components.styles import inject_css
-from app.components.header import render_sidebar, render_page_header
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from components.styles import inject_css
+from components.header import render_sidebar, render_page_header
 from src.utils.farm_config import save_config, load_config
 from src.data.db import update_farm
 from src.data.fetch_api import fetch_farm_data
@@ -15,7 +15,7 @@ inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:
     st.session_state["show_landing"] = True
-    st.switch_page("app/main.py")
+    st.switch_page("app.py")
     st.stop()
 
 # Sidebar config (to show current active farm)
@@ -77,4 +77,4 @@ with col_conta:
         st.session_state['show_login'] = False
         st.session_state['active_farm'] = None
         st.session_state['access_token'] = None
-        st.switch_page("app/main.py")
+        st.switch_page("app.py")

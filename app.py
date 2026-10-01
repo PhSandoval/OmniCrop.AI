@@ -5,14 +5,14 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
-from app.components.styles import inject_css
+from components.styles import inject_css
 from src.utils.farm_config import load_config, is_configured, save_config
 from src.data.fetch_api import fetch_farm_data, search_location
 from src.models.predict import build_payload, get_prediction, badge_html, calcular_dss
-from app.components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
-from app.components.header import render_sidebar, render_page_header
+from components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
+from components.header import render_sidebar, render_page_header
 
 import base64
 import streamlit.components.v1 as components
@@ -95,7 +95,7 @@ _farm_selected = bool(st.session_state.get('active_farm'))
 _onboarding = st.session_state.get('show_onboarding', False)
 inject_css(is_login=_hide_sidebar)
 
-from app.components.auth import render_auth_page
+from components.auth import render_auth_page
 from src.data.db import get_user_farms, insert_farm
 
 
@@ -103,7 +103,7 @@ from src.data.db import get_user_farms, insert_farm
 # 2. Função de Onboarding
 
 def render_farm_selector():
-    from app.components.header import render_sidebar
+    from components.header import render_sidebar
     from datetime import datetime
     render_sidebar({"date": datetime.now()}, None)
     
@@ -360,7 +360,7 @@ def render_main_app():
         
         if st.session_state.get(flag_key):
             with st.spinner("Analisando dados com IA e compilando PDF..."):
-                from app.components.pdf_generator import generate_pdf_report
+                from components.pdf_generator import generate_pdf_report
                 pdf_bytes = generate_pdf_report(
                     cfg.get("farm_name", "Minha Fazenda"),
                     cfg.get("city", "Desconhecida"),
@@ -538,7 +538,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
     # We will pass a dummy today dict just so the sidebar renders
     from datetime import datetime
     today = {"date": datetime.now()}
-    from app.components.header import render_sidebar
+    from components.header import render_sidebar
     render_sidebar(today, None)
 
     icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
@@ -620,7 +620,7 @@ if st.session_state.get('show_landing', not st.session_state.get('user')):
     if not st.session_state.get('user') and st.session_state.get('show_login', False):
         render_auth_page()
     else:
-        from app.components.landing import render_landing_page
+        from components.landing import render_landing_page
         render_landing_page()
 elif not st.session_state.get('user'):
     # Garantia para nao logados

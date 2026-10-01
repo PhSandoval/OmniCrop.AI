@@ -4,7 +4,7 @@ from streamlit.testing.v1 import AppTest
 def test_simulador_state_without_talhao():
     """Teste de Interface (Palco): Verifica se o Streamlit segura o erro se o usuário não escolheu o talhão."""
     # Cria uma instância virtual do AppTest para a página do Simulador
-    at = AppTest.from_file("../../app/pages/2_Simulador.py")
+    at = AppTest.from_file("../../pages/2_Simulador.py")
     
     # Roda o app virtualmente (sem navegador)
     at.run()
