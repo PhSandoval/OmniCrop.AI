@@ -25,7 +25,7 @@ _hide_sidebar = _is_landing or _onboarding or not _farm_selected
 
 st.set_page_config(
     page_title="OmniCrop AI - Inteligência Agronômica", 
-    page_icon="frontend/assets/logo.jpg", 
+    page_icon="assets/logo.png", 
     layout="wide",
     initial_sidebar_state="collapsed" if _hide_sidebar else "expanded"
 )
