@@ -62,3 +62,33 @@ def test_open_meteo_api_failure(mock_get):
         response.raise_for_status()
         
     assert "500 Server Error" in str(exc_info.value)
+
+
+def test_transform_to_silver_pipeline():
+    """Valida a transformação de dados brutos (Bronze) para o formato refinado (Silver)."""
+    from src.data.ingest_azure import transform_to_silver
+    import pandas as pd
+
+    raw_payload = {
+        "latitude": -21.17,
+        "longitude": -47.81,
+        "daily": {
+            "time": ["2026-10-01", "2026-10-02"],
+            "temperature_2m_max": [32.0, 30.0],
+            "temperature_2m_min": [20.0, 18.0],
+            "precipitation_sum": [10.0, 5.0],
+            "et0_fao_evapotranspiration": [4.0, 3.5]
+        }
+    }
+
+    df_silver = transform_to_silver(raw_payload)
+
+    assert isinstance(df_silver, pd.DataFrame)
+    assert len(df_silver) == 2
+    assert "gda_acumulado" in df_silver.columns
+    assert "chuva_acumulada_7d" in df_silver.columns
+    assert "thermal_amplitude" in df_silver.columns
+    assert df_silver["t_mean"].iloc[0] == 26.0
+    assert df_silver["gdd"].iloc[0] == 8.0 # 26 - 18
+    assert df_silver["chuva_acumulada_7d"].iloc[1] == 15.0 # 10 + 5
+
