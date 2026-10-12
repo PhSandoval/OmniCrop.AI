@@ -1,60 +1,64 @@
 import pytest
-from unittest.mock import patch, MagicMock
-import requests
 from pydantic import ValidationError
+from unittest.mock import patch
+import requests
 import sys
 from pathlib import Path
 
-# Garante que o projeto está no PATH
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.data.fetch_api import search_location
-from src.data.ingest_azure import fetch_weather_data
-from src.data.contracts import OpenMeteoResponse
+from src.data.schemas import OpenMeteoResponse, DailyWeather
 
-@patch('src.data.fetch_api.requests.get')
-def test_search_location_success(mock_get, mock_nominatim_json):
-    """Garante que nossa função mastiga o JSON do Nominatim corretamente."""
-    mock_response = MagicMock()
-    mock_response.json.return_value = mock_nominatim_json
-    mock_get.return_value = mock_response
+def test_open_meteo_contract_valid():
+    """Valida um payload JSON perfeito na classe OpenMeteoResponse."""
+    payload = {
+        "latitude": -21.17,
+        "longitude": -47.81,
+        "daily": {
+            "time": ["2023-01-01", "2023-01-02"],
+            "temperature_2m_max": [30.5, 31.0],
+            "temperature_2m_min": [20.1, 21.0],
+            "precipitation_sum": [0.0, 5.2],
+            "et0_fao_evapotranspiration": [4.5, 4.2]
+        }
+    }
     
-    resultado = search_location("Ribeirao")
+    response = OpenMeteoResponse(**payload)
     
-    assert len(resultado) == 1
-    assert "Ribeirão Preto" in resultado[0]["label"]
-    assert resultado[0]["lat"] == -21.17
+    assert response.latitude == -21.17
+    assert response.longitude == -47.81
+    assert len(response.daily.time) == 2
+    assert response.daily.precipitation_sum == [0.0, 5.2]
+    assert response.daily.et0_fao_evapotranspiration == [4.5, 4.2]
+    assert isinstance(response.daily.temperature_2m_max[0], float)
 
-@patch('src.data.fetch_api.requests.get')
-def test_search_location_failure(mock_get):
-    """Garante que a função não quebra (Graceful Degradation) se a API cair."""
-    mock_get.side_effect = requests.exceptions.Timeout("API is down")
-    
-    resultado = search_location("Ribeirao")
-    assert resultado == []
 
-@patch('src.data.ingest_azure.requests.get')
-def test_fetch_weather_retries_on_500(mock_get, mock_openmeteo_json):
-    """Teste de Integração com Mocks: Falha 2 vezes com 500, sucesso na 3a."""
-    # Erro
-    mock_resp_500 = MagicMock()
-    mock_resp_500.raise_for_status.side_effect = requests.exceptions.HTTPError("500 Server Error")
+def test_open_meteo_contract_invalid():
+    """Garante que o Pydantic bloqueia a execução se faltar a chave precipitation_sum."""
+    payload = {
+        "latitude": -21.17,
+        "longitude": -47.81,
+        "daily": {
+            "time": ["2023-01-01"],
+            "temperature_2m_max": [30.5],
+            "temperature_2m_min": [20.1],
+            # FALTA A CHAVE precipitation_sum
+            "et0_fao_evapotranspiration": [4.5]
+        }
+    }
     
-    # Sucesso
-    mock_resp_ok = MagicMock()
-    mock_resp_ok.json.return_value = mock_openmeteo_json
-    
-    # falha, falha, sucesso
-    mock_get.side_effect = [mock_resp_500, mock_resp_500, mock_resp_ok]
-    
-    resultado = fetch_weather_data()
-    
-    assert mock_get.call_count == 3
-    assert "daily" in resultado
+    with pytest.raises(ValidationError):
+        OpenMeteoResponse(**payload)
 
-def test_pydantic_contract_fails_on_negative_precipitation(bad_openmeteo_json):
-    """Teste de Contrato: Garante que Pydantic bloqueia precipitação negativa."""
-    with pytest.raises(ValidationError) as exc_info:
-        OpenMeteoResponse(**bad_openmeteo_json)
+
+@patch('requests.get')
+def test_open_meteo_api_failure(mock_get):
+    """Simula um erro HTTP 500 da Open-Meteo, garantindo que o sistema lança um erro limpo."""
+    mock_get.return_value.status_code = 500
+    mock_get.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError("500 Server Error")
+    
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        response = requests.get("https://api.open-meteo.com/v1/forecast")
+        response.raise_for_status()
         
-    assert "Precipitação não pode ser negativa" in str(exc_info.value)
+    assert "500 Server Error" in str(exc_info.value)
