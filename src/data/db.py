@@ -1,10 +1,21 @@
+import os
 import streamlit as st
 from supabase import create_client, Client
 
+def _get_credential(key: str, default: str = "") -> str:
+    """Busca credenciais por variável de ambiente ou st.secrets de forma segura para CI/CD."""
+    env_val = os.environ.get(key)
+    if env_val:
+        return env_val
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
 # Removido o @st.cache_resource para garantir isolamento de sessao (Seguranca em Multi-tenant)
 def get_supabase(access_token=None) -> Client:
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
+    url = _get_credential("SUPABASE_URL", "https://placeholder.supabase.co")
+    key = _get_credential("SUPABASE_KEY", "placeholder-key")
     client = create_client(url, key)
     
     # Injeta o token JWT do usuario especifico para respeitar o Row Level Security (RLS)

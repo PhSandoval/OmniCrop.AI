@@ -45,5 +45,8 @@ jobs:
         pip install -r requirements.txt
 
     - name: 🚀 Executar ${{ matrix.test_layer }}
+      env:
+        SUPABASE_URL: "https://mock.supabase.co"
+        SUPABASE_KEY: "mock-key-for-ci"
       run: |
         pytest ${{ matrix.path }} -v
