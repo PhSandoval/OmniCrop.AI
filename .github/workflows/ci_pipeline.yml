@@ -1,4 +1,4 @@
-name: Integração Contínua (CI)
+name: CI Pipeline
 
 on:
   push:
@@ -19,11 +19,11 @@ jobs:
             path: "tests/integration/test_data.py"
           - test_layer: "Conexão Zero-Trust (Integration DB)"
             path: "tests/integration/test_db.py"
-          - test_layer: "Fronteiras Matemáticas (Unit Model)"
+          - test_layer: "Fronteiras Matemáticas & XAI (Unit Model)"
             path: "tests/unit/test_model.py"
           - test_layer: "Engenharia de Variáveis (Unit Features)"
             path: "tests/unit/test_features.py"
-          - test_layer: "Regras de Decisão (Unit DSS)"
+          - test_layer: "Regras de Decisão & Alertas (Unit DSS)"
             path: "tests/unit/test_dss.py"
           - test_layer: "Navegação e Estado (E2E UI)"
             path: "tests/e2e/test_ui.py"
@@ -48,5 +48,6 @@ jobs:
       env:
         SUPABASE_URL: "https://mock.supabase.co"
         SUPABASE_KEY: "mock-key-for-ci"
+        AZURE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=mock;AccountKey=mockkey;EndpointSuffix=core.windows.net"
       run: |
         pytest ${{ matrix.path }} -v

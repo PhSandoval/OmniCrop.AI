@@ -1,8 +1,14 @@
 # 🌱 OmniCrop AI
 
+[![CI Pipeline](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci_pipeline.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci_pipeline.yml)
+[![Tests](https://img.shields.io/badge/pytest-19%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions)
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-informational)](https://blog.cleancoder.com/)
+
 OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestão inteligente de culturas agrícolas. Inicialmente focado em Cana-de-Açúcar, o sistema funciona como um agrônomo virtual, ajudando no monitoramento de lavouras e fornecendo recomendações preditivas para operações de campo.
 
-A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (`HistGradientBoostingRegressor`) para estimativa de vigor vegetativo (NDVI), Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos e Engenharia de Dados Serverless na nuvem com **Arquitetura Medalhão no Azure Blob Storage** (Bronze e Silver).
+A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (`HistGradientBoostingRegressor`) para estimativa de vigor vegetativo (NDVI), Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos e Engenharia de Dados Serverless na nuvem com **Arquitetura Medalhão no Azure Blob Storage** (Bronze, Silver e Gold).
 
 ---
 
