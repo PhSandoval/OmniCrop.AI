@@ -1,5 +1,6 @@
 -- ==============================================================================
 -- 🏛️ OMNICROP AI - ESQUEMA DO BANCO DE DADOS (SUPABASE POSTGRESQL)
+-- ARQUITETURA MULTI-TENANT ROBUSTA COM ROW LEVEL SECURITY (RLS)
 -- ==============================================================================
 
 -- 1. TABELA PRINCIPAL: FAZENDAS (Multi-Tenant com Row Level Security)
@@ -23,17 +24,33 @@ CREATE TABLE IF NOT EXISTS public.fazendas (
 -- Habilita Row Level Security na tabela fazendas
 ALTER TABLE public.fazendas ENABLE ROW LEVEL SECURITY;
 
+-- Remove políticas anteriores caso existam
+DROP POLICY IF EXISTS "Usuários acessam apenas suas próprias fazendas" ON public.fazendas;
+DROP POLICY IF EXISTS "Service role tem acesso total a fazendas" ON public.fazendas;
+
+-- Política RLS Estrita para fazendas:
+-- Garante que um usuário autenticado só possa consultar, inserir, atualizar e excluir fazendas de seu próprio user_id
 CREATE POLICY "Usuários acessam apenas suas próprias fazendas"
 ON public.fazendas
 FOR ALL
-USING (auth.uid() = user_id);
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- Política para service_role (operações administrativas/background)
+CREATE POLICY "Service role tem acesso total a fazendas"
+ON public.fazendas
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
 
 
--- 2. TABELA DE CACHE: KPIS_GOLD (Fecha o loop entre Azure Data Lake e Postgres)
+-- 2. TABELA DE CACHE: KPIS_GOLD (Medallion Data Lake -> Supabase Postgres)
 -- Guarda os resumos executivos mastigados pelo pipeline da nuvem para acesso ultrarrápido
 CREATE TABLE IF NOT EXISTS public.kpis_gold (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    farm_id UUID REFERENCES public.fazendas(id) ON DELETE CASCADE,
+    farm_id UUID NOT NULL REFERENCES public.fazendas(id) ON DELETE CASCADE,
     periodo_inicio DATE NOT NULL,
     periodo_fim DATE NOT NULL,
     dias_monitorados INT NOT NULL,
@@ -55,12 +72,39 @@ CREATE TABLE IF NOT EXISTS public.kpis_gold (
 -- Habilita Row Level Security na tabela kpis_gold
 ALTER TABLE public.kpis_gold ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Leitura autenticada de KPIs Gold"
-ON public.kpis_gold
-FOR SELECT
-USING (true);
+-- Remove políticas permissivas antigas
+DROP POLICY IF EXISTS "Leitura autenticada de KPIs Gold" ON public.kpis_gold;
+DROP POLICY IF EXISTS "Inserção permitida para serviço ou autenticado" ON public.kpis_gold;
+DROP POLICY IF EXISTS "Usuários acessam apenas KPIs de suas próprias fazendas" ON public.kpis_gold;
+DROP POLICY IF EXISTS "Service role tem acesso total a kpis_gold" ON public.kpis_gold;
 
-CREATE POLICY "Inserção permitida para serviço ou autenticado"
+-- POLÍTICA RLS MULTI-TENANT ESTRITA PARA KPIS_GOLD:
+-- A Fazenda A NUNCA verá dados da Fazenda B.
+-- O usuário autenticado só pode consultar, inserir ou modificar KPIs das fazendas cujo user_id corresponda ao seu auth.uid().
+CREATE POLICY "Usuários acessam apenas KPIs de suas próprias fazendas"
 ON public.kpis_gold
-FOR INSERT
+FOR ALL
+TO authenticated
+USING (
+    farm_id IN (
+        SELECT f.id FROM public.fazendas f WHERE f.user_id = auth.uid()
+    )
+)
+WITH CHECK (
+    farm_id IN (
+        SELECT f.id FROM public.fazendas f WHERE f.user_id = auth.uid()
+    )
+);
+
+-- Política para service_role (pipelines de ingestão automatizados via Azure / scripts batch)
+CREATE POLICY "Service role tem acesso total a kpis_gold"
+ON public.kpis_gold
+FOR ALL
+TO service_role
+USING (true)
 WITH CHECK (true);
+
+-- Índices de Performance e Isolamento Multi-Tenant
+CREATE INDEX IF NOT EXISTS idx_fazendas_user_id ON public.fazendas(user_id);
+CREATE INDEX IF NOT EXISTS idx_kpis_gold_farm_id ON public.kpis_gold(farm_id);
+CREATE INDEX IF NOT EXISTS idx_kpis_gold_processed_at ON public.kpis_gold(processed_at DESC);

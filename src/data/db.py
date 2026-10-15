@@ -12,15 +12,24 @@ def _get_credential(key: str, default: str = "") -> str:
     except Exception:
         return default
 
-# Removido o @st.cache_resource para garantir isolamento de sessao (Seguranca em Multi-tenant)
 def get_supabase(access_token=None) -> Client:
+    """
+    Retorna cliente Supabase com isolamento de sessão por usuário.
+    Injeta o token JWT no cabeçalho PostgREST para fazer valer o Row Level Security (RLS) no PostgreSQL.
+    """
     url = _get_credential("SUPABASE_URL", "https://placeholder.supabase.co")
     key = _get_credential("SUPABASE_KEY", "placeholder-key")
     client = create_client(url, key)
     
-    # Injeta o token JWT do usuario especifico para respeitar o Row Level Security (RLS)
-    if access_token:
-        client.postgrest.auth(access_token)
+    token = access_token
+    if not token:
+        try:
+            token = st.session_state.get('access_token')
+        except Exception:
+            token = None
+
+    if token:
+        client.postgrest.auth(token)
         
     return client
 
@@ -32,15 +41,12 @@ def register_user(email, password):
     supabase = get_supabase()
     return supabase.auth.sign_up({"email": email, "password": password})
 
-def get_user_farms(user_id):
-    # Pega o token da sessao segura do Streamlit
-    access_token = st.session_state.get('access_token')
+def get_user_farms(user_id, access_token=None):
     supabase = get_supabase(access_token)
     res = supabase.table("fazendas").select("*").eq("user_id", user_id).order("farm_name").execute()
-    return res.data
+    return res.data if hasattr(res, "data") and res.data is not None else []
 
-def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar"):
-    access_token = st.session_state.get('access_token')
+def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", access_token=None):
     supabase = get_supabase(access_token)
     data = {
         "user_id": user_id,
@@ -58,12 +64,46 @@ def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúc
     }
     return supabase.table("fazendas").insert(data).execute()
 
-def update_farm(farm_id, user_id, update_data):
-    access_token = st.session_state.get('access_token')
+def update_farm(farm_id, user_id, update_data, access_token=None):
     supabase = get_supabase(access_token)
     return supabase.table("fazendas").update(update_data).eq("id", farm_id).eq("user_id", user_id).execute()
 
-def delete_farm(farm_id, user_id):
-    access_token = st.session_state.get('access_token')
+def delete_farm(farm_id, user_id, access_token=None):
     supabase = get_supabase(access_token)
     return supabase.table("fazendas").delete().eq("id", farm_id).eq("user_id", user_id).execute()
+
+# ── CAMADA OURO MULTI-TENANT (SUPABASE POSTGRESQL + RLS) ──────────────
+
+def insert_farm_gold_kpis(farm_id: str, kpis_data: dict, access_token=None):
+    """
+    Insere resumo executivo da Camada Ouro associado à fazenda no Supabase.
+    Protegido por RLS: O PostgreSQL valida que farm_id pertence ao auth.uid() do access_token.
+    """
+    supabase = get_supabase(access_token)
+    payload = dict(kpis_data)
+    payload["farm_id"] = str(farm_id)
+    payload.pop("id", None)
+    return supabase.table("kpis_gold").insert(payload).execute()
+
+def get_farm_gold_kpis(farm_id: str, limit: int = 15, access_token=None) -> list[dict]:
+    """
+    Consulta o histórico executivo da Camada Ouro para o talhão.
+    Protegido por RLS: A Fazenda A NUNCA receberá dados da Fazenda B.
+    """
+    supabase = get_supabase(access_token)
+    res = (
+        supabase.table("kpis_gold")
+        .select("*")
+        .eq("farm_id", str(farm_id))
+        .order("processed_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return res.data if hasattr(res, "data") and res.data is not None else []
+
+def get_latest_farm_gold_kpi(farm_id: str, access_token=None) -> dict | None:
+    """
+    Retorna o KPI executivo mais recente da Camada Ouro para o talhão selecionado.
+    """
+    records = get_farm_gold_kpis(farm_id, limit=1, access_token=access_token)
+    return records[0] if records else None

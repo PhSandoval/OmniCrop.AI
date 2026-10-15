@@ -74,18 +74,39 @@ def render_copilot():
         else 0.0
     )
 
-    # ── 2. Camada Ouro (Gold KPIs Consolidados) ───────────────────────
-    gold_df = None
-    try:
-        gold_df = load_latest_gold_kpis()
-    except Exception:
-        gold_df = None
+    # ── 2. Camada Ouro (Gold KPIs Consolidados com Isolamento RLS) ────
+    gold = {}
+    farm_id = cfg.get("id")
 
-    if gold_df is None or gold_df.empty:
+    # 2.1 Tenta carregar do Supabase com proteção RLS por farm_id
+    if farm_id:
+        try:
+            from src.data.db import get_latest_farm_gold_kpi
+            gold = get_latest_farm_gold_kpi(farm_id) or {}
+        except Exception:
+            gold = {}
+
+    # 2.2 Se não encontrar no banco, tenta carregar do Azure Blob Storage
+    if not gold:
+        try:
+            gold_df = load_latest_gold_kpis()
+            if gold_df is not None and not gold_df.empty:
+                gold = gold_df.iloc[0].to_dict()
+        except Exception:
+            gold = {}
+
+    # 2.3 Se ainda não tiver, calcula a partir dos dados refinados e persiste no Supabase
+    if not gold:
         window_df = df_past.tail(14) if len(df_past) >= 14 else df_past
         gold_df = transform_to_gold(window_df)
+        gold = gold_df.iloc[0].to_dict() if not gold_df.empty else {}
+        if farm_id and gold:
+            try:
+                from src.data.db import insert_farm_gold_kpis
+                insert_farm_gold_kpis(farm_id, gold)
+            except Exception:
+                pass
 
-    gold = gold_df.iloc[0].to_dict() if not gold_df.empty else {}
     balanco_hidrico = float(gold.get("balanco_hidrico_mm", 0.0))
     dias_sem_chuva = int(gold.get("dias_sem_chuva", 0))
     gda_total = float(gold.get("gda_total_acumulado", 0.0))
