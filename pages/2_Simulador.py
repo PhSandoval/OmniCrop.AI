@@ -200,6 +200,22 @@ with col_out:
             
         dss = calcular_dss(mes_atual, ndvi_base, ndvi_proj, cenario=cenario_dss, chuva_projetada=chuva_futura_DSS, gda_projetado=gda_15d_futuro)
         
+        # Salva o estado da simulação para consumo dinâmico no Assistente de Manejo (RAG Grounded)
+        st.session_state["ultima_simulacao"] = {
+            "cenario": cenario,
+            "cenario_dss": cenario_dss,
+            "payload_hoje": payload_hoje,
+            "payload_sim": payload_sim,
+            "resultado_hoje": resultado_hoje,
+            "resultado_sim": resultado_sim,
+            "delta": delta,
+            "delta_pct": delta_pct,
+            "xai": xai_res,
+            "dss": dss,
+            "chuva_15d_futura": chuva_15d_futura,
+            "gda_15d_futuro": gda_15d_futuro,
+        }
+
         if "Maturador" in cenario:
             if delta < 0:
                 st.success(f"Maturador eficiente — redução esperada de {abs(delta_pct):.1f}% no vigor foliar (força acúmulo de ATR).")
@@ -239,8 +255,11 @@ with col_out:
                             f"💡 <b>Ponto Ótimo de Irrigação (IA):</b> Economize energia! A chuva natural projetada já atinge o teto máximo de vigor para os próximos 15 dias (NDVI {best_ndvi:.3f}). Nenhuma irrigação adicional é recomendada."
                             f"</div>", unsafe_allow_html=True)
 
-        
         if "Irrigação" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
             st.error("⚠️ **Risco de Alagamento (Waterlogging)**: Volume excessivo de água pode causar sufocamento radicular e queda brusca de vigor.")
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("💬 Consultar Assistente de Manejo sobre este Cenário", use_container_width=True):
+            st.switch_page("pages/6_Assistente_de_Manejo.py")
     else:
         st.error("Erro na projeção local.")
