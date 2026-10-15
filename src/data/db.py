@@ -44,18 +44,31 @@ def register_user(email, password):
 def get_user_farms(user_id, access_token=None):
     supabase = get_supabase(access_token)
     res = supabase.table("fazendas").select("*").eq("user_id", user_id).order("farm_name").execute()
-    return res.data if hasattr(res, "data") and res.data is not None else []
+    farms = res.data if hasattr(res, "data") and res.data is not None else []
+    try:
+        from src.utils.geo import ensure_farm_boundary
+        return [ensure_farm_boundary(f) for f in farms]
+    except Exception:
+        return farms
 
-def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", access_token=None):
+def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", area_ha=100, boundary_geojson=None, access_token=None):
     supabase = get_supabase(access_token)
+    if boundary_geojson is None:
+        try:
+            from src.utils.geo import generate_parcel_polygon
+            boundary_geojson = generate_parcel_polygon(lat, lon, area_ha)
+        except Exception:
+            boundary_geojson = None
+
     data = {
         "user_id": user_id,
         "farm_name": farm_name,
         "city": city,
         "lat": lat,
         "lon": lon,
+        "boundary_geojson": boundary_geojson,
         "variedade": "RB867515",
-        "area_ha": 100,
+        "area_ha": area_ha,
         "alert_amarelo": 0.6,
         "alert_vermelho": 0.4,
         "chuva_critica": 30,
@@ -63,6 +76,10 @@ def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúc
         "tipo_cultura": tipo_cultura
     }
     return supabase.table("fazendas").insert(data).execute()
+
+def update_farm_boundary(farm_id, user_id, boundary_geojson, access_token=None):
+    supabase = get_supabase(access_token)
+    return supabase.table("fazendas").update({"boundary_geojson": boundary_geojson}).eq("id", farm_id).eq("user_id", user_id).execute()
 
 def update_farm(farm_id, user_id, update_data, access_token=None):
     supabase = get_supabase(access_token)

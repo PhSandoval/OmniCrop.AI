@@ -1,9 +1,12 @@
 -- ==============================================================================
--- 🏛️ OMNICROP AI - ESQUEMA DO BANCO DE DADOS (SUPABASE POSTGRESQL)
--- ARQUITETURA MULTI-TENANT ROBUSTA COM ROW LEVEL SECURITY (RLS)
+-- 🏛️ OMNICROP AI - ESQUEMA DO BANCO DE DADOS (SUPABASE POSTGRESQL + POSTGIS)
+-- ARQUITETURA MULTI-TENANT ROBUSTA COM ROW LEVEL SECURITY (RLS) E GEOMETRIA
 -- ==============================================================================
 
--- 1. TABELA PRINCIPAL: FAZENDAS (Multi-Tenant com Row Level Security)
+-- Habilita a extensão geoespacial PostGIS
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- 1. TABELA PRINCIPAL: FAZENDAS (Multi-Tenant com Row Level Security & PostGIS)
 CREATE TABLE IF NOT EXISTS public.fazendas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -11,6 +14,8 @@ CREATE TABLE IF NOT EXISTS public.fazendas (
     city VARCHAR(255) NOT NULL,
     lat FLOAT NOT NULL,
     lon FLOAT NOT NULL,
+    geom GEOMETRY(Polygon, 4326),
+    boundary_geojson JSONB,
     variedade VARCHAR(100) DEFAULT 'RB867515',
     area_ha FLOAT DEFAULT 100.0,
     alert_amarelo FLOAT DEFAULT 0.60,
@@ -104,7 +109,8 @@ TO service_role
 USING (true)
 WITH CHECK (true);
 
--- Índices de Performance e Isolamento Multi-Tenant
+-- Índices de Performance, Espaciais (PostGIS GIST) e Isolamento Multi-Tenant
 CREATE INDEX IF NOT EXISTS idx_fazendas_user_id ON public.fazendas(user_id);
+CREATE INDEX IF NOT EXISTS idx_fazendas_geom ON public.fazendas USING GIST(geom);
 CREATE INDEX IF NOT EXISTS idx_kpis_gold_farm_id ON public.kpis_gold(farm_id);
 CREATE INDEX IF NOT EXISTS idx_kpis_gold_processed_at ON public.kpis_gold(processed_at DESC);
