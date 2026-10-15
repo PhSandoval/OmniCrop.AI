@@ -176,3 +176,44 @@ with col6:
     fig6.update_yaxes(title="Erro do Vigor (NDVI)", showgrid=True, gridcolor="rgba(255,255,255,0.05)")
     fig6.update_xaxes(title="Horizonte de Previsão (Dias Futuros)", showgrid=False)
     st.plotly_chart(fig6, use_container_width=True, config={"displayModeBar": False})
+
+# 7. Camada Gold - Governança de Dados Medallion (Data Lake Azure)
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown('<div class="sec-header" style="font-size: 1.2rem;">🏛️ Governança de Dados · Camada Gold (Data Lake Azure)</div>', unsafe_allow_html=True)
+st.caption("Métricas executivas e sumários consolidados processados pela arquitetura Medalhão (Bronze ➔ Silver ➔ Gold).")
+
+from src.data.ingest_azure import transform_to_gold, load_latest_gold_kpis
+
+# Tenta carregar os KPIs da nuvem Azure Blob Storage; se indisponível, gera a visão Gold com base no histórico
+df_gold = load_latest_gold_kpis()
+origem_dados = "Nuvem (Azure Blob Storage: omnicrop-data-lake-gold)"
+if df_gold is None or df_gold.empty:
+    df_gold = transform_to_gold(df_live)
+    origem_dados = "Processado em Tempo Real (Padrão Medallion Gold)"
+
+if not df_gold.empty:
+    row_gold = df_gold.iloc[0]
+    
+    g_col1, g_col2, g_col3, g_col4 = st.columns(4)
+    with g_col1:
+        st.metric("Balanço Hídrico Líquido", f"{row_gold['balanco_hidrico_mm']} mm", help="Precipitação total menos evapotranspiração da cultura")
+    with g_col2:
+        st.metric("Dias sem Chuva (Veranico)", f"{row_gold['dias_sem_chuva']} dias", help="Dias com chuva < 1mm")
+    with g_col3:
+        st.metric("GDA Total Acumulado", f"{row_gold['gda_total_acumulado']:.1f}", help="Graus-Dia acumulados base 18°C")
+    with g_col4:
+        risco_cor = "#EF5350" if row_gold['risco_estresse_hidrico'] == "CRÍTICO" else ("#FFCA28" if row_gold['risco_estresse_hidrico'] == "MODERADO" else "#69F0AE")
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase;">Risco de Estresse</div>
+            <div style="font-size: 1.2rem; font-weight: 700; color: {risco_cor}; margin-top: 2px;">{row_gold['risco_estresse_hidrico']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    <div style="background: rgba(15, 23, 42, 0.6); border-left: 4px solid #69F0AE; padding: 12px 16px; border-radius: 4px; margin-top: 15px;">
+        <span style="color: #94A3B8; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Recomendação Agronômica (Gold DSS):</span><br>
+        <span style="color: #F8FAFC; font-size: 0.95rem;">{row_gold['recomendacao_manejo']}</span>
+        <div style="font-size: 0.75rem; color: #64748B; margin-top: 6px;">Fonte: {origem_dados} · Período: {row_gold['periodo_inicio']} a {row_gold['periodo_fim']} ({row_gold['dias_monitorados']} dias)</div>
+    </div>
+    """, unsafe_allow_html=True)

@@ -13,6 +13,7 @@ LATITUDE = -21.1704
 LONGITUDE = -47.8103
 BRONZE_CONTAINER = "omnicrop-data-lake-bronze"
 SILVER_CONTAINER = "omnicrop-data-lake-silver"
+GOLD_CONTAINER = "omnicrop-data-lake-gold"
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def fetch_weather_data() -> dict:
@@ -59,13 +60,90 @@ def transform_to_silver(raw_data: dict) -> pd.DataFrame:
 
     return df
 
+def transform_to_gold(df_silver: pd.DataFrame) -> pd.DataFrame:
+    """
+    Camada Gold (Agregada / Decisão / Parquet):
+    - Sumariza métricas meteorológicas e agronômicas em nível executivo.
+    - Calcula indicadores de estresse hídrico, balanço hídrico acumulado e veranicos.
+    - Gera recomendações operacionais automatizadas para a tomada de decisão (DSS).
+    """
+    precip_col = "precipitation_sum" if "precipitation_sum" in df_silver.columns else "precipitacao_total"
+    et0_col = "et0_fao_evapotranspiration" if "et0_fao_evapotranspiration" in df_silver.columns else "evapotranspiracao_total"
+    tmax_col = "temperature_2m_max" if "temperature_2m_max" in df_silver.columns else "t_max"
+    tmin_col = "temperature_2m_min" if "temperature_2m_min" in df_silver.columns else "t_min"
+
+    total_chuva = float(df_silver[precip_col].sum())
+    total_et0 = float(df_silver[et0_col].sum())
+    balanco_hidrico = round(total_chuva - total_et0, 2)
+    dias_sem_chuva = int((df_silver[precip_col] < 1.0).sum())
+    gda_total = round(float(df_silver["gdd"].sum()), 2)
+    temp_max_media = round(float(df_silver[tmax_col].mean()), 2)
+    temp_min_media = round(float(df_silver[tmin_col].mean()), 2)
+
+    if "thermal_amplitude" in df_silver.columns:
+        amplitude_media = round(float(df_silver["thermal_amplitude"].mean()), 2)
+    else:
+        amplitude_media = round(float((df_silver[tmax_col] - df_silver[tmin_col]).mean()), 2)
+
+    # Classificação agronômica de estresse hídrico
+    if balanco_hidrico < -25.0 or dias_sem_chuva >= 6:
+        risco_estresse = "CRÍTICO"
+        recomendacao = "Alerta de Estresse Hídrico: avaliar irrigação suplementar imediata."
+    elif balanco_hidrico < -10.0 or dias_sem_chuva >= 4:
+        risco_estresse = "MODERADO"
+        recomendacao = "Atenção Operacional: monitorar umidade do solo e previsão climática."
+    else:
+        risco_estresse = "BAIXO"
+        recomendacao = "Condições Hídricas Favoráveis para o desenvolvimento vegetativo."
+
+    lat_val = float(df_silver["latitude"].iloc[0]) if "latitude" in df_silver.columns else LATITUDE
+    lon_val = float(df_silver["longitude"].iloc[0]) if "longitude" in df_silver.columns else LONGITUDE
+
+    resumo = {
+        "periodo_inicio": str(df_silver["date"].min().date()),
+        "periodo_fim": str(df_silver["date"].max().date()),
+        "dias_monitorados": len(df_silver),
+        "chuva_total_mm": round(total_chuva, 2),
+        "et0_total_mm": round(total_et0, 2),
+        "balanco_hidrico_mm": balanco_hidrico,
+        "dias_sem_chuva": dias_sem_chuva,
+        "gda_total_acumulado": gda_total,
+        "temp_max_media_c": temp_max_media,
+        "temp_min_media_c": temp_min_media,
+        "amplitude_termica_media_c": amplitude_media,
+        "risco_estresse_hidrico": risco_estresse,
+        "recomendacao_manejo": recomendacao,
+        "latitude": lat_val,
+        "longitude": lon_val,
+        "processed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    return pd.DataFrame([resumo])
+
+def load_latest_gold_kpis(azure_conn_str: str = None) -> pd.DataFrame | None:
+    """Carrega os KPIs executivos mais recentes diretamente da Camada Gold do Azure Blob Storage."""
+    conn_str = azure_conn_str or os.getenv("AZURE_CONNECTION_STRING")
+    if not conn_str:
+        return None
+    try:
+        blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        container_client = blob_service_client.get_container_client(GOLD_CONTAINER)
+        blobs = list(container_client.list_blobs())
+        if not blobs:
+            return None
+        latest_blob = max(blobs, key=lambda b: b.last_modified)
+        blob_client = container_client.get_blob_client(latest_blob.name)
+        data = blob_client.download_blob().readall()
+        return pd.read_parquet(io.BytesIO(data))
+    except Exception as e:
+        print(f"Aviso: Não foi possível carregar da Gold na Azure: {e}")
+        return None
+
 def main():
-    # A Connection String é injetada com segurança pelo GitHub Secrets
     azure_conn_str = os.getenv("AZURE_CONNECTION_STRING")
     if not azure_conn_str:
         raise ValueError("ERRO: Variável de ambiente AZURE_CONNECTION_STRING não encontrada.")
 
-    print("☁️ Iniciando pipeline Medallion no Azure Blob Storage (Bronze & Silver)...")
+    print("☁️ Iniciando pipeline Medallion no Azure Blob Storage (Bronze, Silver & Gold)...")
     
     # 1. Extração (API Open-Meteo) com retentativas automáticas
     data = fetch_weather_data()
@@ -114,15 +192,32 @@ def main():
 
     df_silver = transform_to_silver(data)
     
-    # Serialização colunar Parquet em buffer de memória
-    parquet_buffer = io.BytesIO()
-    df_silver.to_parquet(parquet_buffer, index=False, engine="pyarrow")
-    parquet_buffer.seek(0)
+    parquet_buffer_silver = io.BytesIO()
+    df_silver.to_parquet(parquet_buffer_silver, index=False, engine="pyarrow")
+    parquet_buffer_silver.seek(0)
 
     silver_blob_name = f"weather/year={year}/month={month}/{execution_date}.parquet"
     silver_blob_client = blob_service_client.get_blob_client(container=SILVER_CONTAINER, blob=silver_blob_name)
-    silver_blob_client.upload_blob(parquet_buffer.getvalue(), overwrite=True)
+    silver_blob_client.upload_blob(parquet_buffer_silver.getvalue(), overwrite=True)
     print(f"✅ SILVER salvo: {SILVER_CONTAINER}/{silver_blob_name}")
+
+    # ── CAMADA GOLD (KPIs Executivos Agregados / BI) ────────────────
+    print(f"🏆 Processando e gravando na Camada GOLD ({GOLD_CONTAINER})...")
+    gold_container_client = blob_service_client.get_container_client(GOLD_CONTAINER)
+    if not gold_container_client.exists():
+        print(f"📦 Contêiner '{GOLD_CONTAINER}' não existe. Criando agora...")
+        gold_container_client.create_container()
+
+    df_gold = transform_to_gold(df_silver)
+    
+    parquet_buffer_gold = io.BytesIO()
+    df_gold.to_parquet(parquet_buffer_gold, index=False, engine="pyarrow")
+    parquet_buffer_gold.seek(0)
+
+    gold_blob_name = f"kpis/year={year}/month={month}/resumo_{execution_date}.parquet"
+    gold_blob_client = blob_service_client.get_blob_client(container=GOLD_CONTAINER, blob=gold_blob_name)
+    gold_blob_client.upload_blob(parquet_buffer_gold.getvalue(), overwrite=True)
+    print(f"✅ GOLD salvo: {GOLD_CONTAINER}/{gold_blob_name}")
 
 if __name__ == "__main__":
     main()

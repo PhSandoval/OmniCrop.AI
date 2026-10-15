@@ -28,10 +28,10 @@ OmniCrop/
 │   ├── 📂 models/               # Inteligência (Treino, Inferência e serialização .pkl)
 │   └── 📂 utils/                # Configurações de fazenda e helpers
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (16 Testes Automatizados)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (17 Testes Automatizados)
 │   ├── conftest.py              # Fixtures e mocks compartilhados
 │   ├── 📂 unit/                 # Testes unitários puros (Cálculos de Features, Modelo e DSS)
-│   ├── 📂 integration/          # Testes de Contrato Pydantic, Mocks de API e Pipeline Silver
+│   ├── 📂 integration/          # Testes de Contrato Pydantic, Mocks de API, Pipeline Silver e Gold
 │   └── 📂 e2e/                  # Testes End-to-End da interface via Streamlit AppTest
 │
 ├── 📂 data/                     # 🗄️ Camadas locais do Data Lake (Raw, Interim, Processed)
@@ -41,11 +41,11 @@ OmniCrop/
 ### 🛠 Stack Tecnológica
 - **A Vitrine (Frontend) & GenAI:** Streamlit (UI), Supabase (PostgreSQL + RLS), Google Gemini Pro.
 - **Engenharia de Dados (A Fábrica Medalhão):** 
-  - **Azure Blob Storage:** Contêineres `omnicrop-data-lake-bronze` (JSON bruto particionado) e `omnicrop-data-lake-silver` (Parquet enriquecido).
-  - **Orquestração Serverless:** GitHub Actions (Pipelines automatizados de CI/CD e ingestão climática).
+  - **Azure Blob Storage:** Contêineres `omnicrop-data-lake-bronze` (JSON bruto particionado), `omnicrop-data-lake-silver` (Parquet enriquecido) e `omnicrop-data-lake-gold` (KPIs executivos agregados).
+  - **Orquestração Serverless:** GitHub Actions (Pipelines automatizados de CI/CD e ingestão climática diária).
   - **Processamento Colunar:** `pandas` e `pyarrow`.
 - **Inteligência Preditiva:** `HistGradientBoostingRegressor` (Scikit-Learn). 
-- **Garantia de Qualidade & MLOps:** `pytest` (16/16 testes passando), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de API).
+- **Garantia de Qualidade & MLOps:** `pytest` (17/17 testes passando), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de API).
 
 ---
 
@@ -64,13 +64,22 @@ O OmniCrop AI adota a **Arquitetura Medalhão** corporativa na nuvem Azure:
   │ Finalidade: Dados brutos, auditoria e backup │
   └──────────────────────────────────────────────┘
           │
-          ▼ (Transformação & Feature Engineering)
+          ▼ (Limpeza & Feature Engineering)
   ┌──────────────────────────────────────────────┐
   │ ⚙️ Camada SILVER                             │
   │ Contêiner: omnicrop-data-lake-silver         │
   │ Formato: Apache Parquet (colunar compactado) │
   │ Features: GDA (Graus-Dia), Chuva 7d, Nulos   │
-  │ Finalidade: Treinamento e consumo veloz      │
+  │ Finalidade: Treinamento e consumo analítico  │
+  └──────────────────────────────────────────────┘
+          │
+          ▼ (Agregação Executiva & Regras DSS)
+  ┌──────────────────────────────────────────────┐
+  │ 🏆 Camada GOLD                               │
+  │ Contêiner: omnicrop-data-lake-gold           │
+  │ Formato: Apache Parquet (KPIs sumarizados)   │
+  │ Features: Balanço Hídrico, Veranicos, Alertas│
+  │ Finalidade: Dashboards Executivos & BI       │
   └──────────────────────────────────────────────┘
 ```
 
@@ -78,13 +87,14 @@ O OmniCrop AI adota a **Arquitetura Medalhão** corporativa na nuvem Azure:
 
 ## 🛡️ Pirâmide de Testes MLOps (Qualidade Blindada)
 
-O projeto implementa uma esteira completa de validação com **16 testes automatizados** em 3 camadas independentes:
+O projeto implementa uma esteira completa de validação com **17 testes automatizados** em 3 camadas independentes:
 
 1. **Testes de Contrato e Qualidade de Dados (`tests/integration/test_data.py`):**
    - Validação estrita de contratos via **Pydantic** (`src/data/schemas.py`) para inspecionar payloads da Open-Meteo antes de gravar na nuvem.
    - Bloqueio automático de payloads corrompidos ou com chaves faltantes (`precipitation_sum`).
    - Mocks de resiliência HTTP 500 para evitar injeção de dados corrompidos caso APIs externas fiquem fora do ar.
-   - Validação da transformação e cálculo da esteira **Silver** (`test_transform_to_silver_pipeline`).
+   - Validação da transformação da esteira **Silver** (`test_transform_to_silver_pipeline`).
+   - Validação da agregação e regras de decisão da esteira **Gold** (`test_transform_to_gold_pipeline`).
 2. **Testes Unitários de Motor (`tests/unit/`):**
    - `test_features.py`: Validação matemática de Graus-Dia Acumulados (GDA) e janelas de chuva (30d, 60d, 90d).
    - `test_model.py`: Testes de stress sintético e integridade do regressor de NDVI.

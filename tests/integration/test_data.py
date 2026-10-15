@@ -92,3 +92,35 @@ def test_transform_to_silver_pipeline():
     assert df_silver["gdd"].iloc[0] == 8.0 # 26 - 18
     assert df_silver["chuva_acumulada_7d"].iloc[1] == 15.0 # 10 + 5
 
+
+def test_transform_to_gold_pipeline():
+    """Valida a agregação de dados da camada Silver para os KPIs executivos da camada Gold."""
+    from src.data.ingest_azure import transform_to_silver, transform_to_gold
+    import pandas as pd
+
+    raw_payload = {
+        "latitude": -21.17,
+        "longitude": -47.81,
+        "daily": {
+            "time": ["2026-10-01", "2026-10-02"],
+            "temperature_2m_max": [32.0, 30.0],
+            "temperature_2m_min": [20.0, 18.0],
+            "precipitation_sum": [0.0, 0.0], # Sem chuva para forçar estresse
+            "et0_fao_evapotranspiration": [4.0, 4.0]
+        }
+    }
+
+    df_silver = transform_to_silver(raw_payload)
+    df_gold = transform_to_gold(df_silver)
+
+    assert isinstance(df_gold, pd.DataFrame)
+    assert len(df_gold) == 1
+    assert "balanco_hidrico_mm" in df_gold.columns
+    assert "risco_estresse_hidrico" in df_gold.columns
+    assert "recomendacao_manejo" in df_gold.columns
+    assert df_gold["chuva_total_mm"].iloc[0] == 0.0
+    assert df_gold["et0_total_mm"].iloc[0] == 8.0
+    assert df_gold["balanco_hidrico_mm"].iloc[0] == -8.0
+    assert df_gold["dias_sem_chuva"].iloc[0] == 2
+    assert df_gold["dias_monitorados"].iloc[0] == 2
+

@@ -5,11 +5,11 @@ from email.message import EmailMessage
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from components.db import get_supabase
-from components.live_data import fetch_farm_data
-from components.api_client import build_payload, get_prediction
+from src.data.db import get_supabase
+from src.data.fetch_api import fetch_farm_data
+from src.models.predict import build_payload, get_prediction
 
 def send_alert_email(email_to, farm_name, alertas):
     msg = EmailMessage()
