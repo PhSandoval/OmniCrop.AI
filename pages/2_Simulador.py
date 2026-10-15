@@ -178,6 +178,18 @@ with col_out:
                 unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── EXPLICABILIDADE DA IA (XAI · WATERFALL) ───────────────────
+        from src.models.predict import explain_prediction_delta, plot_xai_waterfall
+        xai_res = explain_prediction_delta(payload_hoje, payload_sim)
+
+        with st.expander("🔍 Explicabilidade da Inteligência Artificial (XAI · Por que o vigor mudou?)", expanded=True):
+            st.caption(f"**Interpretabilidade da Decisão:** {xai_res['narrativa']}")
+            fig_xai = plot_xai_waterfall(xai_res)
+            st.plotly_chart(fig_xai, use_container_width=True, config={"displayModeBar": False})
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
         
         mes_atual = today["date"].month if hasattr(today.get("date", ""), "month") else 8
         

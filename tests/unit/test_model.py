@@ -56,3 +56,21 @@ def test_model_static_matrix_bounds():
     
     assert 0.0 <= pred_seca <= 1.0, f"NDVI da seca fora dos limites: {pred_seca}"
     assert 0.0 <= pred_enchente <= 1.0, f"NDVI da enchente fora dos limites: {pred_enchente}"
+
+
+def test_xai_explain_prediction_delta():
+    """Valida a decomposição de contribuição marginal de atributos (XAI) entre cenários."""
+    from src.models.predict import explain_prediction_delta
+
+    base = {'chuva_acumulada_30d': 20.0, 'chuva_acumulada_60d': 60.0, 'chuva_acumulada_90d': 100.0, 'GDA_mensal': 120.0}
+    sim = {'chuva_acumulada_30d': 80.0, 'chuva_acumulada_60d': 60.0, 'chuva_acumulada_90d': 100.0, 'GDA_mensal': 140.0}
+
+    res = explain_prediction_delta(base, sim)
+
+    assert "total_delta" in res
+    assert "contributions" in res
+    assert "top_driver" in res
+    assert "narrativa" in res
+    assert len(res["contributions"]) == 4
+    assert isinstance(res["narrativa"], str)
+

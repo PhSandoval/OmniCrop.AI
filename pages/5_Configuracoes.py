@@ -46,24 +46,41 @@ with col_pref:
     
     st.markdown("<br>", unsafe_allow_html=True)
     receber_alertas = st.toggle("📧 Ativar Relatório Diário por E-mail (CRON)", value=cfg.get("receber_alertas", False), help="Receba um e-mail às 06:00 caso o DSS detecte risco.")
+    webhook_url = st.text_input("🔗 Webhook Operacional (Discord, Slack ou Zapier)", 
+                                value=cfg.get("webhook_url", ""),
+                                placeholder="https://discord.com/api/webhooks/...",
+                                help="Cole uma URL de Webhook para receber alertas instantâneos no seu canal operacional.")
     
-    if st.button("💾 Salvar Preferências", type="primary"):
-        if cfg:
-            update_data_db = {
-                "alert_amarelo": ndvi_medio_lim,
-                "alert_vermelho": ndvi_critico_lim,
-                "chuva_critica": deficit_lim,
-                "gda_critico": dias_calor_lim
-            }
-            try:
-                update_farm(cfg["id"], st.session_state['user'].id, update_data_db)
-                
-                cfg.update(update_data_db)
-                cfg["receber_alertas"] = receber_alertas
-                st.session_state['active_farm'] = cfg
-                st.success("Configurações de sistema salvas com sucesso!")
-            except Exception as e:
-                st.error("Erro ao salvar no banco de dados. Tente novamente.")
+    col_btn_save, col_btn_test = st.columns([1, 1])
+    with col_btn_save:
+        if st.button("💾 Salvar Preferências", type="primary", use_container_width=True):
+            if cfg:
+                update_data_db = {
+                    "alert_amarelo": ndvi_medio_lim,
+                    "alert_vermelho": ndvi_critico_lim,
+                    "chuva_critica": deficit_lim,
+                    "gda_critico": dias_calor_lim
+                }
+                try:
+                    update_farm(cfg["id"], st.session_state['user'].id, update_data_db)
+                    
+                    cfg.update(update_data_db)
+                    cfg["receber_alertas"] = receber_alertas
+                    cfg["webhook_url"] = webhook_url
+                    st.session_state['active_farm'] = cfg
+                    st.success("Configurações de sistema salvas com sucesso!")
+                except Exception as e:
+                    st.error("Erro ao salvar no banco de dados. Tente novamente.")
+
+    with col_btn_test:
+        if st.button("🔔 Testar Alerta Agora", use_container_width=True):
+            from src.utils.daily_alerts import dispatch_alert
+            dest = webhook_url if webhook_url else st.session_state['user'].email
+            res = dispatch_alert(dest, cfg.get("farm_name", "Fazenda Modelo"), ["Alerta de Teste: Simulação de Veranico (7 dias sem chuva)"], ndvi=0.48)
+            if res.get("success"):
+                st.success(f"{res.get('message')}")
+            else:
+                st.warning(f"{res.get('message')}")
 
 with col_conta:
     st.markdown('<div class="sec-header">Seu Perfil</div>', unsafe_allow_html=True)

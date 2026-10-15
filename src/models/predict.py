@@ -220,3 +220,95 @@ def calcular_dss(mes_atual: int, ndvi_atual: float, ndvi_projetado: float = None
                 "status_title": "🟡 Atenção",
                 "mensagem_recomendacao": "Desenvolvimento intermediario. Acompanhar indices nos próximos 15 dias."
             }
+
+
+FEATURE_LABELS = {
+    "chuva_acumulada_30d": "Chuva Recente (30d)",
+    "chuva_acumulada_60d": "Chuva Médio Prazo (60d)",
+    "chuva_acumulada_90d": "Chuva Longo Prazo (90d)",
+    "GDA_mensal": "Soma Térmica (GDA)"
+}
+
+
+def explain_prediction_delta(payload_base: dict, payload_sim: dict, model=None) -> dict:
+    """
+    Explicabilidade de IA (XAI):
+    Decompõe a contribuição marginal de cada variável climática e agronômica
+    na variação do índice NDVI entre o baseline real e o cenário simulado.
+    """
+    if model is None:
+        model = load_model()
+
+    df_base = pd.DataFrame([payload_base], columns=FEATURE_KEYS)
+    df_sim = pd.DataFrame([payload_sim], columns=FEATURE_KEYS)
+
+    pred_base = float(model.predict(df_base)[0])
+    pred_sim = float(model.predict(df_sim)[0])
+    total_delta = pred_sim - pred_base
+
+    contributions = {}
+    for k in FEATURE_KEYS:
+        df_temp = df_base.copy()
+        df_temp[k] = df_sim[k]
+        pred_temp = float(model.predict(df_temp)[0])
+        impact = pred_temp - pred_base
+        contributions[FEATURE_LABELS.get(k, k)] = round(impact, 4)
+
+    abs_sorted = sorted(contributions.items(), key=lambda x: abs(x[1]), reverse=True)
+    top_driver, top_val = abs_sorted[0]
+
+    if abs(total_delta) < 0.001:
+        narrativa = "Os parâmetros simulados mantiveram o vigor vegetativo estável em relação ao baseline."
+    else:
+        direcao = "elevação" if total_delta > 0 else "queda"
+        impacto_tipo = "positivo" if top_val > 0 else "negativo"
+        narrativa = (
+            f"A {direcao} no vigor projetado ({total_delta:+.3f} NDVI) foi impulsionada principalmente por "
+            f"'{top_driver}', gerando um impacto {impacto_tipo} de {top_val:+.4f}."
+        )
+
+    return {
+        "pred_base": round(pred_base, 3),
+        "pred_sim": round(pred_sim, 3),
+        "total_delta": round(total_delta, 4),
+        "contributions": contributions,
+        "top_driver": top_driver,
+        "narrativa": narrativa
+    }
+
+
+def plot_xai_waterfall(explanation: dict):
+    """
+    Gera gráfico interativo de decomposição (Waterfall) usando Plotly
+    para explicar a decisão do algoritmo de forma intuitiva.
+    """
+    import plotly.graph_objects as go
+
+    contributions = explanation["contributions"]
+    x = ["Baseline"] + list(contributions.keys()) + ["Projetado"]
+    y = [explanation["pred_base"]] + list(contributions.values()) + [explanation["pred_sim"]]
+    measure = ["absolute"] + ["relative"] * len(contributions) + ["total"]
+
+    fig = go.Figure(go.Waterfall(
+        name="Impacto XAI",
+        orientation="v",
+        measure=measure,
+        x=x,
+        textposition="outside",
+        text=[f"{v:+.3f}" if m == "relative" else f"{v:.3f}" for v, m in zip(y, measure)],
+        y=y,
+        connector={"line": {"color": "rgba(255,255,255,0.2)"}},
+        decreasing={"marker": {"color": "#EF5350"}},
+        increasing={"marker": {"color": "#69F0AE"}},
+        totals={"marker": {"color": "#4FC3F7"}}
+    ))
+    fig.update_layout(
+        title="Decomposição do Impacto no Vigor (XAI Waterfall)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=320,
+        margin=dict(t=30, b=20, l=10, r=10),
+        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)")
+    )
+    return fig
+

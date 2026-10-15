@@ -28,9 +28,9 @@ OmniCrop/
 │   ├── 📂 models/               # Inteligência (Treino, Inferência e serialização .pkl)
 │   └── 📂 utils/                # Configurações de fazenda e helpers
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (17 Testes Automatizados)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (19 Testes Automatizados)
 │   ├── conftest.py              # Fixtures e mocks compartilhados
-│   ├── 📂 unit/                 # Testes unitários puros (Cálculos de Features, Modelo e DSS)
+│   ├── 📂 unit/                 # Testes unitários puros (Cálculos de Features, Modelo, XAI e DSS)
 │   ├── 📂 integration/          # Testes de Contrato Pydantic, Mocks de API, Pipeline Silver e Gold
 │   └── 📂 e2e/                  # Testes End-to-End da interface via Streamlit AppTest
 │
@@ -44,8 +44,8 @@ OmniCrop/
   - **Azure Blob Storage:** Contêineres `omnicrop-data-lake-bronze` (JSON bruto particionado), `omnicrop-data-lake-silver` (Parquet enriquecido) e `omnicrop-data-lake-gold` (KPIs executivos agregados).
   - **Orquestração Serverless:** GitHub Actions (Pipelines automatizados de CI/CD e ingestão climática diária).
   - **Processamento Colunar:** `pandas` e `pyarrow`.
-- **Inteligência Preditiva:** `HistGradientBoostingRegressor` (Scikit-Learn). 
-- **Garantia de Qualidade & MLOps:** `pytest` (17/17 testes passando), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de API).
+- **Inteligência Preditiva & XAI:** `HistGradientBoostingRegressor` (Scikit-Learn), Decomposição Marginal e Gráficos Waterfall para Explicabilidade de Decisão. 
+- **Garantia de Qualidade & MLOps:** `pytest` (19/19 testes passando), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de API).
 
 ---
 
@@ -87,7 +87,7 @@ O OmniCrop AI adota a **Arquitetura Medalhão** corporativa na nuvem Azure:
 
 ## 🛡️ Pirâmide de Testes MLOps (Qualidade Blindada)
 
-O projeto implementa uma esteira completa de validação com **17 testes automatizados** em 3 camadas independentes:
+O projeto implementa uma esteira completa de validação com **19 testes automatizados** em 3 camadas independentes:
 
 1. **Testes de Contrato e Qualidade de Dados (`tests/integration/test_data.py`):**
    - Validação estrita de contratos via **Pydantic** (`src/data/schemas.py`) para inspecionar payloads da Open-Meteo antes de gravar na nuvem.
@@ -97,8 +97,8 @@ O projeto implementa uma esteira completa de validação com **17 testes automat
    - Validação da agregação e regras de decisão da esteira **Gold** (`test_transform_to_gold_pipeline`).
 2. **Testes Unitários de Motor (`tests/unit/`):**
    - `test_features.py`: Validação matemática de Graus-Dia Acumulados (GDA) e janelas de chuva (30d, 60d, 90d).
-   - `test_model.py`: Testes de stress sintético e integridade do regressor de NDVI.
-   - `test_dss.py`: Validação das regras de negócio e tomada de decisão agronômica.
+   - `test_model.py`: Testes de stress sintético, integridade do regressor de NDVI e algoritmo de explicabilidade XAI (`test_xai_explain_prediction_delta`).
+   - `test_dss.py`: Validação das regras de negócio agronômico e despacho de alertas operacionais (`test_dispatch_operational_alerts`).
 3. **Testes End-to-End de Interface (`tests/e2e/test_ui.py`):**
    - Simulação de cliques, rotas e estados de sessão do Streamlit usando o framework nativo `AppTest` sem necessidade de navegador aberto.
 
@@ -108,6 +108,7 @@ O projeto implementa uma esteira completa de validação com **17 testes automat
 
 O cérebro do OmniCrop AI é alimentado por variáveis agronômicas profundas:
 
+- **Explicabilidade de IA (XAI):** Decomposição gráfica (Waterfall) do impacto isolado de cada atributo climático na projeção do NDVI, quebrando a "caixa preta" do modelo.
 - **Feature Engineering Avançado:** Ingestão de Graus-Dia Acumulados (GDA base 18°C para cana) e janelas móveis de chuva de longo prazo (Lags de 30, 60, 90 dias) para simular a "memória hídrica" do solo e da cultura.
 - **Time-Series Walk-Forward:** O modelo preditivo evita vazamento de dados (*Data Leakage*) garantindo aderência temporal.
 - **Testes de Fronteira Extrema:** A esteira de testes injeta anomalias de "Seca Severa" e "Enchente" para validar a estabilidade das predições do índice NDVI (0 a 1).
@@ -120,10 +121,11 @@ O cérebro do OmniCrop AI é alimentado por variáveis agronômicas profundas:
 O que gestores, produtores e engenheiros agrônomos encontram no sistema:
 
 1. **Dashboard de Satélite Virtual (NDVI):** Acompanha o vigor vegetativo atual e futuro da cultura sem depender da passagem de satélites reais (mitigação de nuvens e *delay* temporal).
-2. **Simulador "What-if" de Intervenção:** Simula gastos (ex: ligar o pivô de irrigação) ou cenários de estresse hídrico, calculando o impacto na produtividade antes da decisão no campo.
+2. **Simulador "What-if" com Explicabilidade XAI:** Simula cenários operacionais (irrigação, adubação, maturador, plantio e colheita) e exibe o gráfico Waterfall detalhando o impacto exato de cada variável na decisão da IA.
 3. **Gerador de Laudos Executivos:** Emite pareceres formais em PDF com recomendações geradas pelo Agrônomo Virtual (GenAI).
 4. **Onboarding Georreferenciado:** Criação interativa de fazendas mapeadas por coordenadas de Latitude e Longitude para cruzamento meteorológico em tempo real.
 5. **Assistente de Manejo:** Chatbot agronômico inteligente (RAG via Gemini) contextualizado nos dados da fazenda selecionada.
+6. **Alertas Operacionais Proativos:** Roteador multicanal para notificações automáticas via Webhook (Discord, Slack, Zapier) e E-mail sempre que riscos críticos forem detectados.
 
 ---
 
@@ -136,9 +138,10 @@ O que gestores, produtores e engenheiros agrônomos encontram no sistema:
 
 **✅ Fase 2: Cloud Data Engineering e MLOps (Concluída)**
 - Migração para arquitetura **Clean Architecture** e deploy contínuo no Streamlit Cloud.
-- Implantação da esteira Medallion completa no **Azure Blob Storage** (`omnicrop-data-lake-bronze` em JSON e `omnicrop-data-lake-silver` em Parquet).
-- Pirâmide de Testes automatizada (Unit, Integration, E2E) com 16 testes validados.
+- Implantação da esteira Medallion completa no **Azure Blob Storage** (`omnicrop-data-lake-bronze`, `silver` e `gold`).
+- Pirâmide de Testes automatizada (Unit, Integration, E2E) com 19 testes validados.
 - Contratos de dados estritos com **Pydantic** e proteção de resiliência via **Mocks**.
+- Implementação de Explicabilidade de Decisão (XAI Waterfall) e Alertas Proativos por Webhook.
 
 **⏳ Fase 3: IoT Ground Truth & MLOps Avançado (Planejada)**
 - Expansão do Data Lake via orquestração MQTT.

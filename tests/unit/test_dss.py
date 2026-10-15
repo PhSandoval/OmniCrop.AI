@@ -29,3 +29,28 @@ def test_fase_maturacao_cana_verde():
     res = calcular_dss(mes_atual=7, ndvi_atual=0.7, ndvi_projetado=0.7)
     assert res["status_title"] == "🟠 Alerta"
     assert "maturador químico" in res["mensagem_recomendacao"]
+
+
+def test_dispatch_operational_alerts():
+    """Testa o roteamento e despacho de alertas operacionais por email e webhook."""
+    from unittest.mock import patch, MagicMock
+    from src.utils.daily_alerts import dispatch_alert
+
+    # 1. Teste de canal Email
+    with patch("src.utils.daily_alerts.send_alert_email") as mock_email:
+        res_email = dispatch_alert("gestor@fazenda.com", "Fazenda Modelo", ["Alerta de seca"])
+        assert res_email["success"] is True
+        assert res_email["channel"] == "email"
+        mock_email.assert_called_once()
+
+    # 2. Teste de canal Webhook com sucesso (mock HTTP 200)
+    with patch("requests.post") as mock_post:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_post.return_value = mock_resp
+
+        res_wh = dispatch_alert("https://discord.com/api/webhooks/mock123", "Fazenda Modelo", ["Déficit crítico"], ndvi=0.35)
+        assert res_wh["success"] is True
+        assert res_wh["channel"] == "webhook"
+        mock_post.assert_called_once()
+
