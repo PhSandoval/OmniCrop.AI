@@ -361,12 +361,28 @@ def render_main_app():
         if st.session_state.get(flag_key):
             with st.spinner("Analisando dados com IA e compilando PDF..."):
                 from components.pdf_generator import generate_pdf_report
+
+                # Resgata KPIs da Camada Ouro e XAI se disponíveis
+                gold_kpis = None
+                farm_id = cfg.get("id")
+                if farm_id:
+                    try:
+                        from src.data.db import get_latest_farm_gold_kpi
+                        gold_kpis = get_latest_farm_gold_kpi(farm_id)
+                    except Exception:
+                        gold_kpis = None
+
+                sim_salva = st.session_state.get("ultima_simulacao")
+                xai_res = sim_salva.get("xai") if sim_salva else None
+
                 pdf_bytes = generate_pdf_report(
                     cfg.get("farm_name", "Minha Fazenda"),
                     cfg.get("city", "Desconhecida"),
                     today,
                     resultado,
-                    df=df
+                    df=df,
+                    gold_kpis=gold_kpis,
+                    xai_res=xai_res,
                 )
                 if pdf_bytes:
                     st.session_state[pdf_key] = pdf_bytes
