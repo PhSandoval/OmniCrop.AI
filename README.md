@@ -1,12 +1,13 @@
 # 🌱 OmniCrop AI
 
-[![CI Pipeline](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci_pipeline.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci_pipeline.yml)
-[![Tests](https://img.shields.io/badge/pytest-19%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions)
-[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![CI Status](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/pytest-135%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Core Coverage](https://img.shields.io/badge/coverage-100%25%20core-brightgreen?logo=codecov&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-informational)](https://blog.cleancoder.com/)
 
-OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestão inteligente de culturas agrícolas. Inicialmente focado em Cana-de-Açúcar, o sistema funciona como um agrônomo virtual, ajudando no monitoramento de lavouras e fornecendo recomendações preditivas para operações de campo.
+OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestão inteligente de culturas agrícolas. Suporta múltiplas culturas (Cana-de-Açúcar, Soja, Milho, Café e Pastagem), funcionando como um agrônomo virtual que monitora lavouras e fornece recomendações preditivas para operações de campo.
 
 A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (`HistGradientBoostingRegressor`) para estimativa de vigor vegetativo (NDVI), Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos e Engenharia de Dados Serverless na nuvem com **Arquitetura Medalhão no Azure Blob Storage** (Bronze, Silver e Gold).
 
@@ -20,8 +21,8 @@ O repositório está estruturado no padrão **Clean Architecture**, isolando tot
 OmniCrop/
 │
 ├── 📂 .github/workflows/        # ☁️ Orquestração Serverless (CI/CD)
-│   ├── ci_pipeline.yml          # Integração Contínua (Matriz de testes Pytest)
-│   └── ingest_weather_azure.yml # Pipeline diário Medallion (Bronze & Silver)
+│   ├── ci.yml                   # Integração Contínua (Gate estrito de 100% de Cobertura)
+│   └── ingest_weather_azure.yml # Pipeline diário Medallion (Bronze, Silver e Gold)
 │
 ├── 📄 app.py                    # 🎨 A VITRINE (Ponto de entrada do Streamlit)
 ├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Fazenda, etc.)
@@ -30,14 +31,17 @@ OmniCrop/
 │
 ├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio)
 │   ├── 📂 data/                 # Conexões (DB/Supabase, Ingestão Azure Medalhão, Schemas Pydantic)
-│   ├── 📂 features/             # Feature Engineering (GDA, Acúmulos hídricos)
-│   ├── 📂 models/               # Inteligência (Treino, Inferência e serialização .pkl)
-│   └── 📂 utils/                # Configurações de fazenda e helpers
+│   ├── 📂 features/             # Feature Engineering Agronômico (GDA, Acúmulos hídricos)
+│   ├── 📂 models/               # Inteligência (Model Routing por cultura, Inferência e XAI)
+│   ├── 📂 mlops/                # Monitoramento de Data Drift (PSI / Kolmogorov-Smirnov)
+│   ├── 📂 pipelines/            # Orquestrador Polyglot (Pandas Edge / PySpark Cluster)
+│   ├── 📂 reports/              # Gerador de Relatórios Executivos em PDF
+│   └── 📂 utils/                # Configurações de fazenda, alertas e geolocalização
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (19 Testes Automatizados)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (135 Testes / 100% Pass)
 │   ├── conftest.py              # Fixtures e mocks compartilhados
-│   ├── 📂 unit/                 # Testes unitários puros (Cálculos de Features, Modelo, XAI e DSS)
-│   ├── 📂 integration/          # Testes de Contrato Pydantic, Mocks de API, Pipeline Silver e Gold
+│   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo)
+│   ├── 📂 integration/          # Testes de Contrato Pydantic, Azure Blob Storage e Supabase DB
 │   └── 📂 e2e/                  # Testes End-to-End da interface via Streamlit AppTest
 │
 ├── 📂 data/                     # 🗄️ Camadas locais do Data Lake (Raw, Interim, Processed)
@@ -51,7 +55,8 @@ OmniCrop/
   - **Orquestração Serverless:** GitHub Actions (Pipelines automatizados de CI/CD e ingestão climática diária).
   - **Processamento Colunar:** `pandas` e `pyarrow`.
 - **Inteligência Preditiva & XAI:** `HistGradientBoostingRegressor` (Scikit-Learn), Decomposição Marginal e Gráficos Waterfall para Explicabilidade de Decisão. 
-- **Garantia de Qualidade & MLOps:** `pytest` (19/19 testes passando), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de API).
+- **Garantia de Qualidade & MLOps:** `pytest` (135/135 testes passando, 100% de cobertura no Core), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de I/O e rede).
+
 
 ---
 
