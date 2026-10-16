@@ -1,47 +1,35 @@
-import pandas as pd
+import argparse
+import sys
 from pathlib import Path
+import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import joblib
 
-def train_model():
-    project_root = Path(__file__).resolve().parents[2]
-    input_file = project_root / "data" / "processed" / "dados_features.csv"
-    model_path = project_root / "src" / "models" / "ndvi_model.pkl"
-    
-    df = pd.read_csv(input_file)
-    df['date'] = pd.to_datetime(df['date'])
-    
-    # Separar Treino (ate 2023) e Teste (2024 em diante)
-    train_df = df[df['date'].dt.year <= 2023]
-    test_df = df[df['date'].dt.year >= 2024]
-    
-    features = ['chuva_acumulada_30d', 'chuva_acumulada_60d', 'chuva_acumulada_90d', 'GDA_mensal']
-    target = 'ndvi_target'
-    
-    X_train = train_df[features]
-    y_train = train_df[target]
-    
-    X_test = test_df[features]
-    y_test = test_df[target]
-    
-    print("Treinando o modelo de Gradient Boosting (Native Scikit-Learn)...")
-    model = HistGradientBoostingRegressor(random_state=42)
-    model.fit(X_train, y_train)
-    
-    y_pred = model.predict(X_test)
-    
-    mae = mean_absolute_error(y_test, y_pred)
-    import numpy as np
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    
-    print(f"Métricas no conjunto de teste (2024+):")
-    print(f"MAE: {mae:.4f}")
-    print(f"RMSE: {rmse:.4f}")
-    
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, model_path)
-    print(f"✅ Modelo exportado com sucesso para {model_path}")
+# Adiciona a raiz do projeto ao path
+project_root = Path(__file__).resolve().parents[2]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from src.models.train_all_crops import train_single_crop_model, train_all_supported_crops
+
+
+def train_model(crop_id: str = "sugarcane"):
+    """
+    Treina o modelo preditivo para a cultura informada (ou todas se crop_id='all').
+    Garante compatibilidade total com invocações legadas sem argumentos.
+    """
+    if crop_id == "all":
+        return train_all_supported_crops()
+    return train_single_crop_model(crop_id)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Treinamento de Modelo Preditivo OmniCrop AI")
+    parser.add_argument("--crop", default="sugarcane", help="Identificador da cultura ('sugarcane', 'soybean', 'corn', 'coffee', 'pasture' ou 'all')")
+    args = parser.parse_args()
+    train_model(args.crop)
+
 
 if __name__ == "__main__":
-    train_model()
+    main()

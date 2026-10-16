@@ -50,6 +50,26 @@ def test_gda_calculation_soybean_and_corn():
     assert res_milho.iloc[-1]["GDA_mensal"] == 42.0
 
 
+def test_gda_calculation_coffee_and_pasture():
+    """Valida o cálculo dinâmico de GDA para Café (Tb=10°C) e Pecuária (Tb=15°C)."""
+    dates = pd.date_range("2023-01-01", periods=5)
+    df_dummy = pd.DataFrame({
+        "date": dates,
+        "t_mean": [20.0, 22.0, 15.0, 10.0, 25.0],
+        "precipitacao_total": [0.0] * 5,
+    })
+
+    # Café: Tb = 10.0 -> [10, 12, 5, 0, 15] -> Soma = 42.0
+    res_cafe = build_features(df_dummy, crop_id="coffee")
+    assert res_cafe["gdd"].tolist() == [10.0, 12.0, 5.0, 0.0, 15.0]
+    assert res_cafe.iloc[-1]["GDA_mensal"] == 42.0
+
+    # Pecuária: Tb = 15.0 -> [5, 7, 0, 0, 10] -> Soma = 22.0
+    res_pasture = build_features(df_dummy, crop_id="pasture")
+    assert res_pasture["gdd"].tolist() == [5.0, 7.0, 0.0, 0.0, 10.0]
+    assert res_pasture.iloc[-1]["GDA_mensal"] == 22.0
+
+
 def test_calculate_gdd_and_water_balance_functions():
     """Valida as funções unitárias de GDD e Balanço Hídrico com Kc por cultura."""
     # GDD
@@ -67,6 +87,14 @@ def test_calculate_gdd_and_water_balance_functions():
 
     # Milho: Kc = 1.20 -> ETc = 30 * 1.20 = 36.0 -> Balanço = 50 - 36.0 = 14.0
     assert calculate_water_balance(precipitation=50.0, et0=30.0, crop_id="corn") == 14.0
+
+    # Café: Kc = 1.05, Tb = 10.0 -> GDD(25) = 15.0, Balanço = 50 - 31.5 = 18.5
+    assert calculate_gdd(25.0, crop_id="coffee") == 15.0
+    assert calculate_water_balance(precipitation=50.0, et0=30.0, crop_id="coffee") == 18.5
+
+    # Pecuária: Kc = 0.90, Tb = 15.0 -> GDD(25) = 10.0, Balanço = 50 - 27.0 = 23.0
+    assert calculate_gdd(25.0, crop_id="pasture") == 10.0
+    assert calculate_water_balance(precipitation=50.0, et0=30.0, crop_id="pasture") == 23.0
 
 
 def test_chuva_acumulada_limits():

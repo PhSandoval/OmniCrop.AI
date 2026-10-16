@@ -152,10 +152,11 @@ with col1:
     new_name = st.text_input("Nome do Talhão", value=selected_farm.get("farm_name", ""))
     new_city = st.text_input("Município / Comarca", value=selected_farm.get("city", ""))
 
-    from src.core.crop_config import get_crop_parameters, normalize_crop_id
+    from src.core.crop_config import get_crop_parameters, normalize_crop_id, list_supported_crops
 
     # Culturas com suporte fisiológico no OmniCrop AI
-    culturas = ["Cana-de-Açúcar", "Soja", "Milho"]
+    supported_crops = list_supported_crops()
+    culturas = [c.name for c in supported_crops]
     curr_cult = selected_farm.get("tipo_cultura", "Cana-de-Açúcar")
     if curr_cult not in culturas:
         culturas.append(curr_cult)
@@ -190,8 +191,14 @@ with col2:
         help="Altera a área e redimensiona o polígono territorial correspondente.",
     )
 
-    variedades = ["RB867515", "CTC9001", "SP803280", "RB966928", "CTC4", "IACSP95-5000", "TMG 7062 (Soja)", "BRS 1030 (Milho)"]
-    current_var = selected_farm.get("variedade", "RB867515")
+    variedades = [
+        "RB867515 (Cana)", "CTC9001 (Cana)", "SP803280 (Cana)", "RB966928 (Cana)",
+        "TMG 7062 (Soja)", "BMX Potência (Soja)",
+        "BRS 1030 (Milho)", "DKB 390 (Milho)",
+        "Catuaí Vermelho 144 (Café)", "Mundo Novo IAC 376-4 (Café)",
+        "Brachiaria brizantha cv. Marandu (Pecuária)", "Panicum maximum cv. Mombaça (Pecuária)"
+    ]
+    current_var = selected_farm.get("variedade", "RB867515 (Cana)")
     if current_var not in variedades:
         variedades.append(current_var)
     new_var = st.selectbox("Variedade / Cultivar", variedades, index=variedades.index(current_var))

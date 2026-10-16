@@ -49,6 +49,20 @@ CROP_REGISTRY: Dict[str, CropParameters] = {
         kc_default=1.20,
         description="Cereal C4 de ciclo anual, alta taxa fotossintética e elevada demanda hídrica no pendoamento.",
     ),
+    "coffee": CropParameters(
+        crop_id="coffee",
+        name="Café",
+        base_temp_celsius=10.0,
+        kc_default=1.05,
+        description="Cultura perene arbustiva (bienalidade de safra), alta resposta à chuva na florada/granação e dossel foliar contínuo.",
+    ),
+    "pasture": CropParameters(
+        crop_id="pasture",
+        name="Pecuária (Pastagem)",
+        base_temp_celsius=15.0,
+        kc_default=0.90,
+        description="Gramíneas forrageiras tropicais (Brachiaria/Panicum), biomassa para suporte de carga animal (UA/ha) com estacionalidade estival.",
+    ),
 }
 
 # Mapeamento para normalização de strings vindas de dropdowns ou cadastros legados
@@ -67,6 +81,18 @@ CROP_ALIAS_MAP: Dict[str, str] = {
     "corn": "corn",
     "milho": "corn",
     "maize": "corn",
+
+    "coffee": "coffee",
+    "cafe": "coffee",
+    "café": "coffee",
+    "cafezal": "coffee",
+
+    "pasture": "pasture",
+    "pastagem": "pasture",
+    "pecuaria": "pasture",
+    "pecuária": "pasture",
+    "bovinocultura": "pasture",
+    "gado": "pasture",
 }
 
 
