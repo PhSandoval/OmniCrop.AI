@@ -113,3 +113,41 @@ def test_create_farm_folium_map_rendering():
     layer_names = [layer.layer_name for layer in m._children.values() if hasattr(layer, "layer_name")]
     assert "Satélite (Esri)" in layer_names
     assert "Ruas e Limites (OSM)" in layer_names
+
+    # Teste de mapa sem selected_farm_id (cobre fallback target_farm = farms[0])
+    m_no_sel = create_farm_folium_map(farms, selected_farm_id=None)
+    assert isinstance(m_no_sel, folium.Map)
+
+    # Teste de fazenda com coordenadas vazias (cobre continue em coords)
+    empty_coord_farm = [{"id": "f_empty", "lat": -21.0, "lon": -47.0, "boundary_geojson": {"type": "Polygon", "coordinates": [[]]}}]
+    m_empty_coords = create_farm_folium_map(empty_coord_farm)
+    assert isinstance(m_empty_coords, folium.Map)
+
+    # Teste de lista de fazendas vazia
+    m_none = create_farm_folium_map([])
+    assert isinstance(m_none, folium.Map)
+
+
+def test_geo_edge_cases_and_wkt_parsing():
+    """Cobre casos de borda de parsing WKT e serialização de boundary_geojson em string."""
+    # 1. polygon_to_postgis_wkt vazio
+    assert polygon_to_postgis_wkt({}) == ""
+    assert polygon_to_postgis_wkt(None) == ""
+    assert polygon_to_postgis_wkt({"type": "Polygon"}) == ""
+
+    # 2. postgis_wkt_to_geojson vazio ou não-polígono
+    assert postgis_wkt_to_geojson("") == {}
+    assert postgis_wkt_to_geojson(None) == {}
+    assert postgis_wkt_to_geojson("POINT(10 20)") == {}
+
+    # 3. ensure_farm_boundary com string JSON válida
+    valid_str_json = '{"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}'
+    res_str = ensure_farm_boundary({"id": "f_str", "boundary_geojson": valid_str_json})
+    assert isinstance(res_str["boundary_geojson"], dict)
+    assert res_str["boundary_geojson"]["type"] == "Polygon"
+
+    # 4. ensure_farm_boundary com string JSON inválida (cobre bloco except)
+    invalid_str = '{not a valid json}'
+    res_inv = ensure_farm_boundary({"id": "f_inv", "boundary_geojson": invalid_str, "lat": -21.0, "lon": -47.0})
+    assert isinstance(res_inv["boundary_geojson"], dict)
+    assert len(res_inv["boundary_geojson"]["coordinates"][0]) == 5

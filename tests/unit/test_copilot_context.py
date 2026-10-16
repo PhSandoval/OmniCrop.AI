@@ -137,3 +137,10 @@ def test_get_gemini_api_key_hierarchy(monkeypatch):
     # 4. Presente em secrets (tem precedência máxima)
     secrets_dict = {"GEMINI_API_KEY": "key_secrets_789"}
     assert get_gemini_api_key(secrets_dict, {"gemini_api_key": "key_session_123"}) == "key_secrets_789"
+
+    # 5. Secrets que dispara exceção no acesso (cobre bloco try/except)
+    class BrokenSecrets:
+        def __contains__(self, item):
+            raise RuntimeError("Erro simulado de acesso a secrets")
+
+    assert get_gemini_api_key(BrokenSecrets(), {"gemini_api_key": "fallback_key"}) == "key_env_456"
