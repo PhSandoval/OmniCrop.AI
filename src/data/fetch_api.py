@@ -86,12 +86,14 @@ def _fetch_openmeteo(lat: float, lon: float, past_days: int = 92) -> pd.DataFram
     return daily.sort_values("date").reset_index(drop=True)
 
 
-# ── Feature engineering (replica src/features.py) ──────────────
-def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
+# ── Feature engineering (dinâmico por cultura) ──────────────────
+def _build_features(daily: pd.DataFrame, crop_id: str = "sugarcane") -> pd.DataFrame:
     df = daily.copy()
 
-    # GDA Mensal (base 18°C para cana)
-    df["gdd"] = (df["t_mean"] - 18.0).clip(lower=0)
+    # GDA Mensal (Temperatura base dinâmica recuperada do crop_config)
+    from src.core.crop_config import get_crop_parameters
+    crop_params = get_crop_parameters(crop_id)
+    df["gdd"] = (df["t_mean"] - crop_params.base_temp_celsius).clip(lower=0)
     df["GDA_mensal"] = df["gdd"].rolling(30, min_periods=1).sum()
 
     # Chuva acumulada
@@ -102,8 +104,10 @@ def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
     # Aplicar Gradient Boosting no Histórico e na Previsão Futura!
     try:
         from src.models.predict import load_model, FEATURE_KEYS
-        model = load_model()
+        model = load_model(crop_id=crop_id)
         df["ndvi_medio"] = model.predict(df[FEATURE_KEYS].bfill().ffill())
+    except NotImplementedError:
+        df["ndvi_medio"] = np.nan
     except Exception as e:
         df["ndvi_medio"] = np.nan
 
@@ -112,14 +116,14 @@ def _build_features(daily: pd.DataFrame) -> pd.DataFrame:
 
 # ── Ponto de entrada principal ──────────────────────────────────
 @st.cache_data(ttl=3600, show_spinner=False)
-def fetch_farm_data(lat: float, lon: float) -> tuple[pd.DataFrame, dict]:
+def fetch_farm_data(lat: float, lon: float, crop_id: str = "sugarcane") -> tuple[pd.DataFrame, dict]:
     """
     Busca dados reais da fazenda via Open-Meteo.
     Retorna (DataFrame completo, dict com dados de hoje).
     Resultado cacheado por 1 hora.
     """
     daily = _fetch_openmeteo(lat, lon, past_days=92)
-    df    = _build_features(daily)
+    df    = _build_features(daily, crop_id=crop_id)
     # Garante que 'today' é a data atual (hoje) para o dashboard, ignorando a previsão futura
     now = pd.Timestamp.now(tz="America/Sao_Paulo").normalize().tz_localize(None)
     df_past = df[df["date"] <= now]

@@ -281,7 +281,7 @@ def render_onboarding():
         fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100)
         
-        CULTURAS = ["Cana-de-Açúcar", "Soja", "Café", "Pecuária (Pasto)"]
+        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho"]
         tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS)
         
         if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
@@ -302,10 +302,12 @@ def render_onboarding():
                     city = "Local Desconhecido"
                 
                 from src.data.db import insert_farm, get_user_farms
+                from src.core.crop_config import normalize_crop_id
                 user_id = st.session_state['user'].id
+                crop_id = normalize_crop_id(tipo_cultura)
                 
                 # Insere no banco primeiro (o banco gera o ID e as configs default)
-                res = insert_farm(user_id, fazenda, city, lat, lon, tipo_cultura)
+                res = insert_farm(user_id, fazenda, city, lat, lon, tipo_cultura=tipo_cultura, crop_id=crop_id)
                 
                 # Atualiza o state com a fazenda REAL (com ID) retornada pelo banco
                 if hasattr(res, 'data') and res.data:
@@ -314,7 +316,7 @@ def render_onboarding():
                     # Fallback (não deveria acontecer se a API não falhar)
                     st.session_state['active_farm'] = {
                         "farm_name": fazenda, "city": city, "lat": lat, "lon": lon,
-                        "tipo_cultura": tipo_cultura, "id": None
+                        "tipo_cultura": tipo_cultura, "crop_id": crop_id, "id": None
                     }
                 
                 # Atualiza a lista cacheada de fazendas do usuário
@@ -330,16 +332,18 @@ def render_onboarding():
 # 3. Função do App Principal
 def render_main_app():
     cfg = load_config()
+    from src.core.crop_config import normalize_crop_id
+    crop_id = cfg.get("crop_id") or normalize_crop_id(cfg.get("tipo_cultura", "sugarcane"))
 
     with st.spinner("Buscando dados reais da sua fazenda via satelite..."):
         try:
-            df, today = fetch_farm_data(cfg["lat"], cfg["lon"])
+            df, today = fetch_farm_data(cfg["lat"], cfg["lon"], crop_id=crop_id)
         except Exception as e:
             st.warning("⚠️ Ops! A API meteorológica não está respondendo. Verifique sua conexão com a internet ou tente novamente mais tarde.")
             st.stop()
 
     payload   = build_payload(today)
-    resultado = get_prediction(payload)
+    resultado = get_prediction(payload, crop_id=crop_id)
 
     render_sidebar(today, resultado)
     render_page_header(

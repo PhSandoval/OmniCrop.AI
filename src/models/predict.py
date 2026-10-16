@@ -22,15 +22,38 @@ def build_payload(row: dict) -> dict:
 
 
 import joblib
+from src.core.crop_config import get_crop_parameters
 
 @st.cache_resource
-def load_model():
-    path = Path(__file__).resolve().parent / "ndvi_model.pkl"
-    return joblib.load(path)
+def load_model(crop_id: str = "sugarcane"):
+    """
+    Carrega dinamicamente o modelo de Machine Learning treinado para a cultura especificada.
+    Se a cultura estiver em fase de treino (ex: soja, milho), levanta NotImplementedError explicativo.
+    """
+    crop_params = get_crop_parameters(crop_id)
+    clean_id = crop_params.crop_id
 
-def get_prediction(payload: dict) -> dict | None:
+    # Roteamento de modelos ainda em desenvolvimento / treino
+    if clean_id in ["soybean", "corn"]:
+        raise NotImplementedError(
+            f"O modelo preditivo para a cultura '{crop_params.name}' está em fase de treino e calibração de dados."
+        )
+
+    # Monta o caminho do modelo dinamicamente: models/{crop_id}_ndvi.pkl ou fallback ndvi_model.pkl
+    models_dir = Path(__file__).resolve().parent
+    specific_path = models_dir / f"{clean_id}_ndvi.pkl"
+    default_path = models_dir / "ndvi_model.pkl"
+
+    model_path = specific_path if specific_path.exists() else default_path
+    if not model_path.exists():
+        raise FileNotFoundError(f"Arquivo de modelo não encontrado em {model_path}")
+
+    return joblib.load(model_path)
+
+def get_prediction(payload: dict, crop_id: str = "sugarcane") -> dict | None:
+    crop_params = get_crop_parameters(crop_id)
     try:
-        model = load_model()
+        model = load_model(crop_id=crop_id)
         # Convert dictionary to DataFrame for sklearn prediction (keeping feature order)
         df_input = pd.DataFrame([payload], columns=FEATURE_KEYS)
         pred = model.predict(df_input)[0]
@@ -38,17 +61,37 @@ def get_prediction(payload: dict) -> dict | None:
         # Simulando os alertas do DSS que a API costumava retornar
         alertas = []
         if payload.get("chuva_acumulada_30d", 0) < 30:
-            alertas.append("ALERTA HÍDRICO: Déficit hídrico agudo detectado nos últimos 30 dias.")
+            alertas.append(f"ALERTA HÍDRICO: Déficit hídrico agudo detectado nos últimos 30 dias para {crop_params.name}.")
         
         return {
             "ndvi_previsto": round(float(pred), 3),
             "status_vigor": "", # Não usado diretamente mais
             "fatores_de_risco_identificados": alertas,
             "plano_de_acao": "", # O DSS cuida disso
-            "confiabilidade_modelo": "Alta (Margem de Erro Histórica de MAE 0.02)"
+            "confiabilidade_modelo": "Alta (Margem de Erro Histórica de MAE 0.02)",
+            "fase_fenologica": "Crescimento Vegetativo",
+        }
+    except NotImplementedError as nie:
+        # Alerta amigável para culturas em treinamento
+        try:
+            st.warning(f"ℹ️ {nie}")
+        except Exception:
+            pass
+        return {
+            "ndvi_previsto": 0.0,
+            "status_vigor": "Em Treinamento",
+            "status_geral": f"Modelo {crop_params.name} em Treinamento",
+            "fatores_de_risco_identificados": [str(nie)],
+            "plano_de_acao": "Aguardando conclusão do pipeline de treino e coleta de satélite.",
+            "confiabilidade_modelo": "Em Treinamento",
+            "fase_fenologica": "Calibração de Dados",
+            "aviso": str(nie),
         }
     except Exception as e:
-        st.error(f"Prediction Error: {e}")
+        try:
+            st.error(f"Prediction Error: {e}")
+        except Exception:
+            pass
         return None
 
 
@@ -230,14 +273,24 @@ FEATURE_LABELS = {
 }
 
 
-def explain_prediction_delta(payload_base: dict, payload_sim: dict, model=None) -> dict:
+def explain_prediction_delta(payload_base: dict, payload_sim: dict, model=None, crop_id: str = "sugarcane") -> dict:
     """
     Explicabilidade de IA (XAI):
     Decompõe a contribuição marginal de cada variável climática e agronômica
     na variação do índice NDVI entre o baseline real e o cenário simulado.
     """
     if model is None:
-        model = load_model()
+        try:
+            model = load_model(crop_id=crop_id)
+        except NotImplementedError as nie:
+            return {
+                "pred_base": 0.0,
+                "pred_sim": 0.0,
+                "total_delta": 0.0,
+                "contributions": {},
+                "top_driver": "Em Treinamento",
+                "narrativa": str(nie),
+            }
 
     df_base = pd.DataFrame([payload_base], columns=FEATURE_KEYS)
     df_sim = pd.DataFrame([payload_sim], columns=FEATURE_KEYS)

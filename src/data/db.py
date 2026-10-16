@@ -45,14 +45,24 @@ def get_user_farms(user_id, access_token=None):
     supabase = get_supabase(access_token)
     res = supabase.table("fazendas").select("*").eq("user_id", user_id).order("farm_name").execute()
     farms = res.data if hasattr(res, "data") and res.data is not None else []
+    
+    # Normalização de crop_id em todas as fazendas carregadas
+    from src.core.crop_config import normalize_crop_id
+    for f in farms:
+        if not f.get("crop_id"):
+            f["crop_id"] = normalize_crop_id(f.get("tipo_cultura", "sugarcane"))
+
     try:
         from src.utils.geo import ensure_farm_boundary
         return [ensure_farm_boundary(f) for f in farms]
     except Exception:
         return farms
 
-def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", area_ha=100, boundary_geojson=None, access_token=None):
+def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", area_ha=100, boundary_geojson=None, access_token=None, crop_id=None):
     supabase = get_supabase(access_token)
+    from src.core.crop_config import normalize_crop_id
+    resolved_crop_id = crop_id or normalize_crop_id(tipo_cultura)
+
     if boundary_geojson is None:
         try:
             from src.utils.geo import generate_parcel_polygon
@@ -73,7 +83,8 @@ def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúc
         "alert_vermelho": 0.4,
         "chuva_critica": 30,
         "gda_critico": 150,
-        "tipo_cultura": tipo_cultura
+        "tipo_cultura": tipo_cultura,
+        "crop_id": resolved_crop_id
     }
     return supabase.table("fazendas").insert(data).execute()
 
@@ -83,7 +94,11 @@ def update_farm_boundary(farm_id, user_id, boundary_geojson, access_token=None):
 
 def update_farm(farm_id, user_id, update_data, access_token=None):
     supabase = get_supabase(access_token)
-    return supabase.table("fazendas").update(update_data).eq("id", farm_id).eq("user_id", user_id).execute()
+    payload = dict(update_data)
+    if "tipo_cultura" in payload and "crop_id" not in payload:
+        from src.core.crop_config import normalize_crop_id
+        payload["crop_id"] = normalize_crop_id(payload["tipo_cultura"])
+    return supabase.table("fazendas").update(payload).eq("id", farm_id).eq("user_id", user_id).execute()
 
 def delete_farm(farm_id, user_id, access_token=None):
     supabase = get_supabase(access_token)

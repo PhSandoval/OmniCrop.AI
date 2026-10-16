@@ -23,8 +23,12 @@ CREATE TABLE IF NOT EXISTS public.fazendas (
     chuva_critica FLOAT DEFAULT 30.0,
     gda_critico FLOAT DEFAULT 150.0,
     tipo_cultura VARCHAR(100) DEFAULT 'Cana-de-Açúcar',
+    crop_id VARCHAR(50) DEFAULT 'sugarcane',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migração idempotente para ambientes já existentes:
+ALTER TABLE public.fazendas ADD COLUMN IF NOT EXISTS crop_id VARCHAR(50) DEFAULT 'sugarcane';
 
 -- Habilita Row Level Security na tabela fazendas
 ALTER TABLE public.fazendas ENABLE ROW LEVEL SECURITY;

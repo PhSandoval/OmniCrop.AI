@@ -152,11 +152,29 @@ with col1:
     new_name = st.text_input("Nome do Talhão", value=selected_farm.get("farm_name", ""))
     new_city = st.text_input("Município / Comarca", value=selected_farm.get("city", ""))
 
-    culturas = ["Cana-de-Açúcar", "Soja", "Café", "Milho", "Pecuária (Pasto)"]
+    from src.core.crop_config import get_crop_parameters, normalize_crop_id
+
+    # Culturas com suporte fisiológico no OmniCrop AI
+    culturas = ["Cana-de-Açúcar", "Soja", "Milho"]
     curr_cult = selected_farm.get("tipo_cultura", "Cana-de-Açúcar")
     if curr_cult not in culturas:
         culturas.append(curr_cult)
-    new_cult = st.selectbox("Cultura Agrícola", culturas, index=culturas.index(curr_cult))
+    new_cult = st.selectbox(
+        "🌾 Cultura Agrícola do Talhão",
+        culturas,
+        index=culturas.index(curr_cult),
+        help="Define os parâmetros biológicos (Temperatura Base para GDA e Kc) e o modelo preditivo associado a este talhão.",
+    )
+
+    crop_info = get_crop_parameters(new_cult)
+    new_crop_id = crop_info.crop_id
+
+    st.info(
+        f"🌱 **Parâmetros Fisiológicos ({crop_info.name}):**\n"
+        f"- Temperatura Base de Crescimento (Tb): `{crop_info.base_temp_celsius}°C`\n"
+        f"- Coeficiente de Cultura Médio (Kc FAO 56): `{crop_info.kc_default}`\n"
+        f"- *{crop_info.description}*"
+    )
 
     st.caption(
         f"📍 **Coordenadas Fixas de Satélite:** Latitude `{selected_farm.get('lat', 0):.6f}` | Longitude `{selected_farm.get('lon', 0):.6f}`"
@@ -172,7 +190,7 @@ with col2:
         help="Altera a área e redimensiona o polígono territorial correspondente.",
     )
 
-    variedades = ["RB867515", "CTC9001", "SP803280", "RB966928", "CTC4", "IACSP95-5000"]
+    variedades = ["RB867515", "CTC9001", "SP803280", "RB966928", "CTC4", "IACSP95-5000", "TMG 7062 (Soja)", "BRS 1030 (Milho)"]
     current_var = selected_farm.get("variedade", "RB867515")
     if current_var not in variedades:
         variedades.append(current_var)
@@ -207,6 +225,7 @@ with col_btn1:
             "area_ha": new_area,
             "variedade": new_var,
             "tipo_cultura": new_cult,
+            "crop_id": new_crop_id,
             "boundary_geojson": new_poly,
         }
 

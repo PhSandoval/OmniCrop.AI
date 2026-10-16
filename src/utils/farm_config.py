@@ -15,6 +15,9 @@ def get_user_farms_db():
 
 def load_config() -> dict | None:
     if 'active_farm' in st.session_state and st.session_state['active_farm']:
+        from src.core.crop_config import normalize_crop_id
+        if not st.session_state['active_farm'].get("crop_id"):
+            st.session_state['active_farm']["crop_id"] = normalize_crop_id(st.session_state['active_farm'].get("tipo_cultura", "sugarcane"))
         return st.session_state['active_farm']
         
     farms = get_user_farms_db()
@@ -48,6 +51,7 @@ def save_config(config: dict) -> None:
     if 'user' in st.session_state:
         try:
             from src.data.db import insert_farm, update_farm
+            from src.core.crop_config import normalize_crop_id
             user_id = st.session_state['user'].id
             
             # Se ja tem uma fazenda ativa, so atualiza as configs dela
@@ -62,16 +66,19 @@ def save_config(config: dict) -> None:
                 if 'ndvi_critico_lim' in config: update_data['alert_vermelho'] = config['ndvi_critico_lim']
                 if 'deficit_lim' in config: update_data['chuva_critica'] = abs(config['deficit_lim'])
                 if 'dias_calor_lim' in config: update_data['gda_critico'] = config['dias_calor_lim'] * 10 # aprox
-                if 'tipo_cultura' in config: update_data['tipo_cultura'] = config['tipo_cultura']
-                
-                # We can't insert 'receber_alertas' because it doesn't exist in Supabase schema yet.
-                # So we just ignore it for the DB or handle it separately if we had the column.
+                if 'tipo_cultura' in config:
+                    update_data['tipo_cultura'] = config['tipo_cultura']
+                    update_data['crop_id'] = normalize_crop_id(config['tipo_cultura'])
+                if 'crop_id' in config:
+                    update_data['crop_id'] = config['crop_id']
                 
                 res = update_farm(farm_id, user_id, update_data)
                 
                 # Merge local state
                 farm = st.session_state['active_farm']
                 farm.update(config)
+                if 'crop_id' not in farm:
+                    farm['crop_id'] = normalize_crop_id(farm.get('tipo_cultura', 'sugarcane'))
                 st.session_state['active_farm'] = farm
                 st.session_state['user_farms'] = get_user_farms_db()
                 return
