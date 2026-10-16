@@ -1,4 +1,4 @@
-name: Ingestão Diária - Azure Blob Storage
+name: Ingestão Diária - Azure Blob Storage & MLOps
 
 on:
   schedule:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ingestao_dados_bronze:
+  ingestao_dados_e_mlops:
     runs-on: ubuntu-latest
     
     steps:
@@ -26,9 +26,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🚀 Executar Script de Ingestão para Azure
-        # Puxa o "segredo" que vamos cadastrar lá nas configurações do GitHub
+      - name: 📡 Simular Telemetria de Sensores IoT (Fase 3 - Bronze)
         env:
           AZURE_CONNECTION_STRING: ${{ secrets.AZURE_CONNECTION_STRING }}
+        run: |
+          python scripts/simulate_iot_sensors.py --days 1 --talhao talhao_01
+
+      - name: 🚀 Executar Ingestão Azure (Bronze -> Silver -> Data Drift Audit -> Gold)
+        # Executa a esteira Medallion com auditoria de Data Drift entre Silver e Gold
+        env:
+          AZURE_CONNECTION_STRING: ${{ secrets.AZURE_CONNECTION_STRING }}
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
         run: |
           python src/data/ingest_azure.py

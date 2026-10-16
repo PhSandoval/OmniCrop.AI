@@ -19,6 +19,7 @@ data/raw/
 data/Raw/
 data/interim/
 data/processed/
+data/bronze/
 
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/

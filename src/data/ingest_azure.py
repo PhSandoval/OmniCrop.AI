@@ -201,6 +201,19 @@ def main():
     silver_blob_client.upload_blob(parquet_buffer_silver.getvalue(), overwrite=True)
     print(f"✅ SILVER salvo: {SILVER_CONTAINER}/{silver_blob_name}")
 
+    # ── MLOPS: AUDITORIA DE DATA DRIFT (Camada Silver vs Baseline) ─
+    print("🛡️ MLOps: Avaliando estabilidade estatística e Data Drift...")
+    try:
+        from src.mlops.data_drift import detect_data_drift
+        drift_report = detect_data_drift(
+            current_df=df_silver,
+            alert_webhook_url=os.getenv("ALERT_WEBHOOK_URL"),
+            farm_name="Fazenda Boa Vista (Ribeirão Preto)",
+        )
+        print(f"📊 {drift_report.summary}")
+    except Exception as e:
+        print(f"Aviso: Auditoria de Data Drift ignorada ou com falha: {e}")
+
     # ── CAMADA GOLD (KPIs Executivos Agregados / BI) ────────────────
     print(f"🏆 Processando e gravando na Camada GOLD ({GOLD_CONTAINER})...")
     gold_container_client = blob_service_client.get_container_client(GOLD_CONTAINER)
