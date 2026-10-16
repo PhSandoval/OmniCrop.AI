@@ -6,7 +6,7 @@ from pathlib import Path
 # Garante que o projeto está no PATH
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.data.fetch_api import _build_features as build_features
-from src.features.build_features import calculate_gdd, calculate_water_balance
+from src.features.build_features import calculate_gdd, calculate_water_balance, compute_agronomic_features
 
 
 def test_gda_mensal_calculation():
@@ -109,3 +109,20 @@ def test_chuva_acumulada_limits():
 
     assert res_df.iloc[0]["chuva_acumulada_30d"] == 5.0
     assert res_df.iloc[4]["chuva_acumulada_30d"] == 25.0
+
+
+def test_compute_agronomic_features_pipeline():
+    """Valida o cálculo enriquecido de features agronômicas no DataFrame via compute_agronomic_features."""
+    dates = pd.date_range("2024-01-01", periods=10)
+    df = pd.DataFrame({
+        "date": dates,
+        "t_mean": [26.0] * 10,
+        "precipitacao_total": [10.0] * 10,
+        "evapotranspiracao_total": [4.0] * 10,
+    })
+    res_cana = compute_agronomic_features(df, crop_id="sugarcane")
+    assert "chuva_acumulada_30d" in res_cana.columns
+    assert "GDA_mensal" in res_cana.columns
+    assert "balanco_hidrico_30d" in res_cana.columns
+    assert res_cana["chuva_acumulada_30d"].iloc[-1] == 100.0
+    assert res_cana["gdd"].iloc[0] == 8.0  # 26 - 18

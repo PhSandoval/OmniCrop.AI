@@ -9,14 +9,6 @@ API_URL = "http://localhost:8555/predict_ndvi"
 FEATURE_KEYS = ['chuva_acumulada_30d', 'chuva_acumulada_60d', 'chuva_acumulada_90d', 'GDA_mensal']
 
 
-@st.cache_data
-def load_dataset() -> pd.DataFrame:
-    path = Path(__file__).resolve().parents[1] / "data" / "processed" / "Dataset_SugarCane_processed.csv"
-    df = pd.read_csv(path)
-    df["date"] = pd.to_datetime(df["date"])
-    return df.sort_values("date").reset_index(drop=True)
-
-
 def build_payload(row: dict) -> dict:
     return {k: float(row[k]) for k in FEATURE_KEYS}
 

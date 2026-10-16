@@ -30,6 +30,11 @@ def test_is_pyspark_available_returns_bool():
     available = is_pyspark_available()
     assert isinstance(available, bool)
 
+    from unittest.mock import MagicMock, patch
+    with patch.dict(sys.modules, {"pyspark": MagicMock()}):
+        assert is_pyspark_available() is True
+
+
 
 def test_gold_engine_hybrid_pandas_mode(mock_silver_df):
     """Valida execução da Camada Ouro via motor leve Pandas (Edge / PoC Mode)."""
@@ -84,3 +89,61 @@ def test_spark_jobs_module_importable_or_informative():
     assert hasattr(silver_pipeline, "run_silver_pipeline")
     assert hasattr(gold_batch_job, "run_gold_batch_job")
     assert hasattr(gold_batch_job, "compute_gold_kpis_spark")
+
+
+def test_gold_engine_hybrid_auto_mode_remote_uri_and_big_data(mock_silver_df):
+    """Valida auto dispatch com URI remota e com DataFrame de alta volumetria."""
+    from unittest.mock import patch
+
+    # 1. URI remota sem PySpark (cai para pandas)
+    with patch("src.pipelines.gold_engine.is_pyspark_available", return_value=False):
+        with patch("pandas.read_parquet", return_value=mock_silver_df):
+            res = run_gold_pipeline_hybrid(input_data="abfss://silver/data", engine="auto")
+            assert isinstance(res, pd.DataFrame)
+
+    # 2. DataFrame > 500k com PySpark disponível (chama PySpark)
+    df_huge = pd.DataFrame({"x": [1] * 500_001})
+    with patch("src.pipelines.gold_engine.is_pyspark_available", return_value=True):
+        with patch("src.pipelines.spark.gold_batch_job.run_gold_batch_job") as mock_spark_job:
+            with pytest.raises(ValueError, match="URI"):
+                run_gold_pipeline_hybrid(input_data=df_huge, engine="auto")
+
+
+def test_gold_engine_hybrid_pyspark_execution():
+    """Valida execução completa no modo pyspark quando runtime está presente."""
+    from unittest.mock import patch
+
+    with patch("src.pipelines.gold_engine.is_pyspark_available", return_value=True):
+        with patch("src.pipelines.spark.gold_batch_job.run_gold_batch_job") as mock_job:
+            res = run_gold_pipeline_hybrid(
+                input_data="abfss://silver/path",
+                output_path="abfss://gold/path",
+                engine="pyspark"
+            )
+            assert res is None
+            mock_job.assert_called_once()
+
+
+def test_gold_engine_hybrid_pandas_parquet_file_io(tmp_path, mock_silver_df):
+    """Valida leitura e escrita de arquivo Parquet via motor Pandas."""
+    input_file = tmp_path / "silver.parquet"
+    output_file = tmp_path / "gold.parquet"
+    mock_silver_df.to_parquet(input_file, index=False)
+
+    df_out = run_gold_pipeline_hybrid(
+        input_data=str(input_file),
+        output_path=str(output_file),
+        engine="pandas"
+    )
+    assert isinstance(df_out, pd.DataFrame)
+    assert output_file.exists()
+
+
+def test_gold_engine_hybrid_invalid_types_and_engine(mock_silver_df):
+    """Valida tratamento de tipos de entrada inválidos e motor desconhecido."""
+    with pytest.raises(TypeError, match="Entrada inválida"):
+        run_gold_pipeline_hybrid(input_data=12345, engine="pandas")
+
+    with pytest.raises(ValueError, match="Motor de processamento desconhecido"):
+        run_gold_pipeline_hybrid(input_data=mock_silver_df, engine="unsupported_engine")
+

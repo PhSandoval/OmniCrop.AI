@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omnicrop"
+version = "1.0.0"
+description = "OmniCrop AI - Enterprise Precision Agriculture & MLOps System"
+authors = [{ name = "OmniCrop Engineering Team" }]
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.coverage.run]
+source = ["src", "scripts"]
+omit = [
+    "pages/*",
+    "app.py",
+    "components/*",
+    "src/models/train_all_crops.py",
+    "scripts/train_all_crops.py",
+    "src/pipelines/spark/silver_pipeline.py",
+    "src/pipelines/spark/gold_batch_job.py",
+    "src/pipelines/spark/spark_session.py",
+    "tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+precision = 1
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

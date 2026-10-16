@@ -169,3 +169,103 @@ def test_supabase_schema_rls_multi_tenant_security():
     # 5. Índices de performance multi-tenant
     assert "CREATE INDEX IF NOT EXISTS idx_fazendas_user_id" in sql_content
     assert "CREATE INDEX IF NOT EXISTS idx_kpis_gold_farm_id" in sql_content
+
+
+@patch("src.data.db.get_supabase")
+def test_login_and_register_user(mock_get_supabase):
+    """Valida métodos de autenticação de usuários (login e registro)."""
+    from src.data.db import login_user, register_user
+
+    mock_client = MagicMock()
+    mock_get_supabase.return_value = mock_client
+
+    login_user("diretor@usina.com", "senha123")
+    mock_client.auth.sign_in_with_password.assert_called_with({"email": "diretor@usina.com", "password": "senha123"})
+
+    register_user("novo@fazenda.com", "senha456")
+    mock_client.auth.sign_up.assert_called_with({"email": "novo@fazenda.com", "password": "senha456"})
+
+
+@patch("src.data.db.get_supabase")
+def test_insert_farm_with_and_without_boundary(mock_get_sb):
+    """Valida insert_farm com polígono informado e com autogeração procedural."""
+    from src.data.db import insert_farm
+
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+    mock_get_sb.return_value = mock_client
+
+    # 1. Com boundary_geojson explícito
+    insert_farm("u1", "Fazenda A", "Ribeirão", -21.1, -47.8, boundary_geojson={"type": "Polygon", "coordinates": []})
+    assert mock_table.insert.called
+
+    # 2. Sem boundary_geojson (autogerado via generate_parcel_polygon)
+    insert_farm("u1", "Fazenda B", "Sertãozinho", -21.1, -47.8, boundary_geojson=None)
+    assert mock_table.insert.call_count == 2
+
+    # 3. Sem boundary_geojson e generate_parcel_polygon falha (cobre linhas 70-71)
+    with patch("src.utils.geo.generate_parcel_polygon", side_effect=Exception("Polygon err")):
+        insert_farm("u1", "Fazenda C", "Franca", -21.1, -47.8, boundary_geojson=None)
+    assert mock_table.insert.call_count == 3
+
+
+@patch("src.data.db.get_supabase")
+def test_update_and_delete_farm(mock_get_sb):
+    """Valida atualização de limites, campos da fazenda e remoção."""
+    from src.data.db import update_farm, update_farm_boundary, delete_farm
+
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+    mock_get_sb.return_value = mock_client
+
+    update_farm_boundary("f1", "u1", {"type": "Polygon"})
+    mock_table.update.assert_called_with({"boundary_geojson": {"type": "Polygon"}})
+
+    update_farm("f1", "u1", {"farm_name": "Novo Nome", "tipo_cultura": "Soja"})
+    mock_table.update.assert_called()
+
+    delete_farm("f1", "u1")
+    mock_table.delete.assert_called()
+
+
+def test_get_credential_hierarchy_and_exception(monkeypatch):
+    """Valida recuperação segura de credenciais do Supabase e fallback de sessão."""
+    from src.data.db import _get_credential, get_supabase
+
+    # 1. Variável de ambiente presente
+    monkeypatch.setenv("SUPABASE_URL", "https://env.supabase.co")
+    assert _get_credential("SUPABASE_URL") == "https://env.supabase.co"
+
+    # 2. st.secrets presente
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    with patch.object(st, "secrets", {"SUPABASE_URL": "https://secrets.supabase.co"}):
+        assert _get_credential("SUPABASE_URL") == "https://secrets.supabase.co"
+
+    # 3. Exceção ao ler st.secrets retorna default
+    with patch.object(st, "secrets", MagicMock(get=MagicMock(side_effect=RuntimeError("Secrets error")))):
+        assert _get_credential("SUPABASE_URL", default="default_val") == "default_val"
+
+    # 4. get_supabase com falha no session_state
+    with patch.object(st, "session_state", MagicMock(get=MagicMock(side_effect=RuntimeError("error session")))), \
+         patch("src.data.db.create_client") as mock_cc:
+        client = get_supabase(access_token=None)
+        assert client is not None
+
+
+@patch("src.data.db.create_client")
+def test_get_user_farms_boundary_exception(mock_cc):
+    """Valida resiliência de get_user_farms quando ensure_farm_boundary falha."""
+    from src.data.db import get_user_farms
+
+    mock_client = MagicMock()
+    mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value = MagicMock(
+        data=[{"id": "f_err", "tipo_cultura": "Milho"}]
+    )
+    mock_cc.return_value = mock_client
+
+    with patch("src.utils.geo.ensure_farm_boundary", side_effect=Exception("Geo err")):
+        farms = get_user_farms("u1")
+        assert len(farms) == 1
+        assert farms[0]["crop_id"] == "corn"

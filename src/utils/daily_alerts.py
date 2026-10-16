@@ -11,10 +11,10 @@ from src.data.db import get_supabase
 from src.data.fetch_api import fetch_farm_data
 from src.models.predict import build_payload, get_prediction
 
-def send_alert_email(email_to, farm_name, alertas):
+def send_alert_email(email_to: str, farm_name: str, alertas: list[str]) -> bool:
     msg = EmailMessage()
     msg['Subject'] = f"🚨 Alerta Operacional: {farm_name} (OmniCrop AI)"
-    msg['From'] = "alertas@cropilot.ai"
+    msg['From'] = os.getenv("SMTP_FROM", "alertas@omnicrop.ai")
     msg['To'] = email_to
     
     alertas_str = "\n".join([f"- {a}" for a in alertas])
@@ -31,10 +31,20 @@ IA do OmniCrop AI
 """
     msg.set_content(content)
     
-    # Mocked SMTP Send
-    print(f"\n--- EMAIL DISPARADO PARA: {email_to} ---")
-    print(msg.as_string())
-    print("-------------------------------------------\n")
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    port = int(os.getenv("SMTP_PORT", 587))
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as server:
+            smtp_user = os.getenv("SMTP_USER")
+            smtp_pass = os.getenv("SMTP_PASS")
+            if smtp_user and smtp_pass:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Falha ao enviar e-mail via SMTP ({e}).")
+        return False
 
 def send_webhook_alert(webhook_url: str, farm_name: str, alertas: list[str], ndvi: float = None) -> bool:
     """Dispara notificação operacional estruturada para Webhooks (Discord, Slack, Telegram, Zapier)."""

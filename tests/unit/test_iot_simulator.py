@@ -129,3 +129,61 @@ def test_upload_iot_telemetry_azure_mock(tmp_path: Path):
         assert result["uploaded_to_cloud"] is True
         assert "omnicrop-data-lake-bronze" in result["cloud_path"]
         mock_blob_client.upload_blob.assert_called_once()
+
+
+def test_upload_iot_telemetry_azure_container_creation_and_exception(tmp_path: Path):
+    """Valida criação de contêiner se não existir e fallback local em caso de erro na Azure."""
+    from scripts.simulate_iot_sensors import generate_iot_telemetry, upload_iot_telemetry_to_azure
+
+    payload = generate_iot_telemetry(device_id="NODE-CREATE-CONTAINER", num_days=1, random_seed=42)
+
+    # 1. Contêiner não existe -> cria contêiner
+    mock_blob_service = MagicMock()
+    mock_container_client = MagicMock()
+    mock_container_client.exists.return_value = False
+    mock_blob_client = MagicMock()
+
+    mock_blob_service.get_container_client.return_value = mock_container_client
+    mock_blob_service.get_blob_client.return_value = mock_blob_client
+
+    with patch("azure.storage.blob.BlobServiceClient.from_connection_string", return_value=mock_blob_service):
+        res = upload_iot_telemetry_to_azure(
+            payload=payload,
+            connection_string="fake_conn_str",
+            local_backup_dir=tmp_path,
+        )
+        assert res["uploaded_to_cloud"] is True
+        mock_container_client.create_container.assert_called_once()
+
+    # 2. Exceção de rede na Azure -> fallback para gravação local
+    with patch("azure.storage.blob.BlobServiceClient.from_connection_string", side_effect=Exception("Azure timeout")):
+        res_fail = upload_iot_telemetry_to_azure(
+            payload=payload,
+            connection_string="fake_conn_str",
+            local_backup_dir=tmp_path,
+        )
+        assert res_fail["uploaded_to_cloud"] is False
+        assert Path(res_fail["local_path"]).exists()
+
+
+def test_simulate_iot_cli_main_and_run_as_main(tmp_path: Path):
+    """Valida execução da função main() do simulador IoT via CLI e como __main__."""
+    import runpy
+    from scripts.simulate_iot_sensors import main
+
+    # 1. Execução da função main() com flag --no-upload
+    cli_args = [
+        "simulate_iot_sensors.py",
+        "--device-id", "CLI-TEST-01",
+        "--talhao-id", "talhao_02",
+        "--crop-id", "soybean",
+        "--days", "1",
+        "--no-upload",
+    ]
+    with patch("sys.argv", cli_args), patch("scripts.simulate_iot_sensors.PROJECT_ROOT", tmp_path):
+        main()
+
+    # 2. Execução como __main__ via runpy.run_path
+    script_path = str(Path(__file__).resolve().parents[2] / "scripts" / "simulate_iot_sensors.py")
+    with patch("sys.argv", cli_args), patch("scripts.simulate_iot_sensors.PROJECT_ROOT", tmp_path):
+        runpy.run_path(script_path, run_name="__main__")
