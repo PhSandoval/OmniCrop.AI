@@ -4,6 +4,8 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+.coverage
+.coverage.*
 
 # ── Variáveis de ambiente e segredos ─────────────────────────────────────────
 .env

@@ -19,3 +19,5 @@ azure-storage-blob==12.30.3
 azure-core==1.41.0
 isodate==0.7.2
 pyarrow
+pytest>=7.0.0
+pytest-cov>=5.0.0
