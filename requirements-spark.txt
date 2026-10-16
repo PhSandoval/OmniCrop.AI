@@ -1,0 +1,7 @@
+# Requisitos adicionais para execução de pipelines de Big Data distribuídos em PySpark (Enterprise Mode)
+# Usados em clusters de Big Data (Databricks, AWS EMR, GCP Dataproc, Azure Synapse ou Spark Standalone).
+# Para operação zero-cost (serverless/Streamlit Cloud), o projeto utiliza nativamente Pandas + PyArrow (requirements.txt).
+
+pyspark>=3.5.0
+delta-spark>=3.0.0
+pyarrow>=14.0.0
