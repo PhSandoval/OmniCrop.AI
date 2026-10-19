@@ -269,3 +269,49 @@ def test_get_user_farms_boundary_exception(mock_cc):
         farms = get_user_farms("u1")
         assert len(farms) == 1
         assert farms[0]["crop_id"] == "corn"
+
+
+@patch("src.data.db.create_client")
+def test_log_audit_event_and_get_audit_logs(mock_cc):
+    """Valida gravação e consulta de logs de auditoria LGPD."""
+    from src.data.db import get_audit_logs, log_audit_event
+
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+
+    # 1. log_audit_event
+    mock_table.insert.return_value.execute.return_value = MagicMock(data=[{"id": "audit-1"}])
+    mock_cc.return_value = mock_client
+
+    res = log_audit_event(
+        user_id="user-123",
+        action="UPDATE_FARM_ALERT_THRESHOLDS",
+        entity_type="farm",
+        entity_id="farm-456",
+        farm_id="farm-456",
+        details={"alert_amarelo": 0.55},
+        ip_address="192.168.1.1",
+        trace_id="trace-789",
+        access_token="token_user",
+    )
+    assert res.data[0]["id"] == "audit-1"
+    mock_table.insert.assert_called_once()
+    called_payload = mock_table.insert.call_args[0][0]
+    assert called_payload["action"] == "UPDATE_FARM_ALERT_THRESHOLDS"
+    assert called_payload["trace_id"] == "trace-789"
+
+    # 2. get_audit_logs
+    mock_select = MagicMock()
+    mock_table.select.return_value = mock_select
+    mock_eq = MagicMock()
+    mock_select.eq.return_value = mock_eq
+    mock_order = MagicMock()
+    mock_eq.order.return_value = mock_order
+    mock_limit = MagicMock()
+    mock_order.limit.return_value = mock_limit
+    mock_limit.execute.return_value = MagicMock(data=[{"id": "audit-1", "action": "UPDATE_FARM_ALERT_THRESHOLDS"}])
+
+    logs = get_audit_logs("user-123", limit=10, access_token="token_user")
+    assert len(logs) == 1
+    assert logs[0]["id"] == "audit-1"

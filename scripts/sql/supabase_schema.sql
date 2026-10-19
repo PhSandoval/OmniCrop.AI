@@ -118,3 +118,47 @@ CREATE INDEX IF NOT EXISTS idx_fazendas_user_id ON public.fazendas(user_id);
 CREATE INDEX IF NOT EXISTS idx_fazendas_geom ON public.fazendas USING GIST(geom);
 CREATE INDEX IF NOT EXISTS idx_kpis_gold_farm_id ON public.kpis_gold(farm_id);
 CREATE INDEX IF NOT EXISTS idx_kpis_gold_processed_at ON public.kpis_gold(processed_at DESC);
+
+
+-- ==============================================================================
+-- 3. TABELA DE AUDITORIA LGPD E GOVERNANÇA: AUDIT_LOGS
+-- Rastreabilidade imutável de alterações críticas, exportações e acessos
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    farm_id UUID REFERENCES public.fazendas(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id VARCHAR(255),
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(45),
+    trace_id VARCHAR(64),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Habilita Row Level Security na tabela audit_logs
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Remove políticas anteriores caso existam
+DROP POLICY IF EXISTS "Usuários consultam apenas seus próprios logs de auditoria" ON public.audit_logs;
+DROP POLICY IF EXISTS "Inserção permitida para autenticados e service_role" ON public.audit_logs;
+
+-- Políticas de RLS para auditoria
+CREATE POLICY "Usuários consultam apenas seus próprios logs de auditoria"
+ON public.audit_logs
+FOR SELECT
+TO authenticated
+USING (user_id = auth.uid());
+
+CREATE POLICY "Inserção permitida para autenticados e service_role"
+ON public.audit_logs
+FOR INSERT
+TO authenticated, service_role
+WITH CHECK (true);
+
+-- Índices para consultas de auditoria
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_farm_id ON public.audit_logs(farm_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON public.audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);

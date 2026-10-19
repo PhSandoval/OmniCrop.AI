@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.api.dependencies import AuthContext, get_auth_context
 from src.api.schemas.farm import FarmCreate, FarmResponse, FarmUpdate
 from src.core.crop_config import normalize_crop_id
-from src.data.db import delete_farm, get_user_farms, insert_farm, update_farm
+from src.data.db import delete_farm, get_user_farms, insert_farm, log_audit_event, update_farm
 
 router = APIRouter()
 
@@ -124,6 +124,19 @@ def update_farm_endpoint(
             update_data=update_data,
             access_token=auth_ctx.access_token,
         )
+        action = "UPDATE_FARM_ALERT_THRESHOLDS" if any("alert" in k or "critico" in k for k in update_data) else "UPDATE_FARM"
+        try:
+            log_audit_event(
+                user_id=auth_ctx.user_id,
+                action=action,
+                entity_type="farm",
+                entity_id=farm_id,
+                farm_id=farm_id,
+                details=update_data,
+                access_token=auth_ctx.access_token,
+            )
+        except Exception:
+            pass
         return {
             "status": "updated",
             "farm_id": farm_id,
@@ -152,6 +165,18 @@ def delete_farm_endpoint(
             user_id=auth_ctx.user_id,
             access_token=auth_ctx.access_token,
         )
+        try:
+            log_audit_event(
+                user_id=auth_ctx.user_id,
+                action="DELETE_FARM",
+                entity_type="farm",
+                entity_id=farm_id,
+                farm_id=farm_id,
+                details={"deleted_farm_id": farm_id},
+                access_token=auth_ctx.access_token,
+            )
+        except Exception:
+            pass
         return {
             "status": "deleted",
             "farm_id": farm_id,

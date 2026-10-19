@@ -1,7 +1,7 @@
 # 🌱 OmniCrop AI
 
 [![CI Status](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/pytest-144%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/pytest-155%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Core Coverage](https://img.shields.io/badge/coverage-100%25%20core-brightgreen?logo=codecov&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
@@ -33,9 +33,12 @@ OmniCrop/
 │   ├── 📂 api/                  # 🚀 Camada REST Headless (FastAPI + Pydantic v2 + Swagger)
 │   │   ├── main.py              # Aplicação principal, CORS e Exception Handlers
 │   │   ├── dependencies.py      # Injeção de dependência e autenticação JWT RLS
-│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /telemetry, /reports, /mlops)
+│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /telemetry, /reports, /mlops, /audit)
 │   │   └── 📂 schemas/          # Schemas Pydantic v2 estritos de I/O
-│   ├── 📂 core/                 # Dicionário Biológico das 5 Culturas (Cana, Soja, Milho, Café, Pecuária)
+│   ├── 📂 core/                 # Dicionário Biológico, Structured Logging e Circuit Breakers
+│   │   ├── crop_config.py       # Registro biológico (Cana, Soja, Milho, Café, Pecuária)
+│   │   ├── logger.py            # Structured Logging (JSON) com trace_id e latência
+│   │   └── resilience.py        # Circuit Breakers (pybreaker) para Open-Meteo, Gemini e Azure
 │   ├── 📂 data/                 # Conexões (Supabase DB/RLS, Ingestão Azure Medallion, Schemas Pydantic)
 │   ├── 📂 features/             # Engenharia de Features Agronômicas (GDA dinâmico, Balanço Hídrico)
 │   ├── 📂 models/               # Model Routing por cultura, Inferência, Modelos .pkl e Explicabilidade XAI
@@ -47,12 +50,12 @@ OmniCrop/
 │
 ├── 📂 scripts/                  # 🛠️ Automações Operacionais e Simuladores
 │   ├── simulate_iot_sensors.py  # Simulador de Telemetria de Sensores de Campo (Solo e Folha)
-│   └── 📂 sql/                  # DDL de Banco de Dados (Supabase PostgreSQL + PostGIS + RLS)
+│   └── 📂 sql/                  # DDL de Banco de Dados (Supabase PostgreSQL + PostGIS + RLS + Audit)
 │
 ├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura
 │   └── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (144 Testes / 100% Cobertura)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (155 Testes / 100% Cobertura)
 │   ├── conftest.py              # Fixtures, mocks e payloads de teste
 │   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo)
 │   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS)
@@ -199,6 +202,42 @@ Além da vitrine web em Streamlit, o OmniCrop AI fornece uma **API RESTful de al
 | `POST` | `/api/v1/telemetry/iot` | Ingestão de telemetria horária de solo e folha na Camada Bronze da Azure |
 | `POST` | `/api/v1/reports/pdf` | Geração sob demanda do laudo executivo em PDF (stream binário ou Base64) |
 | `GET` | `/api/v1/mlops/drift-status` | Auditoria estatística de Data Drift (Population Stability Index e KS) |
+| `GET` | `/api/v1/audit/logs` | Trilha de Auditoria LGPD e governança (alterações críticas, laudos e acessos) |
+
+---
+
+## 🛡️ Resiliência, Auditoria e Observabilidade Corporativa
+
+Para garantir confiabilidade de missão crítica em usinas, cooperativas e grandes operações agrícolas, o OmniCrop AI incorpora três pilares de engenharia:
+
+### 1. 📜 Trilha de Auditoria e Governança LGPD (`audit_logs`)
+- Registro imutável de todas as ações de impacto operacional no Supabase PostgreSQL:
+  - Alterações de limites críticos de alertas (`UPDATE_FARM_ALERT_THRESHOLDS`).
+  - Atualizações cadastrais e perimetrais de fazendas (`UPDATE_FARM`).
+  - Exportação e download de laudos executivos em PDF (`EXPORT_PDF_REPORT`).
+  - Exclusão de propriedades (`DELETE_FARM`).
+- **Segurança Multi-Tenant com RLS:** Cada produtor consulta estritamente sua própria trilha de auditoria via `GET /api/v1/audit/logs`.
+
+### 2. ⚡ Circuit Breakers & Proteção contra Lentidão de I/O (`pybreaker`)
+- Circuit Breakers dedicados para blindar o sistema contra timeouts ou indisponibilidade em APIs externas:
+  - **Open-Meteo Breaker:** Interrompe chamadas climáticas externas em caso de falhas consecutivas, prevenindo travamentos de 15 segundos.
+  - **Gemini Breaker:** Ativa fallback heurístico imediato se a API de GenAI estiver instável.
+  - **Azure Storage Breaker:** Protege a esteira Medalhão contra lentidão momentânea no Data Lake.
+- O estado de cada circuito é exposto em tempo real no endpoint `GET /health`.
+
+### 3. 📊 Structured Logging (JSON) com Rastreabilidade Ponta a Ponta
+- Substituição total de prints soltos por logs padronizados em JSON estruturado (compatíveis com Datadog, Grafana Loki, CloudWatch e OpenTelemetry):
+  ```json
+  {
+    "timestamp": "2026-10-19T15:20:00.000Z",
+    "level": "INFO",
+    "logger": "omnicrop",
+    "message": "HTTP POST /api/v1/predict/ndvi -> 200 (12.45ms)",
+    "trace_id": "a8f3b4c1-6d92-4e1b-9f7a-2c8b1e4d5a7f",
+    "latency_ms": 12.45
+  }
+  ```
+- **Middleware HTTP:** Injeta e propaga automaticamente o header `X-Trace-ID` em cada requisição e cronometra a latência com precisão de microssegundos.
 
 ---
 

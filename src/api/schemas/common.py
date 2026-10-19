@@ -1,7 +1,4 @@
-"""
-Schemas comuns para respostas genéricas de saúde e erro.
-"""
-from typing import Optional
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 
@@ -11,6 +8,10 @@ class HealthResponse(BaseModel):
     app: str = Field(default="OmniCrop AI REST API", description="Nome da aplicação")
     version: str = Field(default="1.0.0", description="Versão semântica da API")
     timestamp: str = Field(..., description="Timestamp ISO 8601 da requisição")
+    circuit_breakers: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Estado operacional dos Circuit Breakers ativos",
+    )
 
 
 class ErrorResponse(BaseModel):

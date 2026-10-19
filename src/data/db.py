@@ -139,3 +139,50 @@ def get_latest_farm_gold_kpi(farm_id: str, access_token=None) -> dict | None:
     """
     records = get_farm_gold_kpis(farm_id, limit=1, access_token=access_token)
     return records[0] if records else None
+
+
+# ── AUDITORIA LGPD E GOVERNANÇA (SUPABASE POSTGRESQL + RLS) ───────────
+
+def log_audit_event(
+    user_id: str,
+    action: str,
+    entity_type: str,
+    entity_id: str | None = None,
+    farm_id: str | None = None,
+    details: dict | None = None,
+    ip_address: str | None = None,
+    trace_id: str | None = None,
+    access_token: str | None = None,
+) -> dict:
+    """
+    Registra um evento de auditoria imutável (LGPD e Governança) no Supabase PostgreSQL.
+    """
+    supabase = get_supabase(access_token)
+    payload = {
+        "user_id": user_id,
+        "action": action,
+        "entity_type": entity_type,
+        "entity_id": str(entity_id) if entity_id else None,
+        "farm_id": str(farm_id) if farm_id else None,
+        "details": details or {},
+        "ip_address": ip_address,
+        "trace_id": trace_id,
+    }
+    return supabase.table("audit_logs").insert(payload).execute()
+
+
+def get_audit_logs(user_id: str, limit: int = 50, access_token: str | None = None) -> list[dict]:
+    """
+    Consulta os logs de auditoria do usuário ativo.
+    Protegido por RLS no PostgreSQL.
+    """
+    supabase = get_supabase(access_token)
+    res = (
+        supabase.table("audit_logs")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return res.data if hasattr(res, "data") and res.data is not None else []

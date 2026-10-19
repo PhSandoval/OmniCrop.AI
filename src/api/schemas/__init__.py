@@ -26,6 +26,7 @@ from src.api.schemas.mlops import (
     FeatureDriftDetail,
     DataDriftStatusResponse,
 )
+from src.api.schemas.audit import AuditLogResponse
 
 __all__ = [
     "HealthResponse",
@@ -44,4 +45,5 @@ __all__ = [
     "ReportGenerateResponse",
     "FeatureDriftDetail",
     "DataDriftStatusResponse",
+    "AuditLogResponse",
 ]

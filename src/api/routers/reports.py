@@ -3,12 +3,14 @@ Endpoints para Emissão e Download de Relatórios Executivos em PDF.
 """
 import base64
 import re
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+from src.api.dependencies import AuthContext, get_auth_context
 from src.api.schemas.report import (
     ReportGenerateRequest,
     ReportGenerateResponse,
 )
+from src.data.db import log_audit_event
 from src.reports.pdf import generate_pdf_report
 
 router = APIRouter()
@@ -31,7 +33,10 @@ router = APIRouter()
         "Pode retornar o arquivo binário direto (stream) ou serializado em base64 via JSON."
     ),
 )
-def generate_pdf_report_endpoint(req: ReportGenerateRequest):
+def generate_pdf_report_endpoint(
+    req: ReportGenerateRequest,
+    auth_ctx: AuthContext = Depends(get_auth_context),
+):
     try:
         pdf_bytes = generate_pdf_report(
             farm_name=req.farm_name,
@@ -41,6 +46,17 @@ def generate_pdf_report_endpoint(req: ReportGenerateRequest):
             gold_kpis=req.gold_kpis,
             xai_res=req.xai_res,
         )
+        try:
+            log_audit_event(
+                user_id=auth_ctx.user_id,
+                action="EXPORT_PDF_REPORT",
+                entity_type="report",
+                entity_id=req.farm_name,
+                details={"farm_name": req.farm_name, "city": req.city, "as_base64": req.as_base64},
+                access_token=auth_ctx.access_token,
+            )
+        except Exception:
+            pass
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

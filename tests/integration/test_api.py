@@ -359,3 +359,54 @@ def test_mlops_data_drift_status():
         res_fail = client.get("/api/v1/mlops/drift-status")
         assert res_fail.status_code == 500
         assert "Falha ao executar auditoria" in res_fail.json()["detail"]
+
+
+# ── 8. AUDIT LOGS ENDPOINT & MIDDLEWARE ───────────────────────────────────────
+
+def test_audit_logs_endpoint():
+    mock_logs = [
+        {
+            "id": "audit-uuid-1",
+            "user_id": "test-user",
+            "farm_id": "farm-uuid",
+            "action": "UPDATE_FARM_ALERT_THRESHOLDS",
+            "entity_type": "farm",
+            "entity_id": "farm-uuid",
+            "details": {"alert_amarelo": 0.55},
+            "ip_address": "127.0.0.1",
+            "trace_id": "trace-123",
+            "created_at": "2026-10-19T10:00:00Z",
+        }
+    ]
+    with patch("src.api.routers.audit.get_audit_logs", return_value=mock_logs):
+        res = client.get("/api/v1/audit/logs?limit=20")
+        assert res.status_code == 200
+        data = res.json()
+        assert len(data) == 1
+        assert data[0]["action"] == "UPDATE_FARM_ALERT_THRESHOLDS"
+        assert data[0]["trace_id"] == "trace-123"
+
+
+def test_structured_logging_middleware_and_trace_id():
+    # 1. Sem X-Trace-ID enviado -> API gera automaticamente e retorna no header
+    res1 = client.get("/health")
+    assert res1.status_code == 200
+    assert "X-Trace-ID" in res1.headers
+    assert len(res1.headers["X-Trace-ID"]) > 10
+
+    # 2. Com X-Trace-ID fornecido pelo cliente -> preserva e propaga
+    custom_trace = "custom-external-trace-999"
+    res2 = client.get("/health", headers={"X-Trace-ID": custom_trace})
+    assert res2.status_code == 200
+    assert res2.headers["X-Trace-ID"] == custom_trace
+
+    # 3. Health response contém circuit breakers
+    assert "circuit_breakers" in res2.json()
+    assert "open_meteo" in res2.json()["circuit_breakers"]
+
+
+def test_structured_logging_middleware_exception_handling():
+    # Valida bloco except Exception do middleware (linhas 97-104)
+    with patch("src.api.routers.health.get_circuit_breakers_status", side_effect=RuntimeError("Falha middleware simulada")):
+        with pytest.raises(RuntimeError):
+            client.get("/health")
