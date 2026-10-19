@@ -10,16 +10,18 @@ on:
 
 jobs:
   ingestao_dados_e_mlops:
+    name: "☁️ Ingestão Medallion Azure & IoT"
     runs-on: ubuntu-latest
     
     steps:
       - name: 📥 Clonar o repositório
         uses: actions/checkout@v4
 
-      - name: 🐍 Configurar Python 3.10
+      - name: 🐍 Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: 📦 Instalar Bibliotecas
         run: |
@@ -28,6 +30,7 @@ jobs:
 
       - name: 📡 Simular Telemetria de Sensores IoT (Fase 3 - Bronze)
         env:
+          PYTHONPATH: .
           AZURE_CONNECTION_STRING: ${{ secrets.AZURE_CONNECTION_STRING }}
         run: |
           python scripts/simulate_iot_sensors.py --days 1 --talhao talhao_01
@@ -35,7 +38,13 @@ jobs:
       - name: 🚀 Executar Ingestão Azure (Bronze -> Silver -> Data Drift Audit -> Gold)
         # Executa a esteira Medallion com auditoria de Data Drift entre Silver e Gold
         env:
+          PYTHONPATH: .
           AZURE_CONNECTION_STRING: ${{ secrets.AZURE_CONNECTION_STRING }}
           ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
         run: |
+          if [ -z "$AZURE_CONNECTION_STRING" ]; then
+            echo "⚠️ AZURE_CONNECTION_STRING não foi configurado nos Secrets do GitHub."
+            echo "ℹ️ Para habilitar a sincronização automática diária com o Azure Blob Storage, configure a secret AZURE_CONNECTION_STRING em Settings > Secrets and variables > Actions."
+            exit 0
+          fi
           python src/data/ingest_azure.py

@@ -1,12 +1,18 @@
 import os
 import io
 import json
+import sys
+from pathlib import Path
 import requests
 import pandas as pd
 from datetime import datetime, timezone
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from azure.storage.blob import BlobServiceClient
 from tenacity import retry, stop_after_attempt, wait_exponential
 from src.data.schemas import OpenMeteoResponse
+
 
 # Configurações da Fazenda Boa Vista (Ribeirão Preto)
 LATITUDE = -21.1704

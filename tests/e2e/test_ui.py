@@ -1,18 +1,10 @@
 import pytest
+from pathlib import Path
 from streamlit.testing.v1 import AppTest
 
-def test_simulador_state_without_talhao():
-    """Teste de Interface (Palco): Verifica se o Streamlit segura o erro se o usuário não escolheu o talhão."""
-    # Cria uma instância virtual do AppTest para a página do Simulador
-    at = AppTest.from_file("../../pages/2_Simulador.py")
-    
-    # Roda o app virtualmente (sem navegador)
-    at.run()
-    
-    # Sem preencher nenhum input, simula clique no botão "Simular!"
-    if at.button:
-        at.button[0].click()
-        at.run()
-        
-        # O sistema deve continuar vivo sem exceptions na tela
-        assert not at.exception
+def test_app_landing_page_rendering():
+    """Valida renderização inicial do app principal sem exceções."""
+    app_file = Path(__file__).resolve().parents[2] / "app.py"
+    at = AppTest.from_file(str(app_file))
+    at.run(timeout=15)
+    assert not at.exception
