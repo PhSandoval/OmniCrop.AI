@@ -21,31 +21,42 @@ O repositório está estruturado no padrão **Clean Architecture**, isolando tot
 OmniCrop/
 │
 ├── 📂 .github/workflows/        # ☁️ Orquestração Serverless (CI/CD)
-│   ├── ci.yml                   # Integração Contínua (Gate estrito de 100% de Cobertura)
-│   └── ingest_weather_azure.yml # Pipeline diário Medallion (Bronze, Silver e Gold)
+│   ├── ci.yml                   # Pipeline de CI com Gate estrito de 100% de Cobertura
+│   └── ingest_weather_azure.yml # Ingestão Diária Medallion na Azure e MLOps
 │
-├── 📄 app.py                    # 🎨 A VITRINE (Ponto de entrada do Streamlit)
-├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Fazenda, etc.)
+├── 📄 app.py                    # 🎨 A VITRINE (Ponto de entrada Streamlit & Painel Geral)
+├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Fazenda, Assistente)
 ├── 📂 components/               # Blocos visuais reutilizáveis (Auth, Header, Gráficos, PDF)
-├── 📂 assets/                   # Estilos visuais e logotipos
+├── 📂 assets/                   # Identidade visual, logotipos e temas
 │
-├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio)
-│   ├── 📂 data/                 # Conexões (DB/Supabase, Ingestão Azure Medalhão, Schemas Pydantic)
-│   ├── 📂 features/             # Feature Engineering Agronômico (GDA, Acúmulos hídricos)
-│   ├── 📂 models/               # Inteligência (Model Routing por cultura, Inferência e XAI)
-│   ├── 📂 mlops/                # Monitoramento de Data Drift (PSI / Kolmogorov-Smirnov)
-│   ├── 📂 pipelines/            # Orquestrador Polyglot (Pandas Edge / PySpark Cluster)
-│   ├── 📂 reports/              # Gerador de Relatórios Executivos em PDF
-│   └── 📂 utils/                # Configurações de fazenda, alertas e geolocalização
+├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio e Engenharia)
+│   ├── 📂 core/                 # Dicionário Biológico das 5 Culturas (Cana, Soja, Milho, Café, Pecuária)
+│   ├── 📂 data/                 # Conexões (Supabase DB/RLS, Ingestão Azure Medallion, Schemas Pydantic)
+│   ├── 📂 features/             # Engenharia de Features Agronômicas (GDA dinâmico, Balanço Hídrico)
+│   ├── 📂 models/               # Model Routing por cultura, Inferência, Modelos .pkl e Explicabilidade XAI
+│   ├── 📂 mlops/                # Monitoramento de Data Drift (Pop. Stability Index / Kolmogorov-Smirnov)
+│   ├── 📂 pipelines/            # Motor Híbrido Polyglot (Pandas Edge & Apache Spark Distribuído)
+│   │   └── 📂 spark/            # Jobs de cluster (Silver, Gold Batch e requirements-spark.txt)
+│   ├── 📂 reports/              # Emissor de Laudos e Pareceres Agronômicos em PDF (FPDF2)
+│   └── 📂 utils/                # Configurações de fazenda, geolocalização PostGIS e alertas diários
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes MLOps (135 Testes / 100% Pass)
-│   ├── conftest.py              # Fixtures e mocks compartilhados
+├── 📂 scripts/                  # 🛠️ Automações Operacionais e Simuladores
+│   ├── simulate_iot_sensors.py  # Simulador de Telemetria de Sensores de Campo (Solo e Folha)
+│   └── 📂 sql/                  # DDL de Banco de Dados (Supabase PostgreSQL + PostGIS + RLS)
+│
+├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura
+│   └── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
+│
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (135 Testes / 100% Cobertura)
+│   ├── conftest.py              # Fixtures, mocks e payloads de teste
 │   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo)
-│   ├── 📂 integration/          # Testes de Contrato Pydantic, Azure Blob Storage e Supabase DB
+│   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS)
 │   └── 📂 e2e/                  # Testes End-to-End da interface via Streamlit AppTest
 │
-├── 📂 data/                     # 🗄️ Camadas locais do Data Lake (Raw, Interim, Processed)
-└── 📂 notebooks/                # 🔬 Laboratório de experimentação e EDA
+├── 📂 data/                     # 🗄️ Camadas locais do Data Lake (Raw, Interim, Processed, Bronze)
+├── 📂 notebooks/                # 🔬 Cadernos de análise exploratória de dados (EDA)
+├── 📄 pyproject.toml            # ⚙️ Configuração unificada do projeto (Build, Pytest e Coverage 100%)
+└── 📄 requirements.txt          # 📦 Dependências de produção
 ```
 
 ### 🛠 Stack Tecnológica

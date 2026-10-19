@@ -28,7 +28,7 @@ def get_spark_session(
     except ImportError as exc:
         raise ImportError(
             "PySpark não está instalado neste ambiente. "
-            "Para executar pipelines de Big Data distribuídos, instale com: pip install -r requirements-spark.txt"
+            "Para executar pipelines de Big Data distribuídos, instale com: pip install -r src/pipelines/spark/requirements-spark.txt"
         ) from exc
 
     builder = SparkSession.builder.appName(app_name)

@@ -50,7 +50,7 @@ def run_gold_pipeline_hybrid(
         if not is_pyspark_available():
             raise ImportError(
                 "Motor 'pyspark' selecionado, mas PySpark não está instalado. "
-                "Execute: pip install -r requirements-spark.txt"
+                "Execute: pip install -r src/pipelines/spark/requirements-spark.txt"
             )
         from src.pipelines.spark.gold_batch_job import run_gold_batch_job
 

@@ -279,4 +279,5 @@ with DAG(
 
 O OmniCrop AI resolve o falso dilema entre **viabilidade financeira inicial** e **capacidade de escala corporativa**:
 1. **No dia 1 (PoC / Freemium):** O cliente roda sem qualquer custo de infraestrutura distribuída, usando o motor vetorizado em Pandas/PyArrow.
-2. **No dia da expansão corporativa:** Bastam configurações de conexão de bucket (`abfss://`, `s3a://`, `gs://`) e apontamento para os scripts PySpark (`src/pipelines/spark/`), que executam nativamente em qualquer plataforma de Big Data (Databricks, EMR, Dataproc, Synapse) sem necessidade de reengenharia de regras agronômicas.
+2. **No dia da expansão corporativa:** Bastam configurações de conexão de bucket (`abfss://`, `s3a://`, `gs://`), instalação dos pacotes distribuídos (`pip install -r src/pipelines/spark/requirements-spark.txt`) e apontamento para os scripts PySpark (`src/pipelines/spark/`), que executam nativamente em qualquer plataforma de Big Data (Databricks, EMR, Dataproc, Synapse) sem necessidade de reengenharia de regras agronômicas.
+
