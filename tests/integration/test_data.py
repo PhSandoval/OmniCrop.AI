@@ -346,7 +346,10 @@ def test_fetch_api_search_location_exception():
 
 
 def test_fetch_api_fetch_openmeteo_success():
-    """Valida busca de dados horários e agregação diária do Open-Meteo."""
+    """Valida busca de dados horários e agregação diária do Open-Meteo com caching centralizado."""
+    from src.core.cache import cache_manager, make_weather_cache_key
+    cache_manager.clear()
+
     times = [f"2026-10-01T{h:02d}:00" for h in range(24)]
     mock_hourly = {
         "time": times,
@@ -359,12 +362,28 @@ def test_fetch_api_fetch_openmeteo_success():
     mock_resp = MagicMock()
     mock_resp.json.return_value = {"hourly": mock_hourly}
 
-    with patch("requests.get", return_value=mock_resp):
+    # 1. Primeira chamada: Cache miss -> busca na API e popula cache
+    with patch("requests.get", return_value=mock_resp) as mock_get:
         daily = _fetch_openmeteo(lat=-21.17, lon=-47.81, past_days=1)
         assert isinstance(daily, pd.DataFrame)
         assert len(daily) == 1
         assert "t_mean" in daily.columns
         assert daily["precipitacao_total"].iloc[0] == pytest.approx(12.0)
+        mock_get.assert_called_once()
+
+    # 2. Segunda chamada: Cache hit (lista serializada) -> <1ms sem requisição HTTP
+    with patch("requests.get") as mock_get_cached:
+        daily_cached = _fetch_openmeteo(lat=-21.17, lon=-47.81, past_days=1)
+        assert isinstance(daily_cached, pd.DataFrame)
+        assert len(daily_cached) == 1
+        assert daily_cached["precipitacao_total"].iloc[0] == pytest.approx(12.0)
+        mock_get_cached.assert_not_called()
+
+    # 3. Terceira chamada: Cache hit com objeto DataFrame direto no backend
+    cache_key = make_weather_cache_key(-21.17, -47.81, date_str="p1")
+    cache_manager.set(cache_key, daily)
+    daily_df_cached = _fetch_openmeteo(lat=-21.17, lon=-47.81, past_days=1)
+    assert isinstance(daily_df_cached, pd.DataFrame)
 
 
 def test_fetch_api_build_features_with_model():

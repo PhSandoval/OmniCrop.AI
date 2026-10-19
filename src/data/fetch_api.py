@@ -47,7 +47,19 @@ def search_location(query: str) -> list[dict]:
 
 # ── Open-Meteo fetch ────────────────────────────────────────────
 def _fetch_openmeteo(lat: float, lon: float, past_days: int = 92) -> pd.DataFrame:
-    """Baixa dados horários da Open-Meteo e retorna DataFrame diário agregado."""
+    """Baixa dados horários da Open-Meteo e retorna DataFrame diário agregado com caching centralizado."""
+    from src.core.cache import cache_manager, make_weather_cache_key
+
+    cache_key = make_weather_cache_key(lat, lon, date_str=f"p{past_days}")
+    cached_payload = cache_manager.get(cache_key)
+    if cached_payload is not None:
+        if isinstance(cached_payload, list):
+            df_cached = pd.DataFrame(cached_payload)
+            df_cached["date"] = pd.to_datetime(df_cached["date"])
+            return df_cached.sort_values("date").reset_index(drop=True)
+        if isinstance(cached_payload, pd.DataFrame):
+            return cached_payload.copy()
+
     params = {
         "latitude": lat,
         "longitude": lon,
@@ -83,7 +95,10 @@ def _fetch_openmeteo(lat: float, lon: float, past_days: int = 92) -> pd.DataFram
     ).reset_index()
 
     daily["date"] = pd.to_datetime(daily["date"])
-    return daily.sort_values("date").reset_index(drop=True)
+    daily_sorted = daily.sort_values("date").reset_index(drop=True)
+
+    cache_manager.set(cache_key, daily_sorted.to_dict(orient="records"), ttl_seconds=3600)
+    return daily_sorted
 
 
 # ── Feature engineering (dinâmico por cultura) ──────────────────

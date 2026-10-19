@@ -1,7 +1,7 @@
 # 🌱 OmniCrop AI
 
 [![CI Status](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/pytest-155%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/pytest-174%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Core Coverage](https://img.shields.io/badge/coverage-100%25%20core-brightgreen?logo=codecov&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
@@ -33,9 +33,11 @@ OmniCrop/
 │   ├── 📂 api/                  # 🚀 Camada REST Headless (FastAPI + Pydantic v2 + Swagger)
 │   │   ├── main.py              # Aplicação principal, CORS e Exception Handlers
 │   │   ├── dependencies.py      # Injeção de dependência e autenticação JWT RLS
-│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /telemetry, /reports, /mlops, /audit)
+│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /telemetry, /reports, /mlops, /audit, /jobs)
 │   │   └── 📂 schemas/          # Schemas Pydantic v2 estritos de I/O
-│   ├── 📂 core/                 # Dicionário Biológico, Structured Logging e Circuit Breakers
+│   ├── 📂 core/                 # Dicionário Biológico, Structured Logging, Cache e Background Jobs
+│   │   ├── cache.py             # Caching Centralizado (Redis + Fallback Resiliente em Memória TTL)
+│   │   ├── jobs.py              # Gerenciador de Background Jobs Assíncronos e Filas em Lote
 │   │   ├── crop_config.py       # Registro biológico (Cana, Soja, Milho, Café, Pecuária)
 │   │   ├── logger.py            # Structured Logging (JSON) com trace_id e latência
 │   │   └── resilience.py        # Circuit Breakers (pybreaker) para Open-Meteo, Gemini e Azure
@@ -55,7 +57,7 @@ OmniCrop/
 ├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura
 │   └── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (155 Testes / 100% Cobertura)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (174 Testes / 100% Cobertura)
 │   ├── conftest.py              # Fixtures, mocks e payloads de teste
 │   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo)
 │   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS)
@@ -203,6 +205,37 @@ Além da vitrine web em Streamlit, o OmniCrop AI fornece uma **API RESTful de al
 | `POST` | `/api/v1/reports/pdf` | Geração sob demanda do laudo executivo em PDF (stream binário ou Base64) |
 | `GET` | `/api/v1/mlops/drift-status` | Auditoria estatística de Data Drift (Population Stability Index e KS) |
 | `GET` | `/api/v1/audit/logs` | Trilha de Auditoria LGPD e governança (alterações críticas, laudos e acessos) |
+| `POST` | `/api/v1/jobs/batch-kpis` | Disparo assíncrono de cálculo em lote de balanço hídrico para múltiplos talhões (HTTP 202) |
+| `POST` | `/api/v1/jobs/batch-reports` | Emissão massiva de laudos técnicos em PDF em background (HTTP 202) |
+| `POST` | `/api/v1/jobs/batch-retrain` | Auditoria e calibração de modelos por cultura em background (HTTP 202) |
+| `GET` | `/api/v1/jobs/{id}` | Acompanhamento em tempo real de status, progresso e resultados de um job |
+| `POST` | `/api/v1/jobs/{id}/cancel` | Cancelamento de tarefa assíncrona em fila ou execução |
+| `GET` | `/api/v1/jobs` | Histórico e listagem de jobs com filtro por status |
+| `GET` | `/api/v1/cache/stats` | Telemetria do cache centralizado (taxa de acerto, hits, misses e backend) |
+| `POST` | `/api/v1/cache/clear` | Invalidação e limpeza total de chaves do cache centralizado |
+
+---
+
+## ⚡ Caching Centralizado (Redis) & Processamento Assíncrono (Background Jobs)
+
+Para operações agrícolas de grande porte (cooperativas com centenas de cooperados e usinas com milhares de talhões), o OmniCrop AI desacopla totalmente requisições de I/O pesado através de dois motores dedicados:
+
+### 1. 🏎️ Cache Centralizado e Resiliente (`src/core/cache.py`)
+- **Agrupamento Geoespacial Inteligente:** Cache de predições climáticas por coordenada geocodificada arredondada (`weather:{round(lat, 2)}:{round(lon, 2)}`).
+  - Talhões vizinhos ou consultas repetidas no mesmo dia têm tempo de resposta reduzido de **~1.5s para menos de 3ms**.
+  - Economia drástica de cota de requisições na API externa da Open-Meteo.
+- **Backend Híbrido Pluggable:**
+  - Conecta-se automaticamente ao **Redis** em ambientes de produção com cluster distribuído via `REDIS_URL` ou `REDIS_HOST`.
+  - Ativa fallback transparente para cache em memória local (`MemoryCacheBackend`) com expiração TTL em ambientes de desenvolvimento ou CI/CD (garantindo zero dependência externa nos testes).
+- **Decorador Declarativo `@cached`:** Envolve qualquer função agronômica determinística com caching configurável por TTL.
+
+### 2. 🧵 Fila de Background Jobs Desacoplada (`src/core/jobs.py`)
+- **Processamento Assíncrono Não-Bloqueante:** Tarefas pesadas que levariam dezenas de segundos não travam o loop do FastAPI nem o Streamlit.
+- **Ciclo de Vida Transparente:** Cada job recebe um UUID imutável e transita pelos estados `pending` ➔ `running` ➔ `completed` / `failed` / `cancelled`, com percentual de progresso dinâmico (0 a 100%) e telemetria sincronizada no cache.
+- **Rotinas Agro em Lote Nativas:**
+  - `task_batch_kpis`: Processa balanço hídrico, GDA e alertas de déficit para centenas de talhões simultaneamente.
+  - `task_batch_reports`: Geração massiva de laudos executivos com download assíncrono.
+  - `task_batch_retrain`: Auditoria estatística e calibração de modelos por cultura.
 
 ---
 

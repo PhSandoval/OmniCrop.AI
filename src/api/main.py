@@ -8,6 +8,7 @@ from src.api.routers import (
     audit_router,
     farms_router,
     health_router,
+    jobs_router,
     mlops_router,
     predict_router,
     reports_router,
@@ -53,6 +54,10 @@ app = FastAPI(
         {
             "name": "Audit",
             "description": "Trilha imutável de auditoria e conformidade LGPD.",
+        },
+        {
+            "name": "Background Jobs & Cache",
+            "description": "Fila assíncrona de processamento em lote (balanço hídrico, laudos) e gerenciamento de cache centralizado.",
         },
     ],
 )
@@ -122,6 +127,7 @@ app.include_router(telemetry_router, prefix="/api/v1", tags=["IoT Telemetry"])
 app.include_router(reports_router, prefix="/api/v1", tags=["Reports"])
 app.include_router(mlops_router, prefix="/api/v1", tags=["MLOps"])
 app.include_router(audit_router, prefix="/api/v1", tags=["Audit"])
+app.include_router(jobs_router, prefix="/api/v1", tags=["Background Jobs & Cache"])
 
 
 if __name__ == "__main__":

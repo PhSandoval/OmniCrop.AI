@@ -27,6 +27,16 @@ from src.api.schemas.mlops import (
     DataDriftStatusResponse,
 )
 from src.api.schemas.audit import AuditLogResponse
+from src.api.schemas.jobs import (
+    BatchKpisRequest,
+    BatchReportsRequest,
+    BatchRetrainRequest,
+    JobSubmissionResponse,
+    JobStatusResponse,
+    JobListResponse,
+    CacheStatsResponse,
+    CacheClearResponse,
+)
 
 __all__ = [
     "HealthResponse",
@@ -46,4 +56,12 @@ __all__ = [
     "FeatureDriftDetail",
     "DataDriftStatusResponse",
     "AuditLogResponse",
+    "BatchKpisRequest",
+    "BatchReportsRequest",
+    "BatchRetrainRequest",
+    "JobSubmissionResponse",
+    "JobStatusResponse",
+    "JobListResponse",
+    "CacheStatsResponse",
+    "CacheClearResponse",
 ]

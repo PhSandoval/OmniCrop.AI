@@ -12,6 +12,14 @@ class HealthResponse(BaseModel):
         default=None,
         description="Estado operacional dos Circuit Breakers ativos",
     )
+    cache: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Telemetria e status do cache centralizado",
+    )
+    jobs: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Status operacional da fila de background jobs",
+    )
 
 
 class ErrorResponse(BaseModel):

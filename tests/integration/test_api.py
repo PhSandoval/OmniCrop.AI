@@ -410,3 +410,154 @@ def test_structured_logging_middleware_exception_handling():
     with patch("src.api.routers.health.get_circuit_breakers_status", side_effect=RuntimeError("Falha middleware simulada")):
         with pytest.raises(RuntimeError):
             client.get("/health")
+
+
+# ── 9. BACKGROUND JOBS & CACHE ENDPOINTS ──────────────────────────────────────
+
+def test_jobs_batch_kpis_endpoint():
+    payload = {
+        "farm_ids": ["TALHAO_01", "TALHAO_02"],
+        "crop_id": "sugarcane",
+        "lat": -21.17,
+        "lon": -47.81,
+    }
+    # 1. Sucesso com auditoria
+    with patch("src.api.routers.jobs.log_audit_event") as mock_audit:
+        res = client.post("/api/v1/jobs/batch-kpis", json=payload)
+        assert res.status_code == 202
+        data = res.json()
+        assert "job_id" in data
+        assert data["job_type"] == "batch_kpis"
+        assert "enfileirada com sucesso" in data["message"]
+        mock_audit.assert_called_once()
+
+    # 2. Sucesso mesmo com falha na auditoria
+    with patch("src.api.routers.jobs.log_audit_event", side_effect=Exception("Audit DB offline")):
+        res2 = client.post("/api/v1/jobs/batch-kpis", json=payload)
+        assert res2.status_code == 202
+
+
+def test_jobs_batch_reports_endpoint():
+    payload = {
+        "farm_ids": ["FAZENDA_01"],
+        "crop_id": "soybean",
+    }
+    # 1. Sucesso com auditoria
+    with patch("src.api.routers.jobs.log_audit_event") as mock_audit:
+        res = client.post("/api/v1/jobs/batch-reports", json=payload)
+        assert res.status_code == 202
+        data = res.json()
+        assert data["job_type"] == "batch_reports"
+        mock_audit.assert_called_once()
+
+    # 2. Exceção na auditoria tratada
+    with patch("src.api.routers.jobs.log_audit_event", side_effect=Exception("Audit offline")):
+        res2 = client.post("/api/v1/jobs/batch-reports", json=payload)
+        assert res2.status_code == 202
+
+
+def test_jobs_batch_retrain_endpoint():
+    payload = {
+        "crops": ["sugarcane", "corn"],
+    }
+    # 1. Sucesso com auditoria
+    with patch("src.api.routers.jobs.log_audit_event") as mock_audit:
+        res = client.post("/api/v1/jobs/batch-retrain", json=payload)
+        assert res.status_code == 202
+        data = res.json()
+        assert data["job_type"] == "model_retrain"
+        mock_audit.assert_called_once()
+
+    # 2. Exceção na auditoria tratada
+    with patch("src.api.routers.jobs.log_audit_event", side_effect=Exception("Audit error")):
+        res2 = client.post("/api/v1/jobs/batch-retrain", json=payload)
+        assert res2.status_code == 202
+
+
+def test_get_job_status_endpoint():
+    # 1. Job não encontrado (404)
+    res_404 = client.get("/api/v1/jobs/unknown-uuid-000")
+    assert res_404.status_code == 404
+    assert "não foi encontrado" in res_404.json()["detail"]
+
+    # 2. Job existente
+    post_res = client.post(
+        "/api/v1/jobs/batch-kpis",
+        json={"farm_ids": ["T1"], "crop_id": "sugarcane", "lat": -21.17, "lon": -47.81},
+    )
+    job_id = post_res.json()["job_id"]
+
+    res_get = client.get(f"/api/v1/jobs/{job_id}")
+    assert res_get.status_code == 200
+    data = res_get.json()
+    assert data["job_id"] == job_id
+    assert "status" in data
+    assert "progress" in data
+
+
+def test_cancel_job_endpoint():
+    # 1. Cancelar job inexistente (404)
+    res_404 = client.post("/api/v1/jobs/unknown-uuid-999/cancel")
+    assert res_404.status_code == 404
+
+    # 2. Submeter tarefa lenta e cancelar com sucesso (200)
+    from src.core.jobs import job_manager
+    import time
+
+    def slow_task(job_id):
+        time.sleep(0.2)
+        return {"done": True}
+
+    job = job_manager.submit_job(job_type="cancellable_job", task_fn=slow_task)
+
+    with patch("src.api.routers.jobs.log_audit_event") as mock_audit:
+        res_cancel = client.post(f"/api/v1/jobs/{job.job_id}/cancel")
+        assert res_cancel.status_code == 200
+        assert res_cancel.json()["status"] == "cancelled"
+        mock_audit.assert_called_once()
+
+    # 3. Cancelar job com exceção na auditoria
+    job2 = job_manager.submit_job(job_type="cancellable_job2", task_fn=slow_task)
+    with patch("src.api.routers.jobs.log_audit_event", side_effect=Exception("Audit fail")):
+        res_cancel2 = client.post(f"/api/v1/jobs/{job2.job_id}/cancel")
+        assert res_cancel2.status_code == 200
+
+    # 4. Cancelar job que já não pode mais ser cancelado (400)
+    res_cancel_again = client.post(f"/api/v1/jobs/{job.job_id}/cancel")
+    assert res_cancel_again.status_code == 400
+    assert "Não é possível cancelar" in res_cancel_again.json()["detail"]
+
+
+def test_list_jobs_endpoint():
+    res = client.get("/api/v1/jobs?limit=5")
+    assert res.status_code == 200
+    data = res.json()
+    assert "jobs" in data
+    assert "total" in data
+    assert isinstance(data["jobs"], list)
+
+    res_filtered = client.get("/api/v1/jobs?status=cancelled&limit=5")
+    assert res_filtered.status_code == 200
+
+
+def test_cache_stats_and_clear_endpoints():
+    # 1. Stats do cache
+    res_stats = client.get("/api/v1/cache/stats")
+    assert res_stats.status_code == 200
+    data_stats = res_stats.json()
+    assert "backend" in data_stats
+    assert "hits" in data_stats
+    assert "misses" in data_stats
+    assert "hit_ratio_pct" in data_stats
+
+    # 2. Limpar cache com auditoria
+    with patch("src.api.routers.jobs.log_audit_event") as mock_audit:
+        res_clear = client.post("/api/v1/cache/clear")
+        assert res_clear.status_code == 200
+        assert res_clear.json()["status"] == "ok"
+        mock_audit.assert_called_once()
+
+    # 3. Limpar cache com falha na auditoria tratada
+    with patch("src.api.routers.jobs.log_audit_event", side_effect=Exception("Audit offline")):
+        res_clear2 = client.post("/api/v1/cache/clear")
+        assert res_clear2.status_code == 200
