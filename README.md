@@ -1,7 +1,7 @@
 # 🌱 OmniCrop AI
 
 [![CI Status](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/pytest-135%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/pytest-144%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Core Coverage](https://img.shields.io/badge/coverage-100%25%20core-brightgreen?logo=codecov&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
@@ -30,6 +30,11 @@ OmniCrop/
 ├── 📂 assets/                   # Identidade visual, logotipos e temas
 │
 ├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio e Engenharia)
+│   ├── 📂 api/                  # 🚀 Camada REST Headless (FastAPI + Pydantic v2 + Swagger)
+│   │   ├── main.py              # Aplicação principal, CORS e Exception Handlers
+│   │   ├── dependencies.py      # Injeção de dependência e autenticação JWT RLS
+│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /telemetry, /reports, /mlops)
+│   │   └── 📂 schemas/          # Schemas Pydantic v2 estritos de I/O
 │   ├── 📂 core/                 # Dicionário Biológico das 5 Culturas (Cana, Soja, Milho, Café, Pecuária)
 │   ├── 📂 data/                 # Conexões (Supabase DB/RLS, Ingestão Azure Medallion, Schemas Pydantic)
 │   ├── 📂 features/             # Engenharia de Features Agronômicas (GDA dinâmico, Balanço Hídrico)
@@ -47,7 +52,7 @@ OmniCrop/
 ├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura
 │   └── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (135 Testes / 100% Cobertura)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (144 Testes / 100% Cobertura)
 │   ├── conftest.py              # Fixtures, mocks e payloads de teste
 │   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo)
 │   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS)
@@ -164,11 +169,36 @@ O que gestores, produtores e engenheiros agrônomos encontram no sistema:
 - Pirâmide de Testes automatizada (Unit, Integration, E2E) com 19 testes validados.
 - Contratos de dados estritos com **Pydantic** e proteção de resiliência via **Mocks**.
 - Implementação de Explicabilidade de Decisão (XAI Waterfall) e Alertas Proativos por Webhook.
+- **Camada de API RESTful Headless** em FastAPI (`src/api/`) com Pydantic v2, Swagger UI e 144 testes automatizados com 100% de cobertura.
 
 **⏳ Fase 3: IoT Ground Truth & MLOps Avançado (Planejada)**
 - Expansão do Data Lake via orquestração MQTT.
 - Coleta primária via Tensiômetros e Termometria Infravermelha no dossel da lavoura.
 - Retreinamento contínuo do modelo utilizando dados Ground Truth.
+
+---
+
+## ⚡ Camada de API Headless (FastAPI + Swagger UI)
+
+Além da vitrine web em Streamlit, o OmniCrop AI fornece uma **API RESTful de alta performance**, permitindo que ERPs agrícolas (TOTVS Agro, SAP), aplicativos móveis para técnicos em campo e telemetria de maquinários agrícolas (John Deere, Case IH) consumam o cérebro do sistema:
+
+- **Swagger UI Interativo:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
+- **OpenAPI Schema:** `http://localhost:8000/openapi.json`
+
+### 📋 Catálogo de Endpoints Principais:
+
+| Método | Endpoint | Descrição |
+| :---: | :--- | :--- |
+| `GET` | `/health` | Health Check e versão da API |
+| `POST` | `/api/v1/predict/ndvi` | Inferência do Satélite Virtual + Decomposição XAI Waterfall + Decisão DSS |
+| `GET` | `/api/v1/farms` | Listagem de fazendas do usuário com polígonos GeoJSON (Multi-Tenant RLS) |
+| `POST` | `/api/v1/farms` | Cadastro de nova propriedade com georreferenciamento |
+| `PUT` | `/api/v1/farms/{id}` | Atualização cadastral ou espacial de fazenda |
+| `DELETE` | `/api/v1/farms/{id}` | Exclusão de fazenda |
+| `POST` | `/api/v1/telemetry/iot` | Ingestão de telemetria horária de solo e folha na Camada Bronze da Azure |
+| `POST` | `/api/v1/reports/pdf` | Geração sob demanda do laudo executivo em PDF (stream binário ou Base64) |
+| `GET` | `/api/v1/mlops/drift-status` | Auditoria estatística de Data Drift (Population Stability Index e KS) |
 
 ---
 
@@ -189,9 +219,12 @@ pip install -r requirements.txt
 # 4. Configure as variáveis de ambiente (.env ou .streamlit/secrets.toml)
 # Requer: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY, AZURE_CONNECTION_STRING
 
-# 5. Execute a suíte de testes (Garantia de Qualidade MLOps)
-pytest tests/ -v
+# 5. Execute a suíte completa de testes com gate estrito de 100% de cobertura
+pytest --cov=src --cov=scripts --cov-fail-under=100 -v
 
-# 6. Inicie a aplicação
+# 6. Inicie a API RESTful Headless (FastAPI)
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+# 7. Inicie a aplicação Web (Streamlit)
 streamlit run app.py
 ```
