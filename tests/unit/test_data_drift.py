@@ -252,11 +252,18 @@ def test_detect_data_drift_fallback_baseline_and_custom_features(weather_populat
         assert isinstance(report_fallback, DataDriftReport)
         assert report_fallback.total_features_evaluated > 0
 
-    # 2. Baseline candidate lança exceção ao ler (cobre linhas 259-260)
+    # 2. Baseline candidate lança exceção ao ler (cobre linhas 258-259)
     with patch("pathlib.Path.exists", return_value=True), \
          patch("pandas.read_csv", side_effect=Exception("CSV corrompido")):
         report_corrupt = detect_data_drift(current_df=sample_df, baseline_df=None, auto_alert=False)
         assert isinstance(report_corrupt, DataDriftReport)
+
+    # 3. Baseline candidate encontrado com sucesso e lido (cobre linhas 255-257: break)
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("pandas.read_csv", return_value=sample_df):
+        report_found = detect_data_drift(current_df=sample_df, baseline_df=None, auto_alert=False)
+        assert isinstance(report_found, DataDriftReport)
+
 
     # 3. features_to_check customizado (cobre linhas 276-277 e 288-290)
     report_custom = detect_data_drift(
