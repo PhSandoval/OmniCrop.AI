@@ -209,3 +209,42 @@ def get_audit_logs(user_id: str, limit: int = 50, access_token: str | None = Non
         .execute()
     )
     return res.data if hasattr(res, "data") and res.data is not None else []
+
+
+_ALLOWED_INCIDENT_SEVERITIES = ("LOW", "MEDIUM", "HIGH", "CRITICAL")
+
+
+def log_security_incident(
+    user_id: str,
+    incident_type: str,
+    severity: str = "MEDIUM",
+    details: dict | None = None,
+    ip_address: str | None = None,
+    trace_id: str | None = None,
+    access_token: str | None = None,
+) -> dict:
+    """
+    Registra formalmente um incidente de segurança conforme exigência da Diretiva NIS-2 (Artigo 21(2)(b)).
+    Classifica o evento em severidades (LOW, MEDIUM, HIGH, CRITICAL) para triagem e notificação em até 24h/72h.
+    """
+    clean_sev = str(severity).strip().upper()
+    if clean_sev not in _ALLOWED_INCIDENT_SEVERITIES:
+        clean_sev = "MEDIUM"
+
+    incident_payload = {
+        "incident_type": str(incident_type),
+        "severity": clean_sev,
+        "details": details or {},
+    }
+
+    return log_audit_event(
+        user_id=user_id,
+        action=f"SECURITY_INCIDENT_{clean_sev}",
+        entity_type="security_incident",
+        entity_id=None,
+        farm_id=None,
+        details=incident_payload,
+        ip_address=ip_address,
+        trace_id=trace_id,
+        access_token=access_token,
+    )

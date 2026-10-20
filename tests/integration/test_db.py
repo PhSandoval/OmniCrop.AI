@@ -328,3 +328,41 @@ def test_log_audit_event_and_get_audit_logs(mock_cc):
     logs = get_audit_logs("user-123", limit=10, access_token="token_user")
     assert len(logs) == 1
     assert logs[0]["id"] == "audit-1"
+
+
+@patch("src.data.db.create_client")
+def test_log_security_incident_nis2(mock_cc):
+    """Valida registro e classificação de incidentes de segurança conforme NIS-2."""
+    from src.data.db import log_security_incident
+
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+    mock_table.insert.return_value.execute.return_value = MagicMock(data=[{"id": "sec-inc-1"}])
+    mock_cc.return_value = mock_client
+
+    # 1. Severidade válida (CRITICAL)
+    res = log_security_incident(
+        user_id="user_admin",
+        incident_type="AUTH_BRUTE_FORCE",
+        severity="CRITICAL",
+        details={"attempts": 10},
+        ip_address="200.100.50.25",
+        trace_id="sec-trace-1",
+        access_token="adm_tok",
+    )
+    assert res.data[0]["id"] == "sec-inc-1"
+    called_payload = mock_table.insert.call_args[0][0]
+    assert called_payload["action"] == "SECURITY_INCIDENT_CRITICAL"
+    assert called_payload["entity_type"] == "security_incident"
+    assert called_payload["details"]["severity"] == "CRITICAL"
+
+    # 2. Severidade desconhecida -> fallback para MEDIUM
+    log_security_incident(
+        user_id="user_admin",
+        incident_type="SUSPICIOUS_PAYLOAD",
+        severity="UNKNOWN_SEV",
+    )
+    called_payload2 = mock_table.insert.call_args[0][0]
+    assert called_payload2["action"] == "SECURITY_INCIDENT_MEDIUM"
+    assert called_payload2["details"]["severity"] == "MEDIUM"

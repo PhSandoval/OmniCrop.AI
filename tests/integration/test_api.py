@@ -257,6 +257,13 @@ def test_iot_telemetry_ingestion():
     assert res_empty.status_code == 400
     assert "pelo menos uma leitura" in res_empty.json()["detail"]
 
+    # 4. ISA-62443 Anti-Data Poisoning: temperatura de solo biologicamente impossível (> 70°C) -> 422
+    poisoned_payload = dict(telemetry_payload)
+    poisoned_payload["readings"] = [dict(telemetry_payload["readings"][0])]
+    poisoned_payload["readings"][0]["soil_temperature_celsius"] = 999.0
+    res_poison = client.post("/api/v1/telemetry/iot", json=poisoned_payload)
+    assert res_poison.status_code == 422
+
 
 # ── 6. PDF REPORT GENERATION ──────────────────────────────────────────────────
 

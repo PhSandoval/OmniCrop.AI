@@ -23,7 +23,9 @@ class SensorReadingSchema(BaseModel):
     )
     soil_temperature_celsius: float = Field(
         ...,
-        description="Temperatura termométrica do solo (°C)",
+        ge=-20.0,
+        le=70.0,
+        description="Temperatura termométrica do solo (°C) com plausibilidade física agronômica (ISA-62443 FR 3)",
     )
     leaf_wetness_index: float = Field(
         ...,
@@ -38,25 +40,29 @@ class SensorReadingSchema(BaseModel):
     battery_voltage: float = Field(
         default=3.7,
         ge=0.0,
-        description="Nível de tensão da bateria do nodo IoT (Volts)",
+        le=24.0,
+        description="Nível de tensão da bateria do nodo IoT em Volts (ISA-62443 FR 3)",
     )
     rssi_dbm: int = Field(
         default=-75,
-        description="Potência do sinal de rádiofrequência LoRaWAN ou celular (dBm)",
+        ge=-140,
+        le=0,
+        description="Potência do sinal de rádiofrequência LoRaWAN ou celular em dBm (ISA-62443 FR 3)",
     )
 
 
 class IoTTelemetryIngestRequest(BaseModel):
     """Pacote em lote de telemetria de sensores de campo para a Camada Bronze."""
-    device_id: str = Field(..., min_length=2, description="Identificador único de hardware do nodo")
-    talhao_id: str = Field(default="talhao_01", description="Código do talhão agrícola associado")
-    crop_id: str = Field(default="sugarcane", description="Cultura cultivada no talhão")
+    device_id: str = Field(..., min_length=2, max_length=64, description="Identificador único de hardware do nodo")
+    talhao_id: str = Field(default="talhao_01", max_length=64, description="Código do talhão agrícola associado")
+    crop_id: str = Field(default="sugarcane", max_length=32, description="Cultura cultivada no talhão")
     latitude: float = Field(..., ge=-90.0, le=90.0, description="Latitude da estação/sensor")
     longitude: float = Field(..., ge=-180.0, le=180.0, description="Longitude da estação/sensor")
-    firmware_version: str = Field(default="v2.4.1-lmic", description="Versão de firmware embarcado")
+    firmware_version: str = Field(default="v2.4.1-lmic", max_length=32, description="Versão de firmware embarcado")
     readings: List[SensorReadingSchema] = Field(
         default_factory=list,
-        description="Lista de leituras horárias capturadas pelos sensores",
+        max_length=1000,
+        description="Lista de leituras horárias capturadas pelos sensores (limite de DoS ISA-62443 FR 7)",
     )
 
 
