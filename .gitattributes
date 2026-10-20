@@ -1,0 +1,3 @@
+# Linguist overrides para manter o repositório como 99%+ Python (Produção SaaS)
+docs/notebooks/*.ipynb linguist-vendored=true
+*.ipynb linguist-vendored=true
