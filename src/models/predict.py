@@ -4,8 +4,6 @@ import pandas as pd
 from pathlib import Path
 import streamlit as st
 
-API_URL = "http://localhost:8555/predict_ndvi"
-
 FEATURE_KEYS = ['chuva_acumulada_30d', 'chuva_acumulada_60d', 'chuva_acumulada_90d', 'GDA_mensal']
 
 
