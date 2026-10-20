@@ -37,6 +37,7 @@ from src.api.schemas.jobs import (
     CacheStatsResponse,
     CacheClearResponse,
 )
+from src.api.schemas.copilot import CopilotAskRequest, CopilotAskResponse
 
 __all__ = [
     "HealthResponse",
@@ -64,4 +65,6 @@ __all__ = [
     "JobListResponse",
     "CacheStatsResponse",
     "CacheClearResponse",
+    "CopilotAskRequest",
+    "CopilotAskResponse",
 ]

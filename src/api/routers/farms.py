@@ -7,7 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.api.dependencies import AuthContext, get_auth_context
 from src.api.schemas.farm import FarmCreate, FarmResponse, FarmUpdate
 from src.core.crop_config import normalize_crop_id
-from src.data.db import delete_farm, get_user_farms, insert_farm, log_audit_event, update_farm
+from src.data.db import (
+    delete_farm,
+    get_latest_farm_gold_kpi,
+    get_user_farms,
+    insert_farm,
+    log_audit_event,
+    update_farm,
+)
 
 router = APIRouter()
 
@@ -187,3 +194,22 @@ def delete_farm_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Erro ao excluir fazenda: {e}",
         )
+
+
+@router.get(
+    "/farms/{farm_id}/gold-kpis",
+    response_model=Dict[str, Any],
+    summary="Obter os KPIs mais recentes da Camada Ouro para o talhão",
+    description="Retorna indicadores executivos sumarizados (balanço hídrico, veranico, GDA e risco) para consumo por BI corporativo e ERPs.",
+)
+def get_farm_gold_kpis_endpoint(
+    farm_id: str,
+    auth_ctx: AuthContext = Depends(get_auth_context),
+) -> Dict[str, Any]:
+    kpi = get_latest_farm_gold_kpi(farm_id=farm_id, access_token=auth_ctx.access_token)
+    if not kpi:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Nenhum indicador da Camada Ouro encontrado para a fazenda '{farm_id}'.",
+        )
+    return kpi

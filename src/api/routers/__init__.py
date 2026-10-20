@@ -9,6 +9,7 @@ from src.api.routers.reports import router as reports_router
 from src.api.routers.mlops import router as mlops_router
 from src.api.routers.audit import router as audit_router
 from src.api.routers.jobs import router as jobs_router
+from src.api.routers.copilot import router as copilot_router
 
 __all__ = [
     "health_router",
@@ -19,4 +20,5 @@ __all__ = [
     "mlops_router",
     "audit_router",
     "jobs_router",
+    "copilot_router",
 ]

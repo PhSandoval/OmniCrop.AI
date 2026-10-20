@@ -1,4 +1,4 @@
-"""FastAPI client + data loading helpers."""
+import os
 import requests
 import pandas as pd
 from pathlib import Path
@@ -20,6 +20,7 @@ from src.core.crop_config import get_crop_parameters, normalize_crop_id, CROP_RE
 def load_model(crop_id: str = "sugarcane"):
     """
     Carrega dinamicamente o modelo de Machine Learning treinado para a cultura especificada.
+    Suporta busca no Hugging Face Hub (Model Registry) se USE_HF_HUB=1 ou se o arquivo local não existir.
     Se a cultura estiver em fase de treino ou não possuir modelo serializado, levanta NotImplementedError explicativo.
     """
     canon_id = normalize_crop_id(crop_id)
@@ -36,15 +37,23 @@ def load_model(crop_id: str = "sugarcane"):
     specific_path = models_dir / f"{clean_id}_ndvi.pkl"
     default_path = models_dir / "ndvi_model.pkl"
 
-    if specific_path.exists():
-        model_path = specific_path
-    elif clean_id == "sugarcane" and default_path.exists():
-        model_path = default_path
+    use_hf = os.getenv("USE_HF_HUB", "0").lower() in ("1", "true", "yes")
+
+    if use_hf or not specific_path.exists():
+        try:
+            from src.mlops.hf_registry import download_model_from_registry
+            model_path = Path(download_model_from_registry(clean_id, local_dir=str(models_dir)))
+        except Exception:
+            if specific_path.exists():
+                model_path = specific_path
+            elif clean_id == "sugarcane" and default_path.exists():
+                model_path = default_path
+            else:
+                raise NotImplementedError(
+                    f"O modelo preditivo para a cultura '{crop_params.name}' ({clean_id}) está em fase de treino e calibração de dados."
+                )
     else:
-        # Cultura ainda sem modelo treinado em disco
-        raise NotImplementedError(
-            f"O modelo preditivo para a cultura '{crop_params.name}' ({clean_id}) está em fase de treino e calibração de dados."
-        )
+        model_path = specific_path
 
     return joblib.load(model_path)
 

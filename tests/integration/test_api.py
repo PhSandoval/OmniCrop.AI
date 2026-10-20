@@ -561,3 +561,129 @@ def test_cache_stats_and_clear_endpoints():
     with patch("src.api.routers.jobs.log_audit_event", side_effect=Exception("Audit offline")):
         res_clear2 = client.post("/api/v1/cache/clear")
         assert res_clear2.status_code == 200
+
+
+# ── 12. GOLD KPIS & COPILOT ENDPOINTS ─────────────────────────────────────────
+
+def test_get_farm_gold_kpis_endpoint_success_and_not_found():
+    # 1. Sucesso (200)
+    mock_kpi = {
+        "farm_id": "farm-gold-123",
+        "balanco_hidrico_mm": 12.4,
+        "dias_sem_chuva": 2,
+        "gda_total_acumulado": 210.5,
+        "risco_estresse_hidrico": "BAIXO",
+        "recomendacao_manejo": "Condições ideais de desenvolvimento vegetativo.",
+    }
+    with patch("src.api.routers.farms.get_latest_farm_gold_kpi", return_value=mock_kpi):
+        res = client.get("/api/v1/farms/farm-gold-123/gold-kpis")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["farm_id"] == "farm-gold-123"
+        assert data["balanco_hidrico_mm"] == 12.4
+        assert data["risco_estresse_hidrico"] == "BAIXO"
+
+    # 2. Não encontrado (404)
+    with patch("src.api.routers.farms.get_latest_farm_gold_kpi", return_value=None):
+        res_404 = client.get("/api/v1/farms/farm-unknown-999/gold-kpis")
+        assert res_404.status_code == 404
+        assert "Nenhum indicador da Camada Ouro encontrado" in res_404.json()["detail"]
+
+
+def test_copilot_ask_endpoint_gemini_success():
+    payload = {
+        "crop_id": "sugarcane",
+        "farm_name": "Fazenda Santa Lúcia",
+        "question": "Qual a melhor época para adubação de soqueira com base no balanço hídrico?",
+        "farm_id": "farm-uuid-123",
+    }
+    mock_response = MagicMock()
+    mock_response.text = "Recomenda-se realizar a adubação de soqueira aproveitando o solo úmido com balanço positivo de 15mm."
+
+    mock_model = MagicMock()
+    mock_model.generate_content.return_value = mock_response
+
+    with patch("src.api.routers.copilot.get_gemini_api_key", return_value="fake_gemini_key"):
+        with patch("google.generativeai.GenerativeModel", return_value=mock_model):
+            with patch("src.api.routers.copilot.log_audit_event") as mock_audit:
+                res = client.post("/api/v1/copilot/ask", json=payload)
+                assert res.status_code == 200
+                data = res.json()
+                assert data["source"] == "gemini"
+                assert "gemini-2.5-flash" in data["model"]
+                assert "adubação de soqueira" in data["answer"]
+                mock_audit.assert_called_once()
+
+
+def test_copilot_ask_endpoint_gemini_fallback_candidate():
+    payload = {
+        "crop_id": "soybean",
+        "farm_name": "Fazenda Boa Esperança",
+        "question": "Quando irrigar a soja em R3?",
+    }
+    mock_model1 = MagicMock()
+    mock_model1.generate_content.side_effect = Exception("Model 2.5 overloaded")
+
+    mock_response2 = MagicMock()
+    mock_response2.text = "A cultura da soja em estádio R3 necessita de irrigação suplementar para garantir o pegamento de vagens."
+    mock_model2 = MagicMock()
+    mock_model2.generate_content.return_value = mock_response2
+
+    def model_factory(model_name):
+        if "2.5" in model_name:
+            return mock_model1
+        return mock_model2
+
+    with patch("src.api.routers.copilot.get_gemini_api_key", return_value="fake_gemini_key"):
+        with patch("google.generativeai.GenerativeModel", side_effect=model_factory):
+            res = client.post("/api/v1/copilot/ask", json=payload)
+            assert res.status_code == 200
+            data = res.json()
+            assert data["source"] == "gemini"
+            assert "gemini-1.5-flash" in data["model"]
+
+
+def test_copilot_ask_endpoint_gemini_exception_outer_triggers_deterministic_fallback():
+    payload = {
+        "crop_id": "corn",
+        "farm_name": "Sítio Primavera",
+        "question": "Como proceder com a dessecação pré-plantio?",
+        "gold_kpis": {
+            "balanco_hidrico_mm": -15.0,
+            "dias_sem_chuva": 12,
+            "risco_estresse_hidrico": "CRÍTICO",
+        },
+    }
+
+    with patch("src.api.routers.copilot.get_gemini_api_key", return_value="fake_key"):
+        with patch("google.generativeai.configure", side_effect=Exception("API connection refused")):
+            res = client.post("/api/v1/copilot/ask", json=payload)
+            assert res.status_code == 200
+            data = res.json()
+            assert data["source"] == "deterministic_fallback"
+            assert data["model"] == "omnicrop-rule-engine-v1"
+            assert "Priorizar lâmina de irrigação suplementar" in data["answer"]
+            assert "CRÍTICO" in data["answer"]
+
+
+def test_copilot_ask_endpoint_deterministic_fallback_no_api_key_and_audit_exception():
+    payload = {
+        "crop_id": "pasture",
+        "farm_name": "Fazenda Recanto Verde",
+        "question": "Qual a capacidade de suporte recomendada para pastagem no período de chuvas?",
+        "gold_kpis": {
+            "balanco_hidrico_mm": 25.0,
+            "dias_sem_chuva": 0,
+            "risco_estresse_hidrico": "BAIXO",
+        },
+    }
+
+    with patch("src.api.routers.copilot.get_gemini_api_key", return_value=None):
+        with patch("src.api.routers.copilot.log_audit_event", side_effect=Exception("Audit database down")):
+            res = client.post("/api/v1/copilot/ask", json=payload)
+            assert res.status_code == 200
+            data = res.json()
+            assert data["source"] == "deterministic_fallback"
+            assert "Solo em capacidade de campo favorável" in data["answer"]
+            assert "Fazenda Recanto Verde" in data["answer"]
+

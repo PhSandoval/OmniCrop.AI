@@ -1,7 +1,7 @@
 # 🌱 OmniCrop AI
 
 [![CI Status](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/pytest-174%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/pytest-190%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Core Coverage](https://img.shields.io/badge/coverage-100%25%20core-brightgreen?logo=codecov&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
@@ -26,15 +26,15 @@ OmniCrop/
 │
 ├── 📄 app.py                    # 🎨 A VITRINE (Ponto de entrada Streamlit & Painel Geral)
 ├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Fazenda, Assistente)
-├── 📂 components/               # Blocos visuais reutilizáveis (Auth, Header, Gráficos, PDF)
+├── 📂 components/               # Blocos visuais reutilizáveis (Auth, Header, Gráficos, PDF, Landing)
 ├── 📂 assets/                   # Identidade visual, logotipos e temas
 │
 ├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio e Engenharia)
 │   ├── 📂 api/                  # 🚀 Camada REST Headless (FastAPI + Pydantic v2 + Swagger)
 │   │   ├── main.py              # Aplicação principal, CORS e Exception Handlers
 │   │   ├── dependencies.py      # Injeção de dependência e autenticação JWT RLS
-│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /telemetry, /reports, /mlops, /audit, /jobs)
-│   │   └── 📂 schemas/          # Schemas Pydantic v2 estritos de I/O
+│   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /copilot, /telemetry, /reports, /mlops, /audit, /jobs)
+│   │   └── 📂 schemas/          # Schemas Pydantic v2 estritos de I/O (Copilot, Farm, Predict, Jobs, etc.)
 │   ├── 📂 core/                 # Dicionário Biológico, Structured Logging, Cache e Background Jobs
 │   │   ├── cache.py             # Caching Centralizado (Redis + Fallback Resiliente em Memória TTL)
 │   │   ├── jobs.py              # Gerenciador de Background Jobs Assíncronos e Filas em Lote
@@ -44,7 +44,9 @@ OmniCrop/
 │   ├── 📂 data/                 # Conexões (Supabase DB/RLS, Ingestão Azure Medallion, Schemas Pydantic)
 │   ├── 📂 features/             # Engenharia de Features Agronômicas (GDA dinâmico, Balanço Hídrico)
 │   ├── 📂 models/               # Model Routing por cultura, Inferência, Modelos .pkl e Explicabilidade XAI
-│   ├── 📂 mlops/                # Monitoramento de Data Drift (Pop. Stability Index / Kolmogorov-Smirnov)
+│   ├── 📂 mlops/                # Monitoramento de Data Drift e Hugging Face Model Registry
+│   │   ├── data_drift.py        # Pop. Stability Index e Kolmogorov-Smirnov
+│   │   └── hf_registry.py       # Distribuição de Modelos no Hugging Face Hub com Fallback Local
 │   ├── 📂 pipelines/            # Motor Híbrido Polyglot (Pandas Edge & Apache Spark Distribuído)
 │   │   └── 📂 spark/            # Jobs de cluster (Silver, Gold Batch e requirements-spark.txt)
 │   ├── 📂 reports/              # Emissor de Laudos e Pareceres Agronômicos em PDF (FPDF2)
@@ -57,14 +59,14 @@ OmniCrop/
 ├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura
 │   └── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (174 Testes / 100% Cobertura)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (190 Testes / 100% Cobertura)
 │   ├── conftest.py              # Fixtures, mocks e payloads de teste
-│   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo)
-│   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS)
+│   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo, HF Registry)
+│   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS, REST API)
 │   └── 📂 e2e/                  # Testes End-to-End da interface via Streamlit AppTest
 │
-├── 📂 data/                     # 🗄️ Camadas locais do Data Lake (Raw, Interim, Processed, Bronze)
-├── 📂 notebooks/                # 🔬 Cadernos de análise exploratória de dados (EDA)
+├── 🐳 Dockerfile                # 📦 Containerização de Produção Multi-Serviço
+├── 🐙 docker-compose.yml        # 🚀 Orquestração de Containers (API, Streamlit e Redis)
 ├── 📄 pyproject.toml            # ⚙️ Configuração unificada do projeto (Build, Pytest e Coverage 100%)
 └── 📄 requirements.txt          # 📦 Dependências de produção
 ```
@@ -201,6 +203,8 @@ Além da vitrine web em Streamlit, o OmniCrop AI fornece uma **API RESTful de al
 | `POST` | `/api/v1/farms` | Cadastro de nova propriedade com georreferenciamento |
 | `PUT` | `/api/v1/farms/{id}` | Atualização cadastral ou espacial de fazenda |
 | `DELETE` | `/api/v1/farms/{id}` | Exclusão de fazenda |
+| `GET` | `/api/v1/farms/{id}/gold-kpis` | Obter KPIs mais recentes da Camada Ouro (Balanço Hídrico, GDA, Veranico) para consumo BI/ERP |
+| `POST` | `/api/v1/copilot/ask` | Assistente de Manejo Agronômico determinístico e generativo (RAG Grounded + Fallback) |
 | `POST` | `/api/v1/telemetry/iot` | Ingestão de telemetria horária de solo e folha na Camada Bronze da Azure |
 | `POST` | `/api/v1/reports/pdf` | Geração sob demanda do laudo executivo em PDF (stream binário ou Base64) |
 | `GET` | `/api/v1/mlops/drift-status` | Auditoria estatística de Data Drift (Population Stability Index e KS) |
@@ -271,6 +275,54 @@ Para garantir confiabilidade de missão crítica em usinas, cooperativas e grand
   }
   ```
 - **Middleware HTTP:** Injeta e propaga automaticamente o header `X-Trace-ID` em cada requisição e cronometra a latência com precisão de microssegundos.
+
+---
+
+## 🐳 Orquestração de Containers (Docker & Docker Compose)
+
+Para rodar todo o ecossistema corporativo (API Headless + Dashboard Streamlit + Caching Redis) em produção com um único comando:
+
+```bash
+# 1. Subir todos os serviços conteinerizados em background:
+docker compose up -d
+
+# 2. Visualizar logs unificados em tempo real:
+docker compose logs -f
+
+# 3. Acessar as portas mapeadas:
+# - Headless API REST (FastAPI + Swagger): http://localhost:8000/docs
+# - Dashboard Interativo (Streamlit):       http://localhost:8501
+# - Redis Centralizado:                   localhost:6379
+```
+
+---
+
+## 📦 Hugging Face Hub Model Registry (`src/mlops/hf_registry.py`)
+
+Os 5 modelos preditivos calibrados (`sugarcane`, `soybean`, `corn`, `coffee`, `pasture`) contam com governança e versionamento na nuvem via Hugging Face Model Registry (`phsandoval/omnicrop-ndvi-models`):
+
+- **Download sob Demanda:** Com `USE_HF_HUB=1` ou quando um modelo específico não está presente no disco local, o sistema baixa o artefato serializado `.pkl` diretamente do Hub.
+- **Resiliência Offline:** Em caso de oscilação de rede ou execução isolada (air-gapped), o sistema realiza fallback transparente para os artefatos locais.
+- **Publicação Automatizada:** O utilitário `publish_models_to_registry()` orquestra a publicação dos artefatos serializados e gera dinamicamente o `MODEL_CARD.md` com metadados e métricas científicas completas.
+
+---
+
+## 📊 Validação Científica & Benchmarks de Modelos (Cross-Validation Temporal 2024–2026)
+
+Métricas reais de acurácia obtidas no conjunto de teste independente (*out-of-time test set*), sem contaminação do passado (*data leakage*), utilizando o algoritmo `HistGradientBoostingRegressor` com calibração fenológica:
+
+| Cultura | Código | Algoritmo | $R^2$ | MAE | RMSE | Comportamento Fisiológico Modelado |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| 🌾 **Cana-de-Açúcar** | `sugarcane` | HistGradientBoosting | — | **0.0217** | **0.0315** | Alta precisão no monitoramento do ciclo semi-perene e acúmulo de ATR. |
+| 🌿 **Soja** | `soybean` | HistGradientBoosting | **0.8685** | **0.0557** | **0.1122** | Forte correlação no pico vegetativo das fases reprodutivas R1 a R5. |
+| 🌽 **Milho** | `corn` | HistGradientBoosting | **0.7053** | **0.1022** | **0.1460** | Robustez frente à alta volatilidade no pendoamento VT-R1. |
+| ☕ **Café** | `coffee` | HistGradientBoosting | **0.8801** | **0.0254** | **0.0391** | Estabilidade excelente para dossel contínuo de culturas perenes. |
+| 🐄 **Pecuária** | `pasture` | HistGradientBoosting | **0.9674** | **0.0238** | **0.0389** | Precisão superior a 96% na captação do vigor estival da *Brachiaria*. |
+
+> **Nota Metodológica:**
+> - **$R^2$ (Coeficiente de Determinação):** Percentual da variação da biomassa fotossinteticamente ativa que o modelo consegue prever (ex: 96,7% na pastagem e 88,0% no café).
+> - **MAE (Erro Médio Absoluto):** Erro na escala contínua do NDVI (0 a 1). Um MAE de ~0.02 representa um desvio ínfimo de apenas 2 centésimos em relação ao satélite físico Sentinel-2/MODIS.
+> - **Governança Temporal:** Modelos testados rigorosamente em safras subsequentes futuras (2024–2026), garantindo generalização confiável em campo.
 
 ---
 

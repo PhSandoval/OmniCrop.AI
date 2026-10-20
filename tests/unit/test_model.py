@@ -118,9 +118,10 @@ def test_model_missing_file_fallback():
     load_model.clear()
     try:
         with patch("pathlib.Path.exists", return_value=False):
-            with pytest.raises(NotImplementedError) as exc:
-                load_model("sugarcane")
-            assert "fase de treino" in str(exc.value)
+            with patch("src.mlops.hf_registry.download_model_from_registry", side_effect=FileNotFoundError("Not found")):
+                with pytest.raises(NotImplementedError) as exc:
+                    load_model("sugarcane")
+                assert "fase de treino" in str(exc.value)
     finally:
         load_model.clear()
 

@@ -218,15 +218,55 @@ def render_landing_page():
     </div>
     """, unsafe_allow_html=True)
     
-    cc1, cc2, cc3, cc4 = st.columns(4)
+    cc1, cc2, cc3, cc4, cc5 = st.columns(5)
     with cc1: 
-        st.success("🌱 Cana-de-Açúcar (Operacional)")
+        st.success("🌾 Cana-de-Açúcar (Operacional)")
     with cc2: 
-        st.warning("🌾 Soja (Treinando V2.0)")
+        st.success("🌿 Soja (Operacional)")
     with cc3: 
-        st.info("☕ Café (Em Breve)")
+        st.success("🌽 Milho (Operacional)")
     with cc4: 
-        st.info("🐄 Pastagens (Em Breve)")
+        st.success("☕ Café (Operacional)")
+    with cc5: 
+        st.success("🐄 Pastagem (Operacional)")
+        
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("📊 Validação Científica & Métricas de Acerto (Cross-Validation Temporal 2024–2026)", expanded=True):
+        st.markdown("""
+        <p style='color: #cbd5e1; font-size: 14px;'>
+        Métricas de acurácia obtidas no conjunto de teste independente (out-of-time test set) utilizando o algoritmo 
+        <b>HistGradientBoostingRegressor</b> com hiperparâmetros otimizados por cultura:
+        </p>
+        """, unsafe_allow_html=True)
+
+        m_c1, m_c2, m_c3, m_c4, m_c5 = st.columns(5)
+        with m_c1:
+            st.metric(label="🌾 Cana-de-Açúcar", value="MAE 0.0217", delta="RMSE 0.0315")
+            st.caption("Alta precisão no monitoramento do ciclo semi-perene e acúmulo de ATR.")
+        with m_c2:
+            st.metric(label="🌿 Soja", value="R² 0.8685", delta="MAE 0.0557")
+            st.caption("Forte correlação no pico vegetativo das fases reprodutivas R1 a R5.")
+        with m_c3:
+            st.metric(label="🌽 Milho", value="R² 0.7053", delta="MAE 0.1022")
+            st.caption("Robustez frente à alta volatilidade no pendoamento VT-R1.")
+        with m_c4:
+            st.metric(label="☕ Café", value="R² 0.8801", delta="MAE 0.0254")
+            st.caption("Estabilidade excelente para dossel contínuo de culturas perenes.")
+        with m_c5:
+            st.metric(label="🐄 Pecuária", value="R² 0.9674", delta="MAE 0.0238")
+            st.caption("Precisão superior a 96% na captação do vigor estival da Brachiaria.")
+
+        st.markdown("---")
+        st.markdown("""
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+            <h5 style="color: #38bdf8; margin-top: 0; margin-bottom: 8px;">🧠 Notas Metodológicas de Governança e Interpretação dos Indicadores:</h5>
+            <ul style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 0; padding-left: 20px;">
+                <li><b>O que é o R² (Coeficiente de Determinação)?</b> Indica a porcentagem da variação do vigor da biomassa que o modelo explica (ex: 96,7% na pecuária e 88,0% no café).</li>
+                <li><b>O que é o MAE (Erro Médio Absoluto)?</b> Erro médio na escala contínua do NDVI (0 a 1). Um MAE de ~0.02 significa desvio ínfimo de apenas 2 centésimos em relação ao satélite físico Sentinel-2/MODIS.</li>
+                <li><b>Validação Cruzada Temporal (Backtesting Out-of-Time):</b> Modelos avaliados estritamente em safras subsequentes futuras (2024–2026), garantindo ausência total de contaminação cruzada (<i>data leakage</i>) e replicabilidade em campo.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
     st.markdown("---")
     st.markdown("""
@@ -240,6 +280,6 @@ def render_landing_page():
     st.markdown("<br>", unsafe_allow_html=True)
     col_copy, col_links = st.columns(2)
     with col_copy:
-        st.markdown("<p style='color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'>OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>v1.0 (Módulo Cana-de-Açúcar)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'>OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>v2.0 (Plataforma Multi-Culturas: Cana, Soja, Milho, Café e Pecuária)</p>", unsafe_allow_html=True)
     with col_links:
         st.markdown("<p style='text-align: right; color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'><a href='https://www.linkedin.com/in/pedro-sandoval-92bb92261' target='_blank' style='color: #10b981; text-decoration: none;'>LinkedIn</a> • <a href='https://github.com/PhSandoval' target='_blank' style='color: #10b981; text-decoration: none;'>GitHub</a></p>", unsafe_allow_html=True)

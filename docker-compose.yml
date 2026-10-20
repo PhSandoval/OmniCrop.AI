@@ -1,0 +1,72 @@
+version: "3.8"
+
+services:
+  omnicrop-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnicrop-api
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - ENVIRONMENT=production
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_KEY=${SUPABASE_KEY:-}
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - HF_TOKEN=${HF_TOKEN:-}
+      - HF_MODEL_REPO_ID=${HF_MODEL_REPO_ID:-phsandoval/omnicrop-ndvi-models}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - omnicrop-net
+    restart: unless-stopped
+
+  omnicrop-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnicrop-web
+    command: streamlit run app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_KEY=${SUPABASE_KEY:-}
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      - omnicrop-api
+    networks:
+      - omnicrop-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: omnicrop-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - omnicrop-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+
+networks:
+  omnicrop-net:
+    driver: bridge

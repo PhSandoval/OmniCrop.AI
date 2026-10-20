@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from src.api.routers import (
     audit_router,
+    copilot_router,
     farms_router,
     health_router,
     jobs_router,
@@ -58,6 +59,10 @@ app = FastAPI(
         {
             "name": "Background Jobs & Cache",
             "description": "Fila assíncrona de processamento em lote (balanço hídrico, laudos) e gerenciamento de cache centralizado.",
+        },
+        {
+            "name": "Copilot",
+            "description": "Assistente de Manejo Agronômico determinístico e generativo (Grounded RAG).",
         },
     ],
 )
@@ -128,6 +133,7 @@ app.include_router(reports_router, prefix="/api/v1", tags=["Reports"])
 app.include_router(mlops_router, prefix="/api/v1", tags=["MLOps"])
 app.include_router(audit_router, prefix="/api/v1", tags=["Audit"])
 app.include_router(jobs_router, prefix="/api/v1", tags=["Background Jobs & Cache"])
+app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"])
 
 
 if __name__ == "__main__":
