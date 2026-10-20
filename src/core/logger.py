@@ -18,6 +18,24 @@ trace_id_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("tr
 farm_id_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("farm_id", default=None)
 user_id_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("user_id", default=None)
 
+_SENSITIVE_KEY_SUBSTRINGS = ("token", "password", "secret", "api_key", "authorization", "auth_token")
+
+
+def mask_sensitive_payload(data: Any) -> Any:
+    """Mascara recursivamente campos e chaves com dados sensíveis para logs corporativos."""
+    if isinstance(data, dict):
+        masked: Dict[str, Any] = {}
+        for k, v in data.items():
+            k_lower = str(k).lower()
+            if any(sub in k_lower for sub in _SENSITIVE_KEY_SUBSTRINGS):
+                masked[k] = "***"
+            else:
+                masked[k] = mask_sensitive_payload(v)
+        return masked
+    elif isinstance(data, list):
+        return [mask_sensitive_payload(item) for item in data]
+    return data
+
 
 class JSONFormatter(logging.Formatter):
     """Formatador de logs em JSON com enriquecimento automático de metadados e observabilidade."""
@@ -51,9 +69,10 @@ class JSONFormatter(logging.Formatter):
         if latency is not None:
             log_payload["latency_ms"] = round(float(latency), 2)
 
-        # Injeta campos extras customizados
+        # Injeta campos extras customizados com mascaramento de dados sensíveis
         if hasattr(record, "extra_data") and isinstance(record.extra_data, dict):
-            log_payload.update(record.extra_data)
+            masked_extra = mask_sensitive_payload(record.extra_data)
+            log_payload.update(masked_extra)
 
         if record.exc_info:
             log_payload["exception"] = self.formatException(record.exc_info)

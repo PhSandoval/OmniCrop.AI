@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from components.styles import inject_css
 from components.header import render_sidebar, render_page_header
-from src.data.db import get_user_farms, update_farm, update_farm_boundary, delete_farm
+from src.data.db import get_user_farms, update_farm, update_farm_boundary, delete_farm, log_audit_event
 from src.utils.farm_config import save_config, load_config
 from src.data.fetch_api import fetch_farm_data
 from src.models.predict import build_payload, get_prediction
@@ -239,6 +239,18 @@ with col_btn1:
         # Atualiza no Supabase com isolamento RLS
         update_farm(selected_farm["id"], user_id, update_data)
         update_farm_boundary(selected_farm["id"], user_id, new_poly)
+        try:
+            log_audit_event(
+                user_id=user_id,
+                action="UPDATE_FARM_DATA",
+                entity_type="farm",
+                entity_id=str(selected_farm["id"]),
+                farm_id=str(selected_farm["id"]),
+                details={"farm_name": new_name, "area_ha": new_area, "tipo_cultura": new_cult},
+                access_token=st.session_state.get('access_token'),
+            )
+        except Exception:
+            pass
 
         # Atualiza a sessão ativa se a fazenda editada for a atual
         if selected_farm["id"] == cfg.get("id"):
@@ -255,6 +267,18 @@ with col_btn2:
             st.error("Você não pode apagar sua única fazenda cadastrada.")
         else:
             delete_farm(selected_farm["id"], user_id)
+            try:
+                log_audit_event(
+                    user_id=user_id,
+                    action="DELETE_FARM",
+                    entity_type="farm",
+                    entity_id=str(selected_farm["id"]),
+                    farm_id=str(selected_farm["id"]),
+                    details={"farm_name": selected_farm.get("farm_name")},
+                    access_token=st.session_state.get('access_token'),
+                )
+            except Exception:
+                pass
             if selected_farm["id"] == cfg.get("id"):
                 st.session_state["active_farm"] = None
             st.success("Fazenda removida.")

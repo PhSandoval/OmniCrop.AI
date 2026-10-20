@@ -1,4 +1,5 @@
 """Shared sidebar + page header renderer."""
+import html
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -91,9 +92,10 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
     
             cfg = load_config() or {}
             
-            farm_name = cfg.get("farm_name", "Minha Fazenda")
-            city_name = cfg.get("city", "Localização Desconhecida")
-            status_label = status_txt.split("(")[0].strip() if (resultado and status_txt) else "Online" if resultado else "API Offline"
+            farm_name = html.escape(str(cfg.get("farm_name", "Minha Fazenda")))
+            city_name = html.escape(str(cfg.get("city", "Localização Desconhecida")))
+            raw_status = status_txt.split("(")[0].strip() if (resultado and status_txt) else "Online" if resultado else "API Offline"
+            status_label = html.escape(str(raw_status))
             
             html_str = f'''<div style="background:rgba(8,35,10,.55);border:1px solid rgba(100,220,100,.20);border-radius:12px;padding:16px;">
     <div style="font-size:10px;color:rgba(180,230,180,.55);text-transform:uppercase;letter-spacing:.10em;margin-bottom:10px;">Talhão Ativo</div>
@@ -125,17 +127,19 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
 
 
 def render_page_header(title: str, subtitle: str) -> None:
+    safe_title = html.escape(str(title))
+    safe_subtitle = html.escape(str(subtitle))
     st.markdown(f"""
 <div style="display:flex;align-items:baseline;justify-content:space-between;
             margin-bottom:24px;padding-bottom:14px;
             border-bottom:1px solid rgba(105,240,174,.18);">
     <div>
         <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;">
-            {title}
+            {safe_title}
         </div>
         <div style="font-size:12px;color:rgba(180,230,180,.55);margin-top:3px;
                     letter-spacing:.05em;">
-            {subtitle}
+            {safe_subtitle}
         </div>
     </div>
 </div>

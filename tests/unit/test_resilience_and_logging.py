@@ -44,7 +44,11 @@ def test_json_formatter_all_fields():
     record.farm_id = "farm-uuid-456"
     record.user_id = "user-uuid-789"
     record.latency_ms = 45.67
-    record.extra_data = {"custom_metric": 99.9}
+    record.extra_data = {
+        "custom_metric": 99.9,
+        "auth_token": "super_secret_jwt",
+        "nested": {"db_password": "123", "items": [{"api_key": "xyz"}]},
+    }
 
     formatted_str = formatter.format(record)
     parsed = json.loads(formatted_str)
@@ -56,6 +60,9 @@ def test_json_formatter_all_fields():
     assert parsed["user_id"] == "user-uuid-789"
     assert parsed["latency_ms"] == 45.67
     assert parsed["custom_metric"] == 99.9
+    assert parsed["auth_token"] == "***"
+    assert parsed["nested"]["db_password"] == "***"
+    assert parsed["nested"]["items"][0]["api_key"] == "***"
 
 
 def test_json_formatter_context_fallback_and_exception():

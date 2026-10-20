@@ -1,3 +1,4 @@
+import os
 import time
 import uuid
 from fastapi import FastAPI, Request, status
@@ -67,10 +68,16 @@ app = FastAPI(
     ],
 )
 
-# Configuração de CORS para permitir acesso por clientes Web, Mobile e ERPs
+# Configuração de CORS restrita e segura para clientes Web, Mobile e ERPs
+cors_origins_env = os.getenv(
+    "CORS_ORIGINS",
+    "https://omnicropai.streamlit.app,http://localhost:8501,http://127.0.0.1:8501,http://localhost:3000,http://localhost:8000",
+)
+cors_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

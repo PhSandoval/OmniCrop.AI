@@ -406,6 +406,19 @@ def render_main_app():
                 if pdf_bytes:
                     st.session_state[pdf_key] = pdf_bytes
                     st.session_state[flag_key] = False
+                    try:
+                        from src.data.db import log_audit_event
+                        log_audit_event(
+                            user_id=st.session_state['user'].id,
+                            action="EXPORT_PDF_REPORT",
+                            entity_type="report",
+                            entity_id=str(farm_id) if farm_id else None,
+                            farm_id=str(farm_id) if farm_id else None,
+                            details={"farm_name": cfg.get("farm_name"), "city": cfg.get("city")},
+                            access_token=st.session_state.get('access_token'),
+                        )
+                    except Exception:
+                        pass
                     st.rerun()
                 else:
                     # Se falhou (ex: rate limit), apenas reseta a flag e não faz rerun

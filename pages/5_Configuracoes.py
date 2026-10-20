@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from components.styles import inject_css
 from components.header import render_sidebar, render_page_header
 from src.utils.farm_config import save_config, load_config
-from src.data.db import update_farm
+from src.data.db import update_farm, log_audit_event
 from src.data.fetch_api import fetch_farm_data
 from src.models.predict import build_payload, get_prediction
 
@@ -63,6 +63,18 @@ with col_pref:
                 }
                 try:
                     update_farm(cfg["id"], st.session_state['user'].id, update_data_db)
+                    try:
+                        log_audit_event(
+                            user_id=st.session_state['user'].id,
+                            action="UPDATE_ALERT_THRESHOLDS",
+                            entity_type="farm_config",
+                            entity_id=str(cfg["id"]),
+                            farm_id=str(cfg["id"]),
+                            details=update_data_db,
+                            access_token=st.session_state.get('access_token'),
+                        )
+                    except Exception:
+                        pass
                     
                     cfg.update(update_data_db)
                     cfg["receber_alertas"] = receber_alertas
