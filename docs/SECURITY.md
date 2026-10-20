@@ -20,10 +20,9 @@ Apenas a versão ativa na branch `main` e em execução no ambiente de produçã
 
 Se você identificou uma potencial falha de segurança no OmniCrop AI:
 
-1. **Não abra uma issue pública** no GitHub com detalhes que possam comprometer a segurança dos dados ou da aplicação.
-2. Utilize o canal de **Private Vulnerability Reporting** do próprio GitHub neste repositório ou envie um e-mail com os detalhes técnicos e passos de reprodução (PoC) para:  
-   📬 **`pedro.sandoval@alumni.usp.br`**
-3. Avaliaremos o reporte o mais breve possível para investigar e aplicar as correções necessárias.
+1. **Não abra uma issue pública** no GitHub com detalhes que possam expor o projeto.
+2. Utilize a funcionalidade nativa de **[Private Vulnerability Reporting](https://github.com/PhSandoval/OmniCrop.AI/security/advisories/new)** na aba *Security* deste repositório no GitHub para enviar os detalhes técnicos e passos de reprodução (PoC) de forma confidencial.
+3. Avaliaremos o relato e aplicaremos as correções necessárias diretamente na branch principal.
 
 > **Importante:** Por favor, realize testes de forma ética e responsável, sem executar ataques de negação de serviço (DoS/DDoS) e sem tentar acessar ou adulterar dados de outros usuários.
 
