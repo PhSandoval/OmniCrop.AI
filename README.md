@@ -1,15 +1,25 @@
 # 🌱 OmniCrop AI
 
 [![CI Status](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/pytest-190%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/pytest-193%20passed-brightgreen?logo=pytest&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
 [![Core Coverage](https://img.shields.io/badge/coverage-100%25%20core-brightgreen?logo=codecov&logoColor=white)](https://github.com/PhSandoval/OmniCrop.AI/actions/workflows/ci.yml)
+[![Compliance](https://img.shields.io/badge/compliance-NIS--2%20%7C%20ISA--62443-blue?logo=shield&logoColor=white)](docs/SECURITY.md)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Cloud](https://img.shields.io/badge/Azure-Data%20Lake%20Medallion-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Live%20App-FF4B4B?logo=streamlit&logoColor=white)](https://omnicropai.streamlit.app)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-informational)](https://blog.cleancoder.com/)
 
-OmniCrop AI é um **Sistema de Suporte à Decisão (DSS)** voltado para a gestão inteligente de culturas agrícolas. Suporta múltiplas culturas (Cana-de-Açúcar, Soja, Milho, Café e Pastagem), funcionando como um agrônomo virtual que monitora lavouras e fornece recomendações preditivas para operações de campo.
+OmniCrop AI é um **SaaS de Inteligência Agronômica e Sistema de Suporte à Decisão (DSS)** de missão crítica para o agronegócio de precisão. Suporta 5 culturas agrícolas com calibração biofísica e modelos dedicados (**Cana-de-Açúcar, Soja, Milho, Café e Pecuária/Pastagem**), funcionando como um agrônomo virtual com rigor científico que monitora lavouras e fornece recomendações preditivas operacionais em tempo real.
 
-A aplicação consolida dados climáticos em tempo real, modelos de Machine Learning (`HistGradientBoostingRegressor`) para estimativa de vigor vegetativo (NDVI), Inteligência Artificial Generativa (Google Gemini) para gerar pareceres executivos e Engenharia de Dados Serverless na nuvem com **Arquitetura Medalhão no Azure Blob Storage** (Bronze, Silver e Gold).
+A plataforma unifica:
+- **Satélite Virtual Preditivo:** Modelos de Machine Learning (`HistGradientBoostingRegressor`) para projeção do vigor vegetativo (NDVI) sem depender de passagens orbitais sujeitas a nuvens;
+- **Arquitetura Medalhão no Azure Blob Storage:** Ingestão climática contínua e telemetria IoT particionada em camadas Bronze, Silver e Gold;
+- **Explicabilidade Matemática (XAI Waterfall):** Decomposição marginal do impacto isolado de cada variável meteorológica na tomada de decisão;
+- **Copilot Agronômico Generativo:** RAG Grounded em dados da Camada Ouro com Google Gemini e fallback heurístico offline;
+- **Headless REST API (FastAPI):** Microsserviços assíncronos com documentação Swagger interativa para integração com ERPs (TOTVS, SAP) e telemetria de máquinas agrícolas;
+- **Conformidade Internacional:** Proteção em camadas (*Defense-in-Depth*) atendendo às normas **NIS-2 (Diretiva UE 2022/2555)** e **ISA-62443 / IEC 62443** (Cibersegurança Industrial & IoT).
+
+👉 **Acesse a aplicação em produção:** [omnicropai.streamlit.app](https://omnicropai.streamlit.app)
 
 ---
 
@@ -20,26 +30,26 @@ O repositório está estruturado no padrão **Clean Architecture**, isolando tot
 ```text
 OmniCrop/
 │
-├── 📂 .github/workflows/        # ☁️ Orquestração Serverless (CI/CD)
-│   ├── ci.yml                   # Pipeline de CI com Gate estrito de 100% de Cobertura
+├── 📂 .github/workflows/        # ☁️ Orquestração Serverless & CI/CD
+│   ├── ci.yml                   # Pipeline de CI com Gate estrito de 100% de Cobertura e SCA pip-audit
 │   └── ingest_weather_azure.yml # Ingestão Diária Medallion na Azure e MLOps
 │
 ├── 📄 app.py                    # 🎨 A VITRINE (Ponto de entrada Streamlit & Painel Geral)
-├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Fazenda, Assistente)
-├── 📂 components/               # Blocos visuais reutilizáveis (Auth, Header, Gráficos, PDF, Landing)
+├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Minha Fazenda, Configurações, Assistente)
+├── 📂 components/               # Blocos visuais reutilizáveis (Auth, Header, Gráficos, PDF, Landing, Styles)
 ├── 📂 assets/                   # Identidade visual, logotipos e temas
 │
 ├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio e Engenharia)
 │   ├── 📂 api/                  # 🚀 Camada REST Headless (FastAPI + Pydantic v2 + Swagger)
-│   │   ├── main.py              # Aplicação principal, CORS e Exception Handlers
+│   │   ├── main.py              # Aplicação principal, CORS restrito e Structured Logging
 │   │   ├── dependencies.py      # Injeção de dependência e autenticação JWT RLS
 │   │   ├── 📂 routers/          # Endpoints (/health, /predict, /farms, /copilot, /telemetry, /reports, /mlops, /audit, /jobs)
-│   │   └── 📂 schemas/          # Schemas Pydantic v2 estritos de I/O (Copilot, Farm, Predict, Jobs, etc.)
+│   │   └── 📂 schemas/          # Schemas Pydantic v2 com validação física anti-tampering (ISA-62443 FR 3)
 │   ├── 📂 core/                 # Dicionário Biológico, Structured Logging, Cache e Background Jobs
 │   │   ├── cache.py             # Caching Centralizado (Redis + Fallback Resiliente em Memória TTL)
 │   │   ├── jobs.py              # Gerenciador de Background Jobs Assíncronos e Filas em Lote
 │   │   ├── crop_config.py       # Registro biológico (Cana, Soja, Milho, Café, Pecuária)
-│   │   ├── logger.py            # Structured Logging (JSON) com trace_id e latência
+│   │   ├── logger.py            # Structured Logging (JSON) com mascaramento de segredos e trace_id
 │   │   └── resilience.py        # Circuit Breakers (pybreaker) para Open-Meteo, Gemini e Azure
 │   ├── 📂 data/                 # Conexões (Supabase DB/RLS, Ingestão Azure Medallion, Schemas Pydantic)
 │   ├── 📂 features/             # Engenharia de Features Agronômicas (GDA dinâmico, Balanço Hídrico)
@@ -56,10 +66,12 @@ OmniCrop/
 │   ├── simulate_iot_sensors.py  # Simulador de Telemetria de Sensores de Campo (Solo e Folha)
 │   └── 📂 sql/                  # DDL de Banco de Dados (Supabase PostgreSQL + PostGIS + RLS + Audit)
 │
-├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura
-│   └── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
+├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura e Governança
+│   ├── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
+│   ├── SECURITY.md              # Política de Segurança e Divulgação Coordenada (NIS-2 & ISA-62443)
+│   └── 📂 notebooks/            # Notebooks de pesquisa e exploração de dados (Linguist Vendored)
 │
-├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (190 Testes / 100% Cobertura)
+├── 📂 tests/                    # 🛡️ Pirâmide de Testes Automatizados (193 Testes / 100% Cobertura)
 │   ├── conftest.py              # Fixtures, mocks e payloads de teste
 │   ├── 📂 unit/                 # Testes unitários (Features, Modelos, XAI, DSS, Drift, IoT, Geo, HF Registry)
 │   ├── 📂 integration/          # Testes de integração (Contratos Pydantic, Azure Blob Storage, DB RLS, REST API)
@@ -68,17 +80,18 @@ OmniCrop/
 ├── 🐳 Dockerfile                # 📦 Containerização de Produção Multi-Serviço
 ├── 🐙 docker-compose.yml        # 🚀 Orquestração de Containers (API, Streamlit e Redis)
 ├── 📄 pyproject.toml            # ⚙️ Configuração unificada do projeto (Build, Pytest e Coverage 100%)
-└── 📄 requirements.txt          # 📦 Dependências de produção
+├── 📄 requirements.txt          # 📦 Dependências enxutas de produção (Streamlit Cloud)
+└── 📄 requirements-dev.txt      # 📦 Dependências completas de desenvolvimento, API e testes
 ```
 
 ### 🛠 Stack Tecnológica
-- **A Vitrine (Frontend) & GenAI:** Streamlit (UI), Supabase (PostgreSQL + RLS), Google Gemini Pro.
+- **A Vitrine (Frontend) & GenAI:** Streamlit 1.64 (UI), Supabase (PostgreSQL + PostGIS + RLS), Google Gemini 1.5/2.5/3.6 Flash.
 - **Engenharia de Dados (A Fábrica Medalhão):** 
   - **Azure Blob Storage:** Contêineres `omnicrop-data-lake-bronze` (JSON bruto particionado), `omnicrop-data-lake-silver` (Parquet enriquecido) e `omnicrop-data-lake-gold` (KPIs executivos agregados).
   - **Orquestração Serverless:** GitHub Actions (Pipelines automatizados de CI/CD e ingestão climática diária).
   - **Processamento Colunar:** `pandas` e `pyarrow`.
 - **Inteligência Preditiva & XAI:** `HistGradientBoostingRegressor` (Scikit-Learn), Decomposição Marginal e Gráficos Waterfall para Explicabilidade de Decisão. 
-- **Garantia de Qualidade & MLOps:** `pytest` (135/135 testes passando, 100% de cobertura no Core), `Pydantic` (Contratos de Dados na camada Bronze), `unittest.mock` (Resiliência contra falhas de I/O e rede).
+- **Garantia de Qualidade & MLOps:** `pytest` (**193/193 testes passando, 100.0% de cobertura estrita**), `pip-audit` (SCA contra CVEs), `Pydantic v2` (Contratos de Dados na camada Bronze e Telemetria IoT), `unittest.mock` (Resiliência contra falhas de I/O e rede).
 
 
 ---
@@ -119,22 +132,27 @@ O OmniCrop AI adota a **Arquitetura Medalhão** corporativa na nuvem Azure:
 
 ---
 
-## 🛡️ Pirâmide de Testes MLOps (Qualidade Blindada)
+## 🛡️ Pirâmide de Testes MLOps (Qualidade Blindada - 193 Testes / 100% Cobertura)
 
-O projeto implementa uma esteira completa de validação com **19 testes automatizados** em 3 camadas independentes:
+O projeto implementa uma esteira completa de validação contínua com **193 testes automatizados** e **100.0% de cobertura estrita de código** (`--cov-fail-under=100`) em todas as camadas de lógica de negócio (`src/`) e utilitários (`scripts/`):
 
-1. **Testes de Contrato e Qualidade de Dados (`tests/integration/test_data.py`):**
-   - Validação estrita de contratos via **Pydantic** (`src/data/schemas.py`) para inspecionar payloads da Open-Meteo antes de gravar na nuvem.
-   - Bloqueio automático de payloads corrompidos ou com chaves faltantes (`precipitation_sum`).
-   - Mocks de resiliência HTTP 500 para evitar injeção de dados corrompidos caso APIs externas fiquem fora do ar.
-   - Validação da transformação da esteira **Silver** (`test_transform_to_silver_pipeline`).
-   - Validação da agregação e regras de decisão da esteira **Gold** (`test_transform_to_gold_pipeline`).
-2. **Testes Unitários de Motor (`tests/unit/`):**
-   - `test_features.py`: Validação matemática de Graus-Dia Acumulados (GDA) e janelas de chuva (30d, 60d, 90d).
-   - `test_model.py`: Testes de stress sintético, integridade do regressor de NDVI e algoritmo de explicabilidade XAI (`test_xai_explain_prediction_delta`).
-   - `test_dss.py`: Validação das regras de negócio agronômico e despacho de alertas operacionais (`test_dispatch_operational_alerts`).
-3. **Testes End-to-End de Interface (`tests/e2e/test_ui.py`):**
-   - Simulação de cliques, rotas e estados de sessão do Streamlit usando o framework nativo `AppTest` sem necessidade de navegador aberto.
+1. **Testes Unitários de Motor (`tests/unit/` - 14 suítes / ~130 testes):**
+   - `test_model.py`: Testes de stress sintético, integridade dos 5 regressores de NDVI e algoritmo de explicabilidade XAI Waterfall (`test_xai_explain_prediction_delta`).
+   - `test_features.py`: Validação matemática de Graus-Dia Acumulados (GDA dinâmico por cultura) e janelas de chuva acumulada (30d, 60d, 90d).
+   - `test_dss.py`: Regras de negócio agronômico, zoneamento agroclimático e despacho seguro de alertas operacionais (`test_dispatch_operational_alerts`).
+   - `test_cache_and_jobs.py`: Cache híbrido geocodificado (Redis + Memória TTL) e orquestração de background jobs assíncronos.
+   - `test_resilience_and_logging.py`: Circuit breakers (`pybreaker`), Structured Logging em JSON com mascaramento de segredos e trace_id.
+   - `test_data_drift.py`: Monitoramento estatístico de drift populacional (PSI e Kolmogorov-Smirnov) com alertas de degradação de modelo.
+   - `test_hf_registry.py`: Versionamento, download sob demanda e fallback offline com Hugging Face Hub Model Registry.
+   - `test_geo.py` & `test_farm_config.py`: Validação de georreferenciamento, centroides espaciais, polígonos GeoJSON e sanitização anti-XSS.
+   - `test_iot_simulator.py`: Ingestão sintética de solo/folha e validação física anti-tampering (ISA-62443 FR 3).
+   - `test_pdf_generator.py`: Compilação binária de laudos executivos com gráficos e parecer técnico.
+2. **Testes de Integração e Contrato (`tests/integration/` - ~60 testes):**
+   - `test_data.py`: Contratos Pydantic de dados climáticos da Open-Meteo, bloqueio de payloads corrompidos e esteiras Azure Medallion (Silver Parquet e Gold KPIs).
+   - `test_db.py`: Persistência relacional no Supabase PostgreSQL, controle Multi-Tenant com RLS (Row-Level Security) e trilha de auditoria LGPD/GDPR.
+   - `test_api.py`: Cobertura completa de todos os endpoints RESTful FastAPI (Health, Predict, Farms, Copilot, Telemetry, Reports, MLOps, Audit, Jobs, Cache) com autenticação JWT e validação de schemas Pydantic v2.
+3. **Testes End-to-End e Interface (`tests/e2e/test_ui.py`):**
+   - Simulação de cliques, rotas, persistência de cookies e ciclos de vida do Streamlit usando o framework nativo `AppTest` sem necessidade de abrir navegador.
 
 ---
 
@@ -170,18 +188,24 @@ O que gestores, produtores e engenheiros agrônomos encontram no sistema:
 - Renderização de mapas, dashboards analíticos e laudos executivos.
 - Integração do modelo de Machine Learning base e Google Gemini.
 
-**✅ Fase 2: Cloud Data Engineering e MLOps (Concluída)**
+**✅ Fase 2: Cloud Data Engineering, MLOps & Conformidade Corporativa (Concluída)**
 - Migração para arquitetura **Clean Architecture** e deploy contínuo no Streamlit Cloud.
 - Implantação da esteira Medallion completa no **Azure Blob Storage** (`omnicrop-data-lake-bronze`, `silver` e `gold`).
-- Pirâmide de Testes automatizada (Unit, Integration, E2E) com 19 testes validados.
-- Contratos de dados estritos com **Pydantic** e proteção de resiliência via **Mocks**.
-- Implementação de Explicabilidade de Decisão (XAI Waterfall) e Alertas Proativos por Webhook.
-- **Camada de API RESTful Headless** em FastAPI (`src/api/`) com Pydantic v2, Swagger UI e 144 testes automatizados com 100% de cobertura.
+- **Pirâmide de Testes Automatizada:** **193 testes validados com 100.0% de cobertura estrita**.
+- Contratos de dados estritos com **Pydantic v2** e proteção de resiliência via **Mocks**.
+- Implementação de Explicabilidade de Decisão (XAI Waterfall) e Alertas Proativos por Webhook com mitigação SSRF.
+- **Camada de API RESTful Headless** em FastAPI (`src/api/`) com Pydantic v2, Swagger UI, JWT RLS e background jobs assíncronos.
+- **Conformidade com Normas Internacionais (NIS-2 & ISA-62443):**
+  - Auditoria contínua de supply chain com `pip-audit` no CI;
+  - Política de Divulgação Coordenada de Vulnerabilidades (CVD) e matriz CVSS em [`docs/SECURITY.md`](docs/SECURITY.md);
+  - Validação de integridade física em telemetria IoT (temperatura, tensão, RSSI) anti-tampering (ISA-62443 FR 3);
+  - Trilha de auditoria LGPD/GDPR imutável (`audit_logs`) e registro de incidentes de segurança;
+  - Defesa contra Stored XSS com sanitização HTML em cabeçalhos e configurações.
 
-**⏳ Fase 3: IoT Ground Truth & MLOps Avançado (Planejada)**
-- Expansão do Data Lake via orquestração MQTT.
-- Coleta primária via Tensiômetros e Termometria Infravermelha no dossel da lavoura.
-- Retreinamento contínuo do modelo utilizando dados Ground Truth.
+**⏳ Fase 3: IoT Ground Truth & MLOps em Escala Industrial (Planejada)**
+- Expansão do Data Lake via orquestração MQTT em tempo real.
+- Ingestão contínua de tensiômetros e termometria infravermelha no dossel da lavoura.
+- Pipeline de retreinamento contínuo automatizado com dados Ground Truth coletados no campo.
 
 ---
 
@@ -278,6 +302,29 @@ Para garantir confiabilidade de missão crítica em usinas, cooperativas e grand
 
 ---
 
+## 🔒 Cibersegurança & Conformidade (NIS-2 & ISA-62443)
+
+O OmniCrop AI implementa uma arquitetura de segurança em profundidade (*Defense-in-Depth*), alinhada aos padrões europeus e internacionais de infraestrutura crítica e automação agroindustrial:
+
+### 1. 🇪🇺 Diretiva NIS-2 (UE 2022/2555) — Gestão de Riscos & Supply Chain
+- **Auditoria Contínua de Dependências (SCA):** Verificação automatizada no pipeline de CI com `pip-audit`, bloqueando vulnerabilidades conhecidas (CVEs) em bibliotecas antes de qualquer deploy.
+- **Divulgação Coordenada de Vulnerabilidades (CVD):** Política pública de reporte e SLAs rígidos estabelecidos em [`docs/SECURITY.md`](docs/SECURITY.md):
+  - **Aviso prévio e triagem:** Notificação inicial em até **24 horas**;
+  - **Relatório conclusivo e mitigação:** Resolução e divulgação coordenada em até **72 horas**.
+- **Governança & Trilha de Auditoria LGPD/GDPR:** Registro imutável de eventos operacionais críticos (`log_audit_event`) e persistência estruturada de incidentes em `security_incident_logs`.
+
+### 2. 🏭 Norma ISA-62443 / IEC 62443 — Segurança em Automação & IoT
+- **Validação Física Anti-Tampering (FR 3 - System Integrity):** Regras estritas nos schemas Pydantic (`TelemetryPayload`) para telemetria IoT de campo, rejeitando injeções de dados sintéticos forjados fora de limites termodinâmicos e elétricos reais:
+  - Temperatura do Solo: entre `-20.0 °C` e `70.0 °C`;
+  - Tensão da Bateria: entre `0.0 V` e `24.0 V`;
+  - Sinal de Rádio (RSSI): entre `-140.0 dBm` e `0.0 dBm`;
+  - Lote máximo por requisição: `1.000 leituras`.
+- **Mitigação Estrita de SSRF (Server-Side Request Forgery):** Resolução prévia de DNS e bloqueio determinístico de endereços IP privados, de loopback e link-local (`ipaddress.is_private`) nos despachos de webhooks de alerta (`src/utils/daily_alerts.py`).
+- **Defesa contra Injeção & Stored XSS:** Sanitização com `html.escape()` na exibição de dados de fazendas e nomes de usuários, isolamento criptográfico via Row-Level Security (RLS) no PostgreSQL e validação regex de formatos de entrada.
+- **Mascaramento de Segredos em Logs:** O formatador estruturado `StructuredJsonFormatter` ofusca chaves sensíveis (`password`, `token`, `secret`, `api_key`) com hashes `***REDACTED***` automaticamente.
+
+---
+
 ## 🐳 Orquestração de Containers (Docker & Docker Compose)
 
 Para rodar todo o ecossistema corporativo (API Headless + Dashboard Streamlit + Caching Redis) em produção com um único comando:
@@ -338,17 +385,24 @@ python3 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # 3. Instale as dependências
+# Para execução da vitrine em produção (Streamlit Cloud):
 pip install -r requirements.txt
+
+# Para desenvolvimento completo (API FastAPI, suíte de 193 testes com 100% de cobertura e auditoria SCA):
+pip install -r requirements-dev.txt
 
 # 4. Configure as variáveis de ambiente (.env ou .streamlit/secrets.toml)
 # Requer: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY, AZURE_CONNECTION_STRING
 
-# 5. Execute a suíte completa de testes com gate estrito de 100% de cobertura
+# 5. Auditoria de vulnerabilidades em dependências (NIS-2 Supply Chain)
+pip-audit -r requirements.txt --desc
+
+# 6. Execute a suíte completa de testes com gate estrito de 100% de cobertura (193 testes)
 pytest --cov=src --cov=scripts --cov-fail-under=100 -v
 
-# 6. Inicie a API RESTful Headless (FastAPI)
+# 7. Inicie a API RESTful Headless (FastAPI)
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
-# 7. Inicie a aplicação Web (Streamlit)
+# 8. Inicie a aplicação Web (Streamlit)
 streamlit run app.py
 ```
