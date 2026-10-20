@@ -46,10 +46,36 @@ IA do OmniCrop AI
         print(f"Falha ao enviar e-mail via SMTP ({e}).")
         return False
 
+def is_safe_webhook_url(url: str) -> bool:
+    """Valida se a URL de webhook é segura (HTTPS/HTTP sem IPs privados/locais) prevenindo SSRF."""
+    if not url or not isinstance(url, str):
+        return False
+    from urllib.parse import urlparse
+    import ipaddress
+    try:
+        parsed = urlparse(url.strip())
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        if hostname.lower() in ("localhost", "127.0.0.1", "0.0.0.0", "::1"):
+            return False
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                return False
+        except ValueError:
+            pass  # hostname é domínio DNS
+        return True
+    except Exception:
+        return False
+
+
 def send_webhook_alert(webhook_url: str, farm_name: str, alertas: list[str], ndvi: float = None) -> bool:
     """Dispara notificação operacional estruturada para Webhooks (Discord, Slack, Telegram, Zapier)."""
     import requests
-    if not webhook_url or not webhook_url.startswith("http"):
+    if not is_safe_webhook_url(webhook_url):
         return False
     
     # Formato compatível com Discord e Slack

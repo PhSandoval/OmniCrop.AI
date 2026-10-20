@@ -84,11 +84,23 @@ def test_send_alert_email_smtp_success_and_failure(monkeypatch):
 def test_webhook_alerts_and_dispatch_edge_cases():
     """Valida casos de borda do despachante e formatos Discord vs Genérico."""
     from unittest.mock import patch, MagicMock
-    from src.utils.daily_alerts import send_webhook_alert, dispatch_alert
+    from src.utils.daily_alerts import send_webhook_alert, dispatch_alert, is_safe_webhook_url
 
-    # 1. URL vazia ou inválida
+    # 1. URL vazia ou inválida ou SSRF privada
     assert send_webhook_alert("", "Fazenda", ["Alerta"]) is False
     assert send_webhook_alert("ftp://invalid-url", "Fazenda", ["Alerta"]) is False
+    assert is_safe_webhook_url("") is False
+    assert is_safe_webhook_url(123) is False
+    assert is_safe_webhook_url("http://") is False
+    assert is_safe_webhook_url("http://localhost:8080/hook") is False
+    assert is_safe_webhook_url("http://127.0.0.1:8000/api") is False
+    assert is_safe_webhook_url("http://192.168.1.10/api") is False
+    assert is_safe_webhook_url("http://10.0.0.1/hook") is False
+    assert is_safe_webhook_url("http://169.254.169.254/latest/meta-data/") is False
+    assert is_safe_webhook_url("https://discord.com/api/webhooks/123") is True
+    # Força exceção em is_safe_webhook_url para cobrir bloco except
+    with patch("urllib.parse.urlparse", side_effect=Exception("URL parse failure")):
+        assert is_safe_webhook_url("https://qualquer-coisa.com") is False
 
     # 2. Destino vazio no dispatch_alert
     res_empty = dispatch_alert("", "Fazenda", ["Alerta"])

@@ -67,11 +67,26 @@ if 'user' not in st.session_state:
         
         if access_token and refresh_token:
             from src.data.db import get_supabase
-            res = get_supabase().auth.set_session(access_token, refresh_token)
+            sb = get_supabase()
+            res = None
+            try:
+                res = sb.auth.set_session(access_token, refresh_token)
+            except Exception:
+                try:
+                    res = sb.auth.refresh_session(refresh_token)
+                except Exception:
+                    res = None
+
             if res and getattr(res, 'user', None):
                 st.session_state['user'] = res.user
                 st.session_state['access_token'] = res.session.access_token
-    except Exception as e:
+                try:
+                    controller.set('sb-access-token', res.session.access_token, max_age=86400 * 30)
+                    if hasattr(res.session, 'refresh_token') and res.session.refresh_token:
+                        controller.set('sb-refresh-token', res.session.refresh_token, max_age=86400 * 30)
+                except Exception:
+                    pass
+    except Exception:
         pass
 
 if 'active_farm' not in st.session_state:

@@ -196,17 +196,25 @@ def test_insert_farm_with_and_without_boundary(mock_get_sb):
     mock_client.table.return_value = mock_table
     mock_get_sb.return_value = mock_client
 
-    # 1. Com boundary_geojson explícito
-    insert_farm("u1", "Fazenda A", "Ribeirão", -21.1, -47.8, boundary_geojson={"type": "Polygon", "coordinates": []})
-    assert mock_table.insert.called
+    # 1. Com boundary_geojson explícito e cultura soja
+    insert_farm("u1", "Fazenda A", "Ribeirão", -21.1, -47.8, tipo_cultura="Soja", boundary_geojson={"type": "Polygon", "coordinates": []})
+    args1, _ = mock_table.insert.call_args
+    assert args1[0]["variedade"] == "TMG 7062 (Soja)"
+    assert args1[0]["crop_id"] == "soybean"
 
-    # 2. Sem boundary_geojson (autogerado via generate_parcel_polygon)
-    insert_farm("u1", "Fazenda B", "Sertãozinho", -21.1, -47.8, boundary_geojson=None)
+    # 2. Sem boundary_geojson (autogerado via generate_parcel_polygon) e variedade customizada
+    insert_farm("u1", "Fazenda B", "Sertãozinho", -21.1, -47.8, boundary_geojson=None, variedade="Variedade Especial")
+    args2, _ = mock_table.insert.call_args
+    assert args2[0]["variedade"] == "Variedade Especial"
     assert mock_table.insert.call_count == 2
 
-    # 3. Sem boundary_geojson e generate_parcel_polygon falha (cobre linhas 70-71)
+    # 3. Sem boundary_geojson e generate_parcel_polygon falha (cobre fallback de polígono e sanitização)
     with patch("src.utils.geo.generate_parcel_polygon", side_effect=Exception("Polygon err")):
-        insert_farm("u1", "Fazenda C", "Franca", -21.1, -47.8, boundary_geojson=None)
+        insert_farm("u1", "", None, -21.1, -47.8, area_ha=None, boundary_geojson=None)
+    args3, _ = mock_table.insert.call_args
+    assert args3[0]["farm_name"] == "Talhão Sem Nome"
+    assert args3[0]["city"] == "Não informado"
+    assert args3[0]["area_ha"] == 100.0
     assert mock_table.insert.call_count == 3
 
 
@@ -223,8 +231,13 @@ def test_update_and_delete_farm(mock_get_sb):
     update_farm_boundary("f1", "u1", {"type": "Polygon"})
     mock_table.update.assert_called_with({"boundary_geojson": {"type": "Polygon"}})
 
-    update_farm("f1", "u1", {"farm_name": "Novo Nome", "tipo_cultura": "Soja"})
+    update_farm("f1", "u1", {"farm_name": "  Novo Nome  ", "city": "  Ribeirão  ", "area_ha": 250.0, "tipo_cultura": "Soja"})
     mock_table.update.assert_called()
+    update_args, _ = mock_table.update.call_args
+    assert update_args[0]["farm_name"] == "Novo Nome"
+    assert update_args[0]["city"] == "Ribeirão"
+    assert update_args[0]["area_ha"] == 250.0
+    assert update_args[0]["crop_id"] == "soybean"
 
     delete_farm("f1", "u1")
     mock_table.delete.assert_called()

@@ -58,27 +58,44 @@ def get_user_farms(user_id, access_token=None):
     except Exception:
         return farms
 
-def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", area_ha=100, boundary_geojson=None, access_token=None, crop_id=None):
+# Variedade/cultivar padrão por cultura — evita hardcoding de RB867515 para não-cana
+_DEFAULT_VARIETY_BY_CROP: dict = {
+    "sugarcane": "RB867515 (Cana)",
+    "soybean": "TMG 7062 (Soja)",
+    "corn": "DKB 390 (Milho)",
+    "coffee": "Catuaí Vermelho 144 (Café)",
+    "pasture": "Brachiaria brizantha cv. Marandu (Pecuária)",
+}
+
+
+def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúcar", area_ha=100, boundary_geojson=None, access_token=None, crop_id=None, variedade=None):
     supabase = get_supabase(access_token)
     from src.core.crop_config import normalize_crop_id
     resolved_crop_id = crop_id or normalize_crop_id(tipo_cultura)
 
+    clean_name = str(farm_name).strip()[:120] if farm_name else "Talhão Sem Nome"
+    clean_city = str(city).strip()[:100] if city else "Não informado"
+    clean_area = max(0.1, min(1_000_000.0, float(area_ha))) if area_ha is not None else 100.0
+
     if boundary_geojson is None:
         try:
             from src.utils.geo import generate_parcel_polygon
-            boundary_geojson = generate_parcel_polygon(lat, lon, area_ha)
+            boundary_geojson = generate_parcel_polygon(lat, lon, clean_area)
         except Exception:
             boundary_geojson = None
 
+    default_variety = _DEFAULT_VARIETY_BY_CROP.get(resolved_crop_id, "RB867515 (Cana)")
+    chosen_variety = str(variedade).strip()[:100] if variedade else default_variety
+
     data = {
         "user_id": user_id,
-        "farm_name": farm_name,
-        "city": city,
-        "lat": lat,
-        "lon": lon,
+        "farm_name": clean_name,
+        "city": clean_city,
+        "lat": float(lat),
+        "lon": float(lon),
         "boundary_geojson": boundary_geojson,
-        "variedade": "RB867515",
-        "area_ha": area_ha,
+        "variedade": chosen_variety,
+        "area_ha": clean_area,
         "alert_amarelo": 0.6,
         "alert_vermelho": 0.4,
         "chuva_critica": 30,
@@ -95,6 +112,12 @@ def update_farm_boundary(farm_id, user_id, boundary_geojson, access_token=None):
 def update_farm(farm_id, user_id, update_data, access_token=None):
     supabase = get_supabase(access_token)
     payload = dict(update_data)
+    if "farm_name" in payload and payload["farm_name"] is not None:
+        payload["farm_name"] = str(payload["farm_name"]).strip()[:120]
+    if "city" in payload and payload["city"] is not None:
+        payload["city"] = str(payload["city"]).strip()[:100]
+    if "area_ha" in payload and payload["area_ha"] is not None:
+        payload["area_ha"] = max(0.1, min(1_000_000.0, float(payload["area_ha"])))
     if "tipo_cultura" in payload and "crop_id" not in payload:
         from src.core.crop_config import normalize_crop_id
         payload["crop_id"] = normalize_crop_id(payload["tipo_cultura"])

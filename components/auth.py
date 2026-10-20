@@ -1,6 +1,30 @@
+import re
 import streamlit as st
 from src.data.db import login_user, register_user
 from streamlit_cookies_controller import CookieController
+from src.core.logger import logger
+
+# ── Constantes de Validação ───────────────────────────────────────────────
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+_MIN_PASSWORD_LENGTH = 8
+
+
+def _validate_email(email: str) -> str | None:
+    """Retorna mensagem de erro se inválido, None se válido."""
+    if not email or not email.strip():
+        return "O e-mail não pode estar em branco."
+    if not _EMAIL_RE.match(email.strip()):
+        return "Informe um endereço de e-mail válido (ex: nome@dominio.com)."
+    return None
+
+
+def _validate_password(password: str) -> str | None:
+    """Retorna mensagem de erro se inválida, None se válida."""
+    if not password:
+        return "A senha não pode estar em branco."
+    if len(password) < _MIN_PASSWORD_LENGTH:
+        return f"A senha deve ter pelo menos {_MIN_PASSWORD_LENGTH} caracteres."
+    return None
 
 def render_auth_page():
     import base64
@@ -67,23 +91,38 @@ def render_auth_page():
             submit = st.form_submit_button("Entrar", type="primary", use_container_width=True)
             
             if submit:
-                try:
-                    with st.spinner("Autenticando..."):
-                        res = login_user(email, password)
-                        st.session_state['user'] = res.user
-                        st.session_state['access_token'] = res.session.access_token
-                        
-                        # Salva nos cookies para persistencia
-                        try:
-                            controller = CookieController()
-                            controller.set('sb-access-token', res.session.access_token, max_age=86400*30)
-                            controller.set('sb-refresh-token', res.session.refresh_token, max_age=86400*30)
-                        except:
-                            pass
-                            
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"Falha no login. Verifique suas credenciais.")
+                # Validação local antes de chamar o Supabase
+                email_err = _validate_email(email)
+                pass_err = _validate_password(password)
+                if email_err:
+                    st.error(email_err)
+                elif pass_err:
+                    st.error(pass_err)
+                else:
+                    try:
+                        with st.spinner("Autenticando..."):
+                            res = login_user(email.strip(), password)
+                            st.session_state['user'] = res.user
+                            st.session_state['access_token'] = res.session.access_token
+
+                            # Salva nos cookies para persistência de sessão
+                            try:
+                                controller = CookieController()
+                                controller.set('sb-access-token', res.session.access_token, max_age=86400 * 30)
+                                controller.set('sb-refresh-token', res.session.refresh_token, max_age=86400 * 30)
+                            except Exception as cookie_err:
+                                logger.warning(
+                                    "Falha ao persistir token no cookie após login.",
+                                    extra={"extra_data": {"error": str(cookie_err), "user_email": email.strip()}},
+                                )
+
+                            st.rerun()
+                    except Exception as e:
+                        logger.warning(
+                            "Tentativa de login falhou.",
+                            extra={"extra_data": {"user_email": email.strip(), "error": str(e)}},
+                        )
+                        st.error("Falha no login. Verifique seu e-mail e senha e tente novamente.")
         
         if st.button("⬅️ Voltar", key="btn_back_login", use_container_width=True):
             st.session_state['show_login'] = False
@@ -97,12 +136,27 @@ def render_auth_page():
             submit = st.form_submit_button("Registrar", type="primary", use_container_width=True)
             
             if submit:
-                try:
-                    with st.spinner("Criando conta..."):
-                        res = register_user(email, password)
-                        st.success("Conta criada com sucesso! Por favor, verifique sua caixa de entrada (e spam) e confirme seu e-mail antes de fazer login.")
-                except Exception as e:
-                    st.error(f"Falha ao registrar: {e}")
+                # Validação local antes de chamar o Supabase
+                email_err = _validate_email(email)
+                pass_err = _validate_password(password)
+                if email_err:
+                    st.error(email_err)
+                elif pass_err:
+                    st.error(pass_err)
+                else:
+                    try:
+                        with st.spinner("Criando conta..."):
+                            res = register_user(email.strip(), password)
+                            st.success(
+                                "Conta criada com sucesso! Verifique sua caixa de entrada "
+                                "(e spam) e confirme seu e-mail antes de fazer login."
+                            )
+                    except Exception as e:
+                        logger.warning(
+                            "Tentativa de registro falhou.",
+                            extra={"extra_data": {"user_email": email.strip(), "error": str(e)}},
+                        )
+                        st.error("Falha ao criar conta. Verifique se o e-mail já está em uso ou tente novamente.")
         
         if st.button("⬅️ Voltar", key="btn_back_register", use_container_width=True):
             st.session_state['show_login'] = False
