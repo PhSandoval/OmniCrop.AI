@@ -25,9 +25,9 @@ jobs:
       - name: 📦 Instalar Dependências
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          pip install -r requirements/dev.txt
 
-      - name: 🛡️ Auditoria de Vulnerabilidades Conhecidas (NIS-2 Supply Chain)
+      - name: 🛡️ Auditoria de Dependências (SCA com pip-audit)
         run: |
           pip-audit -r requirements.txt --desc
 

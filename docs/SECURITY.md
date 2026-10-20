@@ -1,53 +1,41 @@
-# 🛡️ Política de Segurança e Divulgação Coordenada (NIS-2 & ISA-62443) — OmniCrop AI
+# 🛡️ Política de Segurança — OmniCrop AI
 
-O **OmniCrop AI** está comprometido com os mais altos padrões de segurança da informação, privacidade de dados e resiliência cibernética, em estrita conformidade com a **Diretiva NIS-2 (União Europeia 2022/2555)** e a norma internacional de cibersegurança industrial **ISA-62443 / IEC 62443**.
+Este documento descreve as práticas de segurança, como reportar vulnerabilidades de forma responsável e as medidas defensivas implementadas no **OmniCrop AI**.
 
 ---
 
 ## 1. Versões Suportadas
 
-Apenas a versão ativa em produção na branch `main` recebe correções de segurança imediatas:
+Apenas a versão ativa na branch `main` e em execução no ambiente de produção recebe atualizações e correções ativas de segurança:
 
-| Versão / Ambiente | Suporte de Segurança | Repositório / Endpoint |
+| Versão / Componente | Suporte | Ambiente |
 |---|:---:|---|
-| **v2.0 (Produção Nuvem)** | ✅ Ativo e Suportado | [omnicropai.streamlit.app](https://omnicropai.streamlit.app) |
-| **API RESTful Headless** | ✅ Ativo e Suportado | `src/api/` (Porta 8000) |
-| **Versões legadas (< 2.0)** | ❌ Descontinuadas | N/A |
+| **v2.0 (Streamlit Web)** | ✅ Ativo | [omnicropai.streamlit.app](https://omnicropai.streamlit.app) |
+| **API RESTful (FastAPI)** | ✅ Ativo | Microsserviço local / container |
+| **Versões legadas** | ❌ Não suportadas | N/A |
 
 ---
 
-## 2. Coordinated Vulnerability Disclosure (CVD) — Diretiva NIS-2 Art. 21
+## 2. Reportando uma Vulnerabilidade
 
-Apoiamos a divulgação responsável e coordenada de potenciais vulnerabilidades. Se você identificou uma falha de segurança no OmniCrop AI:
+Se você identificou uma potencial falha de segurança no OmniCrop AI:
 
-### Como Reportar:
-- **Canal Seguro:** Envie um e-mail com a descrição técnica e passos de reprodução (PoC) para:  
-  📬 `security@omnicrop.ai` ou `pedro.sandoval@alumni.usp.br`
-- **Criptografia:** É incentivado o uso de criptografia PGP quando disponível.
-- **O que NÃO fazer:**
-  - Não execute testes de negação de serviço (DoS/DDoS) contra a infraestrutura em produção.
-  - Não altere, destrua ou acesse dados de terceiros (respeito irrestrito ao multi-tenancy e LGPD).
+1. **Não abra uma issue pública** no GitHub com detalhes que possam comprometer a segurança dos dados ou da aplicação.
+2. Utilize o canal de **Private Vulnerability Reporting** do próprio GitHub neste repositório ou envie um e-mail com os detalhes técnicos e passos de reprodução (PoC) para:  
+   📬 **`pedro.sandoval@alumni.usp.br`**
+3. Avaliaremos o reporte o mais breve possível para investigar e aplicar as correções necessárias.
 
-### Prazos Formais de Resposta (NIS-2 Artigo 23):
-- **Confirmação de Recebimento (Triagem Inicial):** até **24 horas** úteis.
-- **Avaliação de Impacto e Alerta Inicial (*Early Warning*):** até **24 horas** após a confirmação.
-- **Remediação e Relatório Completo de Resolução (*Final Incident Report*):** até **72 horas** para incidentes de alta severidade.
+> **Importante:** Por favor, realize testes de forma ética e responsável, sem executar ataques de negação de serviço (DoS/DDoS) e sem tentar acessar ou adulterar dados de outros usuários.
 
 ---
 
-## 3. Matriz de Severidade (Baseada em CVSS v3.1 / NIS-2)
+## 3. Medidas de Proteção Implementadas no Projeto
 
-| Nível | Impacto Operacional | SLA de Remediação |
-|---|---|:---:|
-| **CRITICAL** | Execução Remota de Código (RCE), Bypasses de Autenticação/RLS, comprometimento de segredos de produção | < 24 horas |
-| **HIGH** | Injeção de dados falsos em telemetria IoT (Data Poisoning), SSRF em endpoints internos, Stored XSS | < 48 horas |
-| **MEDIUM** | Falhas de rate limiting, vazamento de metadados em logs, inconsistências de autorização de leitura | < 5 dias úteis |
-| **LOW** | Problemas de cabeçalhos de resposta HTTP, sugestões de endurecimento de configurações | Próxima release |
+O OmniCrop AI adota práticas defensivas em código (*Defense-in-Depth*) para garantir integridade e isolamento de dados:
 
----
-
-## 4. Conformidade ISA-62443 (Zonas de Automação & IoT Agrícola)
-
-1. **Segmentação de Zonas:** Sensores de campo (Zona 1/2) comunicam-se com a Nuvem (Zona 4) exclusivamente através de condutos criptografados (HTTPS/TLS 1.3) com autenticação e validação estrita de esquemas Pydantic.
-2. **Proteção Anti-Data Poisoning:** Todas as medições de solo, temperatura e umidade passam por filtros de plausibilidade física agronômica antes de serem processadas pelos modelos de Machine Learning.
-3. **Trilha Imutável de Auditoria:** Qualquer tentativa de acesso anômalo, erro de autorização ou alteração de parâmetros agronômicos críticos é persistida na tabela `audit_logs` no PostgreSQL com isolamento RLS.
+* **Auditoria de Dependências (SCA):** Verificação contínua no pipeline de CI com `pip-audit`, bloqueando dependências com vulnerabilidades conhecidas (CVEs).
+* **Validação Estrita de Dados (Pydantic v2):** Schemas de entrada barram dados corrompidos ou maliciosos em contratos de API e na ingestão de telemetria.
+* **Mitigação de SSRF (Server-Side Request Forgery):** Bloqueio de requisições para endereços IP privados, de loopback e link-local (`127.0.0.1`, `192.168.x.x`, `10.x.x.x`) nos disparos de webhooks de alerta.
+* **Proteção contra Stored XSS e Injeções:** Sanitização com `html.escape()` na exibição de dados de propriedades e cabeçalhos no frontend.
+* **Isolamento Multi-Tenant (RLS):** Toda comunicação com o banco de dados Supabase PostgreSQL utiliza Row-Level Security (RLS) baseada no token JWT do usuário ativo, impedindo acesso cruzado entre fazendas.
+* **Mascaramento em Logs:** O formatador estruturado `StructuredJsonFormatter` ofusca chaves sensíveis (`password`, `token`, `secret`, `api_key`) nos registros do sistema.

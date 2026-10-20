@@ -1,6 +1,6 @@
 # Dependências de desenvolvimento e teste — NÃO instalar no Streamlit Cloud
-# Usar: pip install -r requirements.txt -r requirements-dev.txt
--r requirements.txt
+# Usar: pip install -r requirements/dev.txt
+-r ../requirements.txt
 
 # Testes e Cobertura
 pytest>=7.0.0
