@@ -30,10 +30,11 @@ if not is_configured():
     st.stop()
 
 cfg = load_config()
+crop_id = cfg.get("crop_id") or "sugarcane"
 with st.spinner("Carregando inteligência de dados..."):
-    df_live, today = fetch_farm_data(cfg["lat"], cfg["lon"])
+    df_live, today = fetch_farm_data(cfg["lat"], cfg["lon"], crop_id=crop_id)
 
-render_sidebar(today, get_prediction(build_payload(today)))
+render_sidebar(today, get_prediction(build_payload(today), crop_id=crop_id))
 render_page_header("Analytics", "INTELIGÊNCIA AGRONÔMICA E DATA SCIENCE")
 
 st.markdown("<br>", unsafe_allow_html=True)

@@ -37,9 +37,10 @@ _today_cfg = {}
 _resultado_cfg = None
 if cfg:
     try:
-        _, _today_cfg = fetch_farm_data(cfg["lat"], cfg["lon"])
+        _crop_id = cfg.get("crop_id") or "sugarcane"
+        _, _today_cfg = fetch_farm_data(cfg["lat"], cfg["lon"], crop_id=_crop_id)
         _payload = build_payload(_today_cfg)
-        _resultado_cfg = get_prediction(_payload)
+        _resultado_cfg = get_prediction(_payload, crop_id=_crop_id)
     except Exception:
         pass
 

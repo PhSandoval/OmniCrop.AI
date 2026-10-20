@@ -29,11 +29,12 @@ if not is_configured():
     st.stop()
 
 cfg = load_config()
+crop_id = cfg.get("crop_id") or "sugarcane"
 with st.spinner("Carregando dados reais..."):
-    df, today = fetch_farm_data(cfg["lat"], cfg["lon"])
+    df, today = fetch_farm_data(cfg["lat"], cfg["lon"], crop_id=crop_id)
 
 payload_hoje = build_payload(today)
-resultado_hoje = get_prediction(payload_hoje)
+resultado_hoje = get_prediction(payload_hoje, crop_id=crop_id)
 
 render_sidebar(today, resultado_hoje)
 render_page_header("Simulator", "SIMULADOR DE INTERVENÇÕES · ANÁLISE WHAT-IF")
@@ -143,7 +144,7 @@ with col_ctrl:
 
 with col_out:
     st.markdown('<div class="sec-header">Projeção Pós-Intervenção</div>', unsafe_allow_html=True)
-    resultado_sim = get_prediction(payload_sim)
+    resultado_sim = get_prediction(payload_sim, crop_id=crop_id)
 
     if resultado_sim and resultado_hoje:
         ndvi_base = resultado_hoje["ndvi_previsto"]
@@ -239,7 +240,7 @@ with col_out:
                 test_payload = payload_hoje.copy()
                 test_payload["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura + irr_test)
                 test_payload["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
-                res_test = get_prediction(test_payload)
+                res_test = get_prediction(test_payload, crop_id=crop_id)
                 if res_test:
                     if (res_test["ndvi_previsto"] - best_ndvi) > 0.001:
                         best_ndvi = res_test["ndvi_previsto"]

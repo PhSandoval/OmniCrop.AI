@@ -47,11 +47,12 @@ cfg = load_config() or {}
 
 def render_copilot():
     # ── 1. Telemetria e Dados Vivos da Fazenda ────────────────────────
+    crop_id = cfg.get("crop_id") or "sugarcane"
     with st.spinner("Sincronizando telemetria climática e Camada Ouro..."):
-        df_live, today = fetch_farm_data(cfg["lat"], cfg["lon"])
+        df_live, today = fetch_farm_data(cfg["lat"], cfg["lon"], crop_id=crop_id)
 
     payload_hoje = build_payload(today)
-    resultado_hoje = get_prediction(payload_hoje)
+    resultado_hoje = get_prediction(payload_hoje, crop_id=crop_id)
 
     render_sidebar(today, resultado_hoje)
     render_page_header(
@@ -164,7 +165,7 @@ def render_copilot():
         payload_sim["GDA_mensal"] = float(
             today.get("GDA_mensal", 0) + gda_15d_futuro
         )
-        resultado_sim = get_prediction(payload_sim)
+        resultado_sim = get_prediction(payload_sim, crop_id=crop_id)
         xai_res = explain_prediction_delta(payload_hoje, payload_sim)
         dss = calcular_dss(
             mes_atual,
@@ -184,7 +185,7 @@ def render_copilot():
         payload_sim["GDA_mensal"] = float(
             today.get("GDA_mensal", 0) + gda_15d_futuro + (dose_mat * 1.5)
         )
-        resultado_sim = get_prediction(payload_sim)
+        resultado_sim = get_prediction(payload_sim, crop_id=crop_id)
         xai_res = explain_prediction_delta(payload_hoje, payload_sim)
         dss = calcular_dss(
             mes_atual,
@@ -203,7 +204,7 @@ def render_copilot():
         payload_sim["GDA_mensal"] = float(
             today.get("GDA_mensal", 0) + gda_15d_futuro
         )
-        resultado_sim = get_prediction(payload_sim)
+        resultado_sim = get_prediction(payload_sim, crop_id=crop_id)
         if resultado_sim:
             resultado_sim["ndvi_previsto"] = min(
                 0.95, resultado_sim["ndvi_previsto"] + 0.08
@@ -226,7 +227,7 @@ def render_copilot():
         payload_sim["GDA_mensal"] = float(
             today.get("GDA_mensal", 0) + gda_15d_futuro
         )
-        resultado_sim = get_prediction(payload_sim)
+        resultado_sim = get_prediction(payload_sim, crop_id=crop_id)
         xai_res = explain_prediction_delta(payload_hoje, payload_sim)
         dss = calcular_dss(
             mes_atual,
@@ -246,7 +247,7 @@ def render_copilot():
         payload_sim["GDA_mensal"] = float(
             today.get("GDA_mensal", 0) + gda_15d_futuro
         )
-        resultado_sim = get_prediction(payload_sim)
+        resultado_sim = get_prediction(payload_sim, crop_id=crop_id)
         xai_res = explain_prediction_delta(payload_hoje, payload_sim)
         dss = calcular_dss(
             mes_atual,
