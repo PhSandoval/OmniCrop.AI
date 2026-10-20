@@ -281,7 +281,7 @@ def render_onboarding():
         fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100)
         
-        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho"]
+        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pecuária (Pasto)"]
         tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS)
         
         if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
@@ -463,7 +463,7 @@ def render_main_app():
             st.markdown(badge_html(resultado["status_vigor"]), unsafe_allow_html=True)
             st.caption(f"Variedade: {cfg.get('variedade','—')} · Area: {cfg.get('area_ha','—')} ha")
         else:
-            st.error("API offline — rode: uvicorn main:app --port 8555")
+        st.warning("⚠️ Não foi possível gerar a previsão agronômica para este talhão. Verifique a configuração da cultura ou tente novamente.")
 
     with col_d:
         if resultado:
@@ -632,7 +632,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
 
 
 # ── Culturas que ainda não têm módulo completo ──────────────────────────────
-CULTURAS_EM_TREINAMENTO = ["Soja", "Café", "Pecuária (Pasto)"]
+CULTURAS_EM_TREINAMENTO: list[str] = []  # Todas as 5 culturas estão operacionais (v2.0)
 
 # 4. Gatilho Final
 if st.session_state.get('show_landing', not st.session_state.get('user')):

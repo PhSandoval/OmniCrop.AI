@@ -25,8 +25,7 @@ jobs:
       - name: 📦 Instalar Dependências
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
+          pip install -r requirements-dev.txt
 
       - name: 🚀 Executar Testes com Cobertura Estrita (100% Core Coverage)
         env:
