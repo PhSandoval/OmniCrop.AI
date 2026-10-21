@@ -3,8 +3,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from components.styles import inject_css
-from components.header import render_sidebar, render_page_header
+from src.ui.components.styles import inject_css
+from src.ui.components.header import render_sidebar, render_page_header
 from src.data.db import get_user_farms, update_farm, update_farm_boundary, delete_farm, log_audit_event
 from src.utils.farm_config import save_config, load_config
 from src.data.fetch_api import fetch_farm_data
@@ -20,7 +20,7 @@ from streamlit_folium import st_folium
 
 st.set_page_config(
     page_title="Minha Fazenda · OmniCrop AI",
-    page_icon="assets/logo.png",
+    page_icon="src/ui/assets/logo.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )

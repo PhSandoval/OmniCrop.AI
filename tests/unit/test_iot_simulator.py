@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from scripts.simulate_iot_sensors import (
+from infra.simulate_iot_sensors import (
     generate_iot_telemetry,
     upload_iot_telemetry_to_azure,
     IoTTelemetryPayload,
@@ -133,7 +133,7 @@ def test_upload_iot_telemetry_azure_mock(tmp_path: Path):
 
 def test_upload_iot_telemetry_azure_container_creation_and_exception(tmp_path: Path):
     """Valida criação de contêiner se não existir e fallback local em caso de erro na Azure."""
-    from scripts.simulate_iot_sensors import generate_iot_telemetry, upload_iot_telemetry_to_azure
+    from infra.simulate_iot_sensors import generate_iot_telemetry, upload_iot_telemetry_to_azure
 
     payload = generate_iot_telemetry(device_id="NODE-CREATE-CONTAINER", num_days=1, random_seed=42)
 
@@ -169,7 +169,7 @@ def test_upload_iot_telemetry_azure_container_creation_and_exception(tmp_path: P
 def test_simulate_iot_cli_main_and_run_as_main(tmp_path: Path):
     """Valida execução da função main() do simulador IoT via CLI e como __main__."""
     import runpy
-    from scripts.simulate_iot_sensors import main
+    from infra.simulate_iot_sensors import main
 
     # 1. Execução da função main() com flag --no-upload
     cli_args = [
@@ -180,10 +180,10 @@ def test_simulate_iot_cli_main_and_run_as_main(tmp_path: Path):
         "--days", "1",
         "--no-upload",
     ]
-    with patch("sys.argv", cli_args), patch("scripts.simulate_iot_sensors.PROJECT_ROOT", tmp_path):
+    with patch("sys.argv", cli_args), patch("infra.simulate_iot_sensors.PROJECT_ROOT", tmp_path):
         main()
 
     # 2. Execução como __main__ via runpy.run_path
-    script_path = str(Path(__file__).resolve().parents[2] / "scripts" / "simulate_iot_sensors.py")
-    with patch("sys.argv", cli_args), patch("scripts.simulate_iot_sensors.PROJECT_ROOT", tmp_path):
+    script_path = str(Path(__file__).resolve().parents[2] / "infra" / "simulate_iot_sensors.py")
+    with patch("sys.argv", cli_args), patch("infra.simulate_iot_sensors.PROJECT_ROOT", tmp_path):
         runpy.run_path(script_path, run_name="__main__")

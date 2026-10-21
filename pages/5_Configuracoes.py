@@ -3,14 +3,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from components.styles import inject_css
-from components.header import render_sidebar, render_page_header
+from src.ui.components.styles import inject_css
+from src.ui.components.header import render_sidebar, render_page_header
 from src.utils.farm_config import save_config, load_config
 from src.data.db import update_farm, log_audit_event
 from src.data.fetch_api import fetch_farm_data
 from src.models.predict import build_payload, get_prediction
 
-st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="assets/logo.png", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="src/ui/assets/logo.png", layout="wide", initial_sidebar_state="expanded")
 inject_css()
 
 if 'user' not in st.session_state or not st.session_state['user']:

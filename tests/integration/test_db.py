@@ -141,8 +141,8 @@ def test_get_latest_farm_gold_kpi_single(mock_get_farm_gold_kpis):
 
 def test_supabase_schema_rls_multi_tenant_security():
     """Valida o contrato de segurança do arquivo SQL para garantir que a Fazenda A nunca veja a Fazenda B."""
-    schema_path = Path(__file__).resolve().parents[2] / "scripts" / "sql" / "supabase_schema.sql"
-    assert schema_path.exists(), "supabase_schema.sql deve existir em scripts/sql/"
+    schema_path = Path(__file__).resolve().parents[2] / "infra" / "sql" / "supabase_schema.sql"
+    assert schema_path.exists(), "supabase_schema.sql deve existir em infra/sql/"
     
     sql_content = schema_path.read_text(encoding="utf-8")
     

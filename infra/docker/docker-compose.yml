@@ -3,8 +3,8 @@ version: "3.8"
 services:
   omnicrop-api:
     build:
-      context: ..
-      dockerfile: deploy/Dockerfile
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
     container_name: omnicrop-api
     command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
     ports:
@@ -28,8 +28,8 @@ services:
 
   omnicrop-web:
     build:
-      context: ..
-      dockerfile: deploy/Dockerfile
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
     container_name: omnicrop-web
     command: streamlit run app.py --server.port 8501 --server.address 0.0.0.0
     ports:

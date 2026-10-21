@@ -371,7 +371,7 @@ def generate_pdf_report(
     # ── SÉRIE HISTÓRICA NDVI (GRÁFICO PLOTLY) ─────────────────────────────────
     if df is not None:
         try:
-            from components.charts import ndvi_line
+            from src.ui.components.charts import ndvi_line
 
             fig = ndvi_line(df)
             fig.update_layout(

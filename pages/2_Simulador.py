@@ -5,14 +5,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from components.styles import inject_css
+from src.ui.components.styles import inject_css
 from src.utils.farm_config import load_config, is_configured
 from src.data.fetch_api import fetch_farm_data
 from src.models.predict import build_payload, get_prediction, badge_html, calcular_dss
-from components.charts import ndvi_gauge
-from components.header import render_sidebar, render_page_header
+from src.ui.components.charts import ndvi_gauge
+from src.ui.components.header import render_sidebar, render_page_header
 
-st.set_page_config(page_title="Simulador · OmniCrop AI", page_icon="assets/logo.png", layout="wide",
+st.set_page_config(page_title="Simulador · OmniCrop AI", page_icon="src/ui/assets/logo.png", layout="wide",
                    initial_sidebar_state="expanded")
 
 inject_css()

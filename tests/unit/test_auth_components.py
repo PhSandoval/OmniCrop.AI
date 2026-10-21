@@ -1,7 +1,7 @@
 """
-Testes unitários para validação de credenciais e autenticação em components/auth.py.
+Testes unitários para validação de credenciais e autenticação em src/ui/components/auth.py.
 """
-from components.auth import _validate_email, _validate_password
+from src.ui.components.auth import _validate_email, _validate_password
 
 
 def test_validate_email():

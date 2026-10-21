@@ -34,17 +34,8 @@ OmniCrop/
 │   ├── ci.yml                   # Pipeline de CI com Gate estrito de 100% de Cobertura e SCA pip-audit
 │   └── ingest_weather_azure.yml # Ingestão Diária Medallion na Azure e MLOps
 │
-├── 📂 deploy/                   # 🐳 Configurações de Containerização e Infraestrutura
-│   ├── Dockerfile               # Imagem de Produção Multi-Serviço (API FastAPI e Streamlit)
-│   └── docker-compose.yml       # Orquestração local de containers (API, Streamlit e Redis)
-│
-├── 📂 requirements/             # 📦 Gestão Modular de Dependências
-│   └── dev.txt                  # Dependências completas de desenvolvimento, API e testes
-│
 ├── 📄 app.py                    # 🎨 A VITRINE (Ponto de entrada Streamlit & Painel Geral)
 ├── 📂 pages/                    # Telas navegáveis (Simulador, Análise, Minha Fazenda, Configurações, Assistente)
-├── 📂 components/               # Blocos visuais reutilizáveis (Auth, Header, Gráficos, PDF, Landing, Styles)
-├── 📂 assets/                   # Identidade visual, logotipos e temas
 │
 ├── 📂 src/                      # ⚙️ O MOTOR (Core de Regras de Negócio e Engenharia)
 │   ├── 📂 api/                  # 🚀 Camada REST Headless (FastAPI + Pydantic v2 + Swagger)
@@ -67,11 +58,15 @@ OmniCrop/
 │   ├── 📂 pipelines/            # Motor Híbrido Polyglot (Pandas Edge & Apache Spark Distribuído)
 │   │   └── 📂 spark/            # Jobs de cluster (Silver, Gold Batch e requirements-spark.txt)
 │   ├── 📂 reports/              # Emissor de Laudos e Pareceres Agronômicos em PDF (FPDF2)
+│   ├── 📂 ui/                   # 🎨 Módulos Visuais Integrados (Clean Architecture)
+│   │   ├── 📂 assets/           # Identidade visual, logotipos e temas de background
+│   │   └── 📂 components/       # Componentes reutilizáveis (Auth, Header, Charts, PDF, Landing, Styles)
 │   └── 📂 utils/                # Configurações de fazenda, geolocalização PostGIS e alertas diários
 │
-├── 📂 scripts/                  # 🛠️ Automações Operacionais e Simuladores
-│   ├── simulate_iot_sensors.py  # Simulador de Telemetria de Sensores de Campo (Solo e Folha)
-│   └── 📂 sql/                  # DDL de Banco de Dados (Supabase PostgreSQL + PostGIS + RLS + Audit)
+├── 📂 infra/                    # 🛠️ Infraestrutura Unificada, Docker & Automação
+│   ├── 📂 docker/               # Configurações de Containerização (Dockerfile e docker-compose.yml)
+│   ├── 📂 sql/                  # DDL de Banco de Dados (Supabase PostgreSQL + PostGIS + RLS + Audit)
+│   └── simulate_iot_sensors.py  # Simulador de Telemetria de Sensores de Campo (Solo e Folha)
 │
 ├── 📂 docs/                     # 📚 Documentação Técnica de Arquitetura e Governança
 │   ├── BIG_DATA_ARCHITECTURE.md # Blueprint Corporativo de Big Data Lakehouse & PySpark
@@ -86,7 +81,7 @@ OmniCrop/
 │
 ├── 📄 .gitattributes            # ⚙️ Configuração do Git & GitHub Linguist (99.8% Python)
 ├── 📄 .gitignore                # ⚙️ Filtros de arquivos ignorados pelo Git
-├── 📄 pyproject.toml            # ⚙️ Configuração unificada do projeto (Build, Pytest e Coverage 100%)
+├── 📄 pyproject.toml            # ⚙️ Configuração unificada PEP 621 (Dependências opcionais [dev, spark], Build, Coverage 100%)
 ├── 📄 requirements.txt          # 📦 Dependências enxutas de produção (exigido na raiz pelo Streamlit Cloud)
 └── 📄 README.md                 # 📖 Documentação do repositório
 ```
@@ -327,14 +322,14 @@ O OmniCrop AI adota práticas defensivas em código para garantir a integridade 
 
 ## 🐳 Orquestração de Containers (Docker & Docker Compose)
 
-Para rodar todo o ecossistema corporativo (API Headless + Dashboard Streamlit + Caching Redis) em produção com um único comando a partir da pasta `deploy/`:
+Para rodar todo o ecossistema corporativo (API Headless + Dashboard Streamlit + Caching Redis) em produção com um único comando a partir da pasta `infra/docker/`:
 
 ```bash
 # 1. Subir todos os serviços conteinerizados em background:
-docker compose -f deploy/docker-compose.yml up -d
+docker compose -f infra/docker/docker-compose.yml up -d
 
 # 2. Visualizar logs unificados em tempo real:
-docker compose -f deploy/docker-compose.yml logs -f
+docker compose -f infra/docker/docker-compose.yml logs -f
 
 # 3. Acessar as portas mapeadas:
 # - Headless API REST (FastAPI + Swagger): http://localhost:8000/docs
@@ -389,7 +384,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Para desenvolvimento completo (API FastAPI, suíte de 193 testes com 100% de cobertura e auditoria SCA):
-pip install -r requirements/dev.txt
+pip install -e ".[dev]"
 
 # 4. Configure as variáveis de ambiente (.env ou .streamlit/secrets.toml)
 # Requer: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY, AZURE_CONNECTION_STRING
@@ -398,7 +393,7 @@ pip install -r requirements/dev.txt
 pip-audit -r requirements.txt --desc
 
 # 6. Execute a suíte completa de testes com gate estrito de 100% de cobertura (193 testes)
-pytest --cov=src --cov=scripts --cov-fail-under=100 -v
+pytest --cov=src --cov=infra --cov-fail-under=100 -v
 
 # 7. Inicie a API RESTful Headless (FastAPI)
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload

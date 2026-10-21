@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.reports.pdf import generate_pdf_report, OmniCropPDF, _clean_text, _get_agronomic_opinion
-from components.pdf_generator import generate_pdf_report as frontend_generate_pdf_report
+from src.ui.components.pdf_generator import generate_pdf_report as frontend_generate_pdf_report
 
 
 @pytest.fixture
@@ -145,7 +145,7 @@ def test_generate_pdf_report_with_df_derives_gold(sample_payload, sample_resulta
 
 
 def test_frontend_component_delegation(sample_payload, sample_resultado, sample_gold_kpis, sample_xai_res):
-    """Valida se o componente components.pdf_generator delega perfeitamente para o módulo core."""
+    """Valida se o componente src.ui.components.pdf_generator delega perfeitamente para o módulo core."""
     pdf_bytes = frontend_generate_pdf_report(
         farm_name="Fazenda Frontend Teste",
         city="Jaú - SP",

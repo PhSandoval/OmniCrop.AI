@@ -8,7 +8,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from components.styles import inject_css
+from src.ui.components.styles import inject_css
 from src.utils.farm_config import load_config, is_configured
 from src.data.fetch_api import fetch_farm_data
 from src.models.predict import (
@@ -19,14 +19,14 @@ from src.models.predict import (
     calcular_dss,
 )
 from src.data.ingest_azure import transform_to_gold, load_latest_gold_kpis
-from components.header import render_sidebar, render_page_header
+from src.ui.components.header import render_sidebar, render_page_header
 from src.utils.copilot_context import build_copilot_grounded_prompt, get_gemini_api_key
 
 import google.generativeai as genai
 
 st.set_page_config(
     page_title="Assistente de Manejo · OmniCrop AI",
-    page_icon="assets/logo.png",
+    page_icon="src/ui/assets/logo.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )

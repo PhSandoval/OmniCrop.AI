@@ -7,12 +7,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
-from components.styles import inject_css
+from src.ui.components.styles import inject_css
 from src.utils.farm_config import load_config, is_configured, save_config
 from src.data.fetch_api import fetch_farm_data, search_location
 from src.models.predict import build_payload, get_prediction, badge_html, calcular_dss
-from components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
-from components.header import render_sidebar, render_page_header
+from src.ui.components.charts import ndvi_gauge, ndvi_line, rain_bars, temp_lines
+from src.ui.components.header import render_sidebar, render_page_header
 
 import base64
 import streamlit.components.v1 as components
@@ -25,7 +25,7 @@ _hide_sidebar = _is_landing or _onboarding or not _farm_selected
 
 st.set_page_config(
     page_title="OmniCrop AI - Inteligência Agronômica", 
-    page_icon="assets/logo.png", 
+    page_icon="src/ui/assets/logo.png", 
     layout="wide",
     initial_sidebar_state="collapsed" if _hide_sidebar else "expanded"
 )
@@ -110,7 +110,7 @@ _farm_selected = bool(st.session_state.get('active_farm'))
 _onboarding = st.session_state.get('show_onboarding', False)
 inject_css(is_login=_hide_sidebar)
 
-from components.auth import render_auth_page
+from src.ui.components.auth import render_auth_page
 from src.data.db import get_user_farms, insert_farm
 
 
@@ -118,7 +118,7 @@ from src.data.db import get_user_farms, insert_farm
 # 2. Função de Onboarding
 
 def render_farm_selector():
-    from components.header import render_sidebar
+    from src.ui.components.header import render_sidebar
     from datetime import datetime
     render_sidebar({"date": datetime.now()}, None)
     
@@ -379,7 +379,7 @@ def render_main_app():
         
         if st.session_state.get(flag_key):
             with st.spinner("Analisando dados com IA e compilando PDF..."):
-                from components.pdf_generator import generate_pdf_report
+                from src.ui.components.pdf_generator import generate_pdf_report
 
                 # Resgata KPIs da Camada Ouro e XAI se disponíveis
                 gold_kpis = None
@@ -491,7 +491,7 @@ def render_main_app():
             st.markdown(badge_html(resultado["status_vigor"]), unsafe_allow_html=True)
             st.caption(f"Variedade: {cfg.get('variedade','—')} · Area: {cfg.get('area_ha','—')} ha")
         else:
-        st.warning("⚠️ Não foi possível gerar a previsão agronômica para este talhão. Verifique a configuração da cultura ou tente novamente.")
+            st.warning("⚠️ Não foi possível gerar a previsão agronômica para este talhão. Verifique a configuração da cultura ou tente novamente.")
 
     with col_d:
         if resultado:
@@ -586,7 +586,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
     # We will pass a dummy today dict just so the sidebar renders
     from datetime import datetime
     today = {"date": datetime.now()}
-    from components.header import render_sidebar
+    from src.ui.components.header import render_sidebar
     render_sidebar(today, None)
 
     icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
@@ -668,7 +668,7 @@ if st.session_state.get('show_landing', not st.session_state.get('user')):
     if not st.session_state.get('user') and st.session_state.get('show_login', False):
         render_auth_page()
     else:
-        from components.landing import render_landing_page
+        from src.ui.components.landing import render_landing_page
         render_landing_page()
 elif not st.session_state.get('user'):
     # Garantia para nao logados

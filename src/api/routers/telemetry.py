@@ -4,7 +4,7 @@ Endpoints para Ingestão e Processamento de Telemetria de Sensores IoT no Campo.
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status
 
-from scripts.simulate_iot_sensors import IoTTelemetryPayload, upload_iot_telemetry_to_azure
+from infra.simulate_iot_sensors import IoTTelemetryPayload, upload_iot_telemetry_to_azure
 from src.api.schemas.telemetry import (
     IoTTelemetryIngestRequest,
     IoTTelemetryIngestResponse,
