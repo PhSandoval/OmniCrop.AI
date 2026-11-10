@@ -192,7 +192,9 @@ def render_farm_selector():
             </div>
             """, unsafe_allow_html=True)
             for f in farms:
-                cultura_icon = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}.get(f.get("tipo_cultura", ""), "🌾")
+                from src.core.crop_config import normalize_crop_id
+                cid = normalize_crop_id(f.get("tipo_cultura"))
+                cultura_icon = {"soybean": "🫘", "coffee": "☕", "corn": "🌽", "pasture": "🐄"}.get(cid, "🌾")
                 btn_label = f"{cultura_icon} {f['farm_name']} ({f['city']})"
                 if st.button(btn_label, key=f"select_farm_{f['id']}", use_container_width=True):
                     # Set active farm and override the local config
@@ -330,7 +332,7 @@ def render_guest_onboarding():
         fazenda = col_f.text_input("Nome do Talhão Demo:", placeholder="Ex: Meu Talhão Demo", key="guest_fazenda")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100, key="guest_area_ha")
         
-        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pecuária (Pasto)"]
+        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pastagem"]
         tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS, key="guest_tipo_cultura")
         
         if st.button("Explorar Talhão →", type="primary", use_container_width=True, key="guest_save"):
@@ -468,7 +470,7 @@ def render_onboarding():
         fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100)
         
-        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pecuária (Pasto)"]
+        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pastagem"]
         tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS)
         
         if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
@@ -762,8 +764,10 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
     from src.ui.components.header import render_sidebar
     render_sidebar(today, None)
 
-    icones = {"Soja": "🫘", "Café": "☕", "Pecuária (Pasto)": "🐄"}
-    icone = icones.get(tipo_cultura, "🌱")
+    from src.core.crop_config import normalize_crop_id
+    cid = normalize_crop_id(tipo_cultura)
+    icones = {"soybean": "🫘", "coffee": "☕", "corn": "🌽", "pasture": "🐄", "sugarcane": "🌾"}
+    icone = icones.get(cid, "🌱")
 
     # Conteúdo centralizado
     _, col, _ = st.columns([1, 2, 1])

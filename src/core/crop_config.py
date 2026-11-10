@@ -58,7 +58,7 @@ CROP_REGISTRY: Dict[str, CropParameters] = {
     ),
     "pasture": CropParameters(
         crop_id="pasture",
-        name="Pecuária (Pastagem)",
+        name="Pastagem",
         base_temp_celsius=15.0,
         kc_default=0.90,
         description="Gramíneas forrageiras tropicais (Brachiaria/Panicum), biomassa para suporte de carga animal (UA/ha) com estacionalidade estival.",
@@ -89,8 +89,19 @@ CROP_ALIAS_MAP: Dict[str, str] = {
 
     "pasture": "pasture",
     "pastagem": "pasture",
+    "pasto": "pasture",
+    "pastos": "pasture",
+    "pastagens": "pasture",
     "pecuaria": "pasture",
     "pecuária": "pasture",
+    "pecuaria (pasto)": "pasture",
+    "pecuária (pasto)": "pasture",
+    "pecuaria (pastagem)": "pasture",
+    "pecuária (pastagem)": "pasture",
+    "pasto (pecuaria)": "pasture",
+    "pasto (pecuária)": "pasture",
+    "pastagem (pecuaria)": "pasture",
+    "pastagem (pecuária)": "pasture",
     "bovinocultura": "pasture",
     "gado": "pasture",
 }

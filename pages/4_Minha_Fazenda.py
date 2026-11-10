@@ -203,7 +203,7 @@ with col2:
         "TMG 7062 (Soja)", "BMX Potência (Soja)",
         "BRS 1030 (Milho)", "DKB 390 (Milho)",
         "Catuaí Vermelho 144 (Café)", "Mundo Novo IAC 376-4 (Café)",
-        "Brachiaria brizantha cv. Marandu (Pecuária)", "Panicum maximum cv. Mombaça (Pecuária)"
+        "Brachiaria brizantha cv. Marandu (Pastagem)", "Panicum maximum cv. Mombaça (Pastagem)"
     ]
     current_var = selected_farm.get("variedade", "RB867515 (Cana)")
     if current_var not in variedades:

@@ -16,8 +16,9 @@ def get_user_farms_db():
 def load_config() -> dict | None:
     if 'active_farm' in st.session_state and st.session_state['active_farm']:
         from src.core.crop_config import normalize_crop_id
-        if not st.session_state['active_farm'].get("crop_id"):
-            st.session_state['active_farm']["crop_id"] = normalize_crop_id(st.session_state['active_farm'].get("tipo_cultura", "sugarcane"))
+        st.session_state['active_farm']["crop_id"] = normalize_crop_id(
+            st.session_state['active_farm'].get("crop_id") or st.session_state['active_farm'].get("tipo_cultura", "sugarcane")
+        )
         return st.session_state['active_farm']
         
     if st.session_state.get('is_guest'):

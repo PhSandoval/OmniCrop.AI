@@ -95,7 +95,7 @@ def build_copilot_grounded_prompt(
         "soybean": "Soja: Leguminosa C3 anual. Estresse hídrico na floração (R1-R2) e enchimento de grãos (R5-R6) provoca abortamento de flores/vagens. Solo com boa drenagem e inoculação com Bradyrhizobium são vitais.",
         "corn": "Milho: Gramínea C4 de alta exigência. Déficit hídrico no pendoamento e espigamento (VT-R1) causa perda irreversível de grãos. Alta resposta a nitrogênio em cobertura quando há umidade.",
         "coffee": "Café: Perene arbustivo. Florada (setembro/outubro) exige chuva para pegamento floral; granação dos frutos (dezembro a março) demanda água contínua. Inverno seco e frio favorece colheita uniforme.",
-        "pasture": "Pecuária (Pastagem): Forrageiras tropicais (Brachiaria/Panicum). Estacionalidade estival marcada; águas exigem manejo de rotação de pastejo e ajuste de carga animal (UA/ha). Seca requer diferimento ou suplementação.",
+        "pasture": "Pastagem: Forrageiras tropicais (Brachiaria/Panicum). Estacionalidade estival marcada; águas exigem manejo de rotação de pastejo e ajuste de carga animal (UA/ha). Seca requer diferimento ou suplementação.",
     }
     guideline_especifica = crop_guidelines.get(crop_params.crop_id, crop_guidelines["sugarcane"])
 

@@ -49,7 +49,7 @@ def test_crop_parameters_registry():
     pasture = CROP_REGISTRY["pasture"]
     assert pasture.base_temp_celsius == 15.0
     assert pasture.kc_default == 0.90
-    assert pasture.name == "Pecuária (Pastagem)"
+    assert pasture.name == "Pastagem"
 
 
 def test_normalize_crop_id_aliases():
@@ -72,6 +72,9 @@ def test_normalize_crop_id_aliases():
 
     assert normalize_crop_id("Pecuária") == "pasture"
     assert normalize_crop_id("pastagem") == "pasture"
+    assert normalize_crop_id("Pasto") == "pasture"
+    assert normalize_crop_id("Pecuária (Pasto)") == "pasture"
+    assert normalize_crop_id("Pecuária (Pastagem)") == "pasture"
     assert normalize_crop_id("pasture") == "pasture"
     assert normalize_crop_id("gado") == "pasture"
 

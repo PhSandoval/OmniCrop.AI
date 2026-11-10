@@ -445,7 +445,7 @@ def render_landing_page():
             st.metric(label="☕ Café", value="R² 0.8801", delta="MAE 0.0254")
             st.caption("Estabilidade excelente para dossel contínuo de culturas perenes.")
         with m_c5:
-            st.metric(label="🐄 Pecuária", value="R² 0.9674", delta="MAE 0.0238")
+            st.metric(label="🐄 Pastagem", value="R² 0.9674", delta="MAE 0.0238")
             st.caption("Precisão superior a 96% na captação do vigor estival da Brachiaria.")
 
         st.markdown("<div style='height: 1px; background: rgba(105, 240, 174, 0.2); margin: 24px 0 20px 0;'></div>", unsafe_allow_html=True)
@@ -474,6 +474,6 @@ def render_landing_page():
     st.markdown("<br>", unsafe_allow_html=True)
     col_copy, col_links = st.columns(2)
     with col_copy:
-        st.markdown("<p style='color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'>OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>v2.0 (Plataforma Multi-Culturas: Cana, Soja, Milho, Café e Pecuária)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'>OmniCrop AI © 2026 — Inteligência Agronômica SaaS<br>v2.0 (Plataforma Multi-Culturas: Cana, Soja, Milho, Café e Pastagem)</p>", unsafe_allow_html=True)
     with col_links:
         st.markdown("<p style='text-align: right; color: rgba(255,255,255,0.3); font-size: 12px; margin: 0;'><a href='https://www.linkedin.com/in/pedro-sandoval-92bb92261' target='_blank' style='color: #10b981; text-decoration: none;'>LinkedIn</a> • <a href='https://github.com/PhSandoval' target='_blank' style='color: #10b981; text-decoration: none;'>GitHub</a></p>", unsafe_allow_html=True)

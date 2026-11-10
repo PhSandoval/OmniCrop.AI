@@ -28,7 +28,7 @@ def test_generate_model_card():
     assert "Soja" in card
     assert "Milho" in card
     assert "Café" in card
-    assert "Pecuária (Pastagem)" in card
+    assert "Pastagem" in card
     assert "sugarcane" in card
     assert "soybean" in card
     assert "corn" in card

@@ -56,7 +56,7 @@ como Graus-Dia Acumulados ($T_b$) e balanço hídrico derivado de coeficientes F
 | Soja | `soybean` | 10.0 | 1.15 | 0.0557 | 0.1122 | 0.8684 |
 | Milho | `corn` | 10.0 | 1.20 | 0.1022 | 0.1460 | 0.7053 |
 | Café | `coffee` | 10.0 | 1.05 | 0.0254 | 0.0391 | 0.8801 |
-| Pecuária (Pastagem) | `pasture` | 15.0 | 0.90 | 0.0238 | 0.0389 | 0.9674 |
+| Pastagem | `pasture` | 15.0 | 0.90 | 0.0238 | 0.0389 | 0.9674 |
 
 ## 📐 Features Utilizadas
 - `chuva_acumulada_30d`: Precipitação acumulada nos últimos 30 dias (mm)
