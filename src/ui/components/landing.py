@@ -74,13 +74,69 @@ def render_landing_page():
         -webkit-backdrop-filter: blur(12px);
         display: inline-block;
     }
+
+    /* Estilos Premium dos Botões da Landing */
+    div[data-testid="stButton"] button {
+        border-radius: 14px !important;
+        font-weight: 700 !important;
+        font-size: 15.5px !important;
+        min-height: 52px !important;
+        padding: 10px 22px !important;
+        white-space: nowrap !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+    }
+    
+    div[data-testid="stButton"] button p {
+        font-size: 15.5px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.01em !important;
+        margin: 0 !important;
+        text-shadow: none !important;
+    }
+
+    div[data-testid="stButton"] button[kind="primary"] {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        border: 1px solid rgba(105, 240, 174, 0.45) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35) !important;
+    }
+
+    div[data-testid="stButton"] button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        border-color: #69f0ae !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.55) !important;
+    }
+
+    div[data-testid="stButton"] button[kind="secondary"],
+    div[data-testid="stButton"] button:not([kind="primary"]) {
+        background: rgba(10, 25, 15, 0.75) !important;
+        border: 1px solid rgba(255, 255, 255, 0.22) !important;
+        color: #f8fafc !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    div[data-testid="stButton"] button[kind="secondary"]:hover,
+    div[data-testid="stButton"] button:not([kind="primary"]):hover {
+        background: rgba(18, 42, 26, 0.90) !important;
+        border-color: rgba(105, 240, 174, 0.5) !important;
+        color: #69f0ae !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
     _has_dashboard = bool(('user' in st.session_state and st.session_state['user']) or (st.session_state.get('is_guest') and st.session_state.get('active_farm')))
 
     # 1.5 Navbar no Topo (Logo na esquerda, Botão na direita)
-    col_nav_logo, _, col_nav_btn = st.columns([1, 4, 1])
+    col_nav_logo, _, col_nav_btn = st.columns([1.2, 3.2, 2.6])
     with col_nav_logo:
         st.image(logo_path, width=80)
     with col_nav_btn:
@@ -90,7 +146,7 @@ def render_landing_page():
                 st.session_state['show_landing'] = False
                 st.rerun()
         else:
-            nav_col1, nav_col2 = st.columns(2)
+            nav_col1, nav_col2 = st.columns([1.1, 0.9], gap="small")
             with nav_col1:
                 if st.button("🚀 Experimentar", use_container_width=True, type="primary", key="nav_guest"):
                     st.session_state['show_guest_onboarding'] = True
@@ -125,24 +181,24 @@ def render_landing_page():
         </div>
         """, unsafe_allow_html=True)
         
-        _, col_btn, _ = st.columns([1, 1, 1])
-        with col_btn:
-            if _has_dashboard:
+        if _has_dashboard:
+            _, col_btn_dash, _ = st.columns([1, 2, 1])
+            with col_btn_dash:
                 if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
                     st.session_state['show_landing'] = False
                     st.rerun()
-            else:
-                hero_c1, hero_c2 = st.columns(2)
-                with hero_c1:
-                    if st.button("🚀 Experimentar Grátis", use_container_width=True, type="primary", key="hero_guest"):
-                        st.session_state['show_guest_onboarding'] = True
-                        st.session_state['show_landing'] = False
-                        st.rerun()
-                with hero_c2:
-                    if st.button("🔑 Já sou cliente / Entrar", use_container_width=True, key="hero_login"):
-                        st.session_state['show_login'] = True
-                        st.session_state['show_landing'] = False
-                        st.rerun()
+        else:
+            col_b1, col_b2 = st.columns([1.15, 1.0], gap="medium")
+            with col_b1:
+                if st.button("🚀 Experimentar Grátis", use_container_width=True, type="primary", key="hero_guest"):
+                    st.session_state['show_guest_onboarding'] = True
+                    st.session_state['show_landing'] = False
+                    st.rerun()
+            with col_b2:
+                if st.button("🔑 Já sou cliente / Entrar", use_container_width=True, key="hero_login"):
+                    st.session_state['show_login'] = True
+                    st.session_state['show_landing'] = False
+                    st.rerun()
 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
 
