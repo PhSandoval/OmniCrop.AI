@@ -20,6 +20,9 @@ def load_config() -> dict | None:
             st.session_state['active_farm']["crop_id"] = normalize_crop_id(st.session_state['active_farm'].get("tipo_cultura", "sugarcane"))
         return st.session_state['active_farm']
         
+    if st.session_state.get('is_guest'):
+        return None
+
     farms = get_user_farms_db()
     
     # --- AUTO-CLEANUP FIX ---
@@ -48,6 +51,13 @@ def load_config() -> dict | None:
     return None
 
 def save_config(config: dict) -> None:
+    if st.session_state.get('is_guest'):
+        if 'active_farm' in st.session_state and st.session_state['active_farm']:
+            st.session_state['active_farm'].update(config)
+        else:
+            st.session_state['active_farm'] = config
+        return
+
     if 'user' in st.session_state:
         try:
             from src.data.db import insert_farm, update_farm

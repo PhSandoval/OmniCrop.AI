@@ -105,6 +105,28 @@ def render_auth_page():
                             st.session_state['user'] = res.user
                             st.session_state['access_token'] = res.session.access_token
 
+                            # Migrate guest farm if one was pending
+                            if st.session_state.get('guest_pending_farm'):
+                                try:
+                                    from src.data.db import insert_farm
+                                    from src.core.crop_config import normalize_crop_id
+                                    gpf = st.session_state['guest_pending_farm']
+                                    crop_name = gpf.get('tipo_cultura', 'Cana-de-Açúcar')
+                                    cid = gpf.get('crop_id') or normalize_crop_id(crop_name)
+                                    insert_farm(
+                                        res.user.id,
+                                        gpf.get('farm_name', 'Meu Talhão'),
+                                        gpf.get('city', ''),
+                                        gpf.get('lat', 0),
+                                        gpf.get('lon', 0),
+                                        tipo_cultura=crop_name,
+                                        crop_id=cid,
+                                    )
+                                except Exception as mig_err:
+                                    logger.warning(f"Falha ao migrar fazenda demo: {mig_err}")
+                                st.session_state.pop('guest_pending_farm', None)
+                                st.session_state.pop('is_guest', None)
+
                             # Salva nos cookies para persistência de sessão
                             try:
                                 controller = CookieController()

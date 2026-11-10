@@ -77,21 +77,30 @@ def render_landing_page():
     </style>
     """, unsafe_allow_html=True)
 
+    _has_dashboard = bool(('user' in st.session_state and st.session_state['user']) or (st.session_state.get('is_guest') and st.session_state.get('active_farm')))
+
     # 1.5 Navbar no Topo (Logo na esquerda, Botão na direita)
     col_nav_logo, _, col_nav_btn = st.columns([1, 4, 1])
     with col_nav_logo:
         st.image(logo_path, width=80)
     with col_nav_btn:
         st.markdown("<br>", unsafe_allow_html=True)
-        if 'user' in st.session_state and st.session_state['user']:
+        if _has_dashboard:
             if st.button("Painel", use_container_width=True):
                 st.session_state['show_landing'] = False
                 st.rerun()
         else:
-            if st.button("Login", use_container_width=True):
-                st.session_state['show_login'] = True
-                st.session_state['show_landing'] = False
-                st.rerun()
+            nav_col1, nav_col2 = st.columns(2)
+            with nav_col1:
+                if st.button("🚀 Experimentar", use_container_width=True, type="primary", key="nav_guest"):
+                    st.session_state['show_guest_onboarding'] = True
+                    st.session_state['show_landing'] = False
+                    st.rerun()
+            with nav_col2:
+                if st.button("🔑 Entrar", use_container_width=True, key="nav_login"):
+                    st.session_state['show_login'] = True
+                    st.session_state['show_landing'] = False
+                    st.rerun()
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
@@ -118,15 +127,22 @@ def render_landing_page():
         
         _, col_btn, _ = st.columns([1, 1, 1])
         with col_btn:
-            if 'user' in st.session_state and st.session_state['user']:
+            if _has_dashboard:
                 if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
                     st.session_state['show_landing'] = False
                     st.rerun()
             else:
-                if st.button("Acessar Plataforma", use_container_width=True, type="primary"):
-                    st.session_state['show_login'] = True
-                    st.session_state['show_landing'] = False
-                    st.rerun()
+                hero_c1, hero_c2 = st.columns(2)
+                with hero_c1:
+                    if st.button("🚀 Experimentar Grátis", use_container_width=True, type="primary", key="hero_guest"):
+                        st.session_state['show_guest_onboarding'] = True
+                        st.session_state['show_landing'] = False
+                        st.rerun()
+                with hero_c2:
+                    if st.button("🔑 Já sou cliente / Entrar", use_container_width=True, key="hero_login"):
+                        st.session_state['show_login'] = True
+                        st.session_state['show_landing'] = False
+                        st.rerun()
 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
 

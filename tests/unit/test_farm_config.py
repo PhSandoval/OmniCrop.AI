@@ -178,3 +178,25 @@ def test_is_configured():
 
     with patch("src.utils.farm_config.load_config", return_value={"id": "f-1"}):
         assert is_configured() is True
+
+
+def test_load_config_guest_mode():
+    """Valida retorno None para modo convidado sem active_farm definida."""
+    st.session_state["is_guest"] = True
+    assert load_config() is None
+
+
+def test_save_config_guest_mode_with_and_without_active_farm():
+    """Valida salvamento em modo convidado sem persistência em banco."""
+    st.session_state["is_guest"] = True
+
+    # Sem active_farm prévia
+    save_config({"farm_name": "Fazenda Demo", "area_ha": 100})
+    assert st.session_state["active_farm"]["farm_name"] == "Fazenda Demo"
+    assert st.session_state["active_farm"]["area_ha"] == 100
+
+    # Com active_farm já existente
+    save_config({"area_ha": 250})
+    assert st.session_state["active_farm"]["farm_name"] == "Fazenda Demo"
+    assert st.session_state["active_farm"]["area_ha"] == 250
+

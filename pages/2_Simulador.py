@@ -17,7 +17,8 @@ st.set_page_config(page_title="Simulador · OmniCrop AI", page_icon="src/ui/asse
 
 inject_css()
 
-if 'user' not in st.session_state or not st.session_state['user']:
+_is_guest_with_farm = st.session_state.get('is_guest') and st.session_state.get('active_farm')
+if not st.session_state.get('user') and not _is_guest_with_farm:
     st.session_state["show_landing"] = True
     st.switch_page("app.py")
     st.stop()

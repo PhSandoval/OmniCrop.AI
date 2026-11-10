@@ -17,9 +17,11 @@ from src.ui.components.header import render_sidebar, render_page_header
 import base64
 import streamlit.components.v1 as components
 _user_logged = 'user' in st.session_state and st.session_state['user'] is not None
-_onboarding = st.session_state.get('show_onboarding', False)
+_is_guest = st.session_state.get('is_guest', False)
 _farm_selected = st.session_state.get('active_farm') is not None
-_is_landing = st.session_state.get('show_landing', not _user_logged)
+_guest_with_farm = _is_guest and _farm_selected
+_onboarding = st.session_state.get('show_onboarding', False) or st.session_state.get('show_guest_onboarding', False)
+_is_landing = st.session_state.get('show_landing', not (_user_logged or _guest_with_farm))
 
 _hide_sidebar = _is_landing or _onboarding or not _farm_selected
 
@@ -47,6 +49,28 @@ if 'code' in st.query_params:
         controller = CookieController()
         controller.set('sb-access-token', res.session.access_token, max_age=86400*30)
         controller.set('sb-refresh-token', res.session.refresh_token, max_age=86400*30)
+
+        # Migra fazenda demo se houver
+        if st.session_state.get('guest_pending_farm'):
+            try:
+                from src.data.db import insert_farm
+                from src.core.crop_config import normalize_crop_id
+                gpf = st.session_state['guest_pending_farm']
+                crop_name = gpf.get('tipo_cultura', 'Cana-de-Açúcar')
+                cid = gpf.get('crop_id') or normalize_crop_id(crop_name)
+                insert_farm(
+                    res.user.id,
+                    gpf.get('farm_name', 'Meu Talhão'),
+                    gpf.get('city', ''),
+                    gpf.get('lat', 0),
+                    gpf.get('lon', 0),
+                    tipo_cultura=crop_name,
+                    crop_id=cid,
+                )
+            except Exception:
+                pass
+            st.session_state.pop('guest_pending_farm', None)
+            st.session_state.pop('is_guest', None)
         
         st.query_params.clear() # Limpa a URL
         st.rerun()
@@ -95,6 +119,12 @@ if 'active_farm' not in st.session_state:
 if 'show_onboarding' not in st.session_state:
     st.session_state['show_onboarding'] = False
 
+if 'is_guest' not in st.session_state:
+    st.session_state['is_guest'] = False
+
+if 'show_guest_onboarding' not in st.session_state:
+    st.session_state['show_guest_onboarding'] = False
+
 if 'map_center' not in st.session_state:
     st.session_state['map_center'] = [-21.17, -47.81]
 
@@ -106,8 +136,12 @@ if 'last_busca' not in st.session_state:
 
 # Injeta CSS com o fundo correto: drone (login/onboarding) ou plantação (dashboard)
 _user_logged = bool(st.session_state.get('user'))
+_is_guest = bool(st.session_state.get('is_guest'))
 _farm_selected = bool(st.session_state.get('active_farm'))
-_onboarding = st.session_state.get('show_onboarding', False)
+_guest_with_farm = _is_guest and _farm_selected
+_onboarding = st.session_state.get('show_onboarding', False) or st.session_state.get('show_guest_onboarding', False)
+_is_landing = st.session_state.get('show_landing', not (_user_logged or _guest_with_farm))
+_hide_sidebar = _is_landing or _onboarding or not _farm_selected
 inject_css(is_login=_hide_sidebar)
 
 from src.ui.components.auth import render_auth_page
@@ -195,6 +229,144 @@ def render_farm_selector():
                 controller.remove('sb-refresh-token')
             except:
                 pass
+            st.rerun()
+
+def render_guest_onboarding():
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] { display: none; }
+            [data-testid="collapsedControl"] { display: none; }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    st.write("")
+    st.write("")
+    
+    col1, col2, col3 = st.columns([1, 3, 1])
+    
+    with col2:
+        st.markdown("<h1 style='text-align: center;'>🌱 Explorar Talhão Demo</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 16px; margin-bottom: 20px;'>"
+                    "Busque sua cidade e clique no mapa para marcar a localização exata da lavoura.</p>", unsafe_allow_html=True)
+        
+        # Smart Search
+        st.markdown("📍 **Como deseja encontrar sua lavoura?**")
+        tab_busca, tab_coord = st.tabs(["🏙️ Buscar por Endereço/CEP", "🧭 Inserir Coordenadas Manuais"])
+        
+        with tab_busca:
+            busca = st.text_input("Buscar Endereço, CEP ou Cidade:", placeholder="Ex: 14020-000 ou Avenida Paulista, SP", label_visibility="collapsed")
+            if busca and busca != st.session_state.get('last_busca'):
+                st.session_state['last_busca'] = busca
+                from src.data.fetch_api import search_location
+                pts = search_location(busca)
+                if pts:
+                    st.session_state['map_center'] = [pts[0]['lat'], pts[0]['lon']]
+                    st.session_state['map_zoom'] = 12
+                    st.rerun()
+                else:
+                    st.warning("Localidade não encontrada.")
+                    
+        with tab_coord:
+            c1, c2, c3 = st.columns([2, 2, 1])
+            man_lat = c1.number_input("Latitude:", value=float(st.session_state['map_center'][0]), step=1e-6, key="guest_man_lat")
+            man_lon = c2.number_input("Longitude:", value=float(st.session_state['map_center'][1]), step=1e-6, key="guest_man_lon")
+            if c3.button("Pular para Coordenada", use_container_width=True, key="guest_pular_coord"):
+                st.session_state['map_center'] = [man_lat, man_lon]
+                st.session_state['clicked_lat'] = man_lat
+                st.session_state['clicked_lon'] = man_lon
+                st.session_state['map_zoom'] = 15
+                st.rerun()
+                
+        import folium
+        from streamlit_folium import st_folium
+        
+        m = folium.Map(location=st.session_state['map_center'], zoom_start=st.session_state['map_zoom'], tiles=None)
+        
+        # Adiciona Camada de Satelite
+        folium.TileLayer(
+            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attr='Esri',
+            name='Satélite (Esri)',
+            overlay=False,
+            control=False
+        ).add_to(m)
+        
+        # Adiciona Camada de Mapa Hibrido (Ruas e Nomes)
+        folium.TileLayer(
+            tiles='OpenStreetMap',
+            name='Ruas e Cidades (OpenStreetMap)',
+            overlay=False,
+            control=False
+        ).add_to(m)
+        
+        folium.LayerControl().add_to(m)
+        
+        # Botão de GPS nativo do Folium para voar para a localização do usuário
+        from folium.plugins import LocateControl
+        LocateControl(auto_start=False, position="bottomright").add_to(m)
+        
+        clicked_lat = st.session_state.get('clicked_lat')
+        clicked_lon = st.session_state.get('clicked_lon')
+        
+        if clicked_lat and clicked_lon:
+            folium.Marker([clicked_lat, clicked_lon], tooltip="Nova Fazenda", icon=folium.Icon(color="green", icon="leaf")).add_to(m)
+        
+        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique no ícone de 'Camadas' (canto superior direito do mapa) para alternar entre <b>Satélite</b> e mapa de <b>Ruas</b>, facilitando encontrar sua fazenda.</p>", unsafe_allow_html=True)
+        
+        map_data = st_folium(m, height=500, use_container_width=True, key="guest_map")
+        
+        if map_data and map_data.get('last_clicked'):
+            new_lat = map_data['last_clicked']['lat']
+            new_lon = map_data['last_clicked']['lng']
+            if new_lat != clicked_lat or new_lon != clicked_lon:
+                st.session_state['clicked_lat'] = new_lat
+                st.session_state['clicked_lon'] = new_lon
+                st.rerun()
+                
+        if clicked_lat and clicked_lon:
+            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {clicked_lat:.6f} | Longitude {clicked_lon:.6f}")
+        
+        col_f, col_a = st.columns([3, 1])
+        fazenda = col_f.text_input("Nome do Talhão Demo:", placeholder="Ex: Meu Talhão Demo", key="guest_fazenda")
+        area_ha = col_a.number_input("Área (ha):", min_value=1, value=100, key="guest_area_ha")
+        
+        CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pecuária (Pasto)"]
+        tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS, key="guest_tipo_cultura")
+        
+        if st.button("Explorar Talhão →", type="primary", use_container_width=True, key="guest_save"):
+            if not clicked_lat or not clicked_lon:
+                st.error("Clique no mapa para marcar o ponto exato da fazenda!")
+            else:
+                lat = clicked_lat
+                lon = clicked_lon
+                
+                # Reverso para achar a cidade baseada no clique
+                import requests
+                try:
+                    r = requests.get(f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}", headers={"User-Agent": "OmniCropAI"})
+                    city = r.json().get('address', {}).get('city', 'Fazenda')
+                except:
+                    city = "Local Desconhecido"
+                
+                from src.core.crop_config import normalize_crop_id
+                crop_id = normalize_crop_id(tipo_cultura)
+                st.session_state['active_farm'] = {
+                    "farm_name": fazenda or "Meu Talhão Demo",
+                    "city": city,
+                    "lat": lat,
+                    "lon": lon,
+                    "tipo_cultura": tipo_cultura,
+                    "crop_id": crop_id,
+                    "id": None,
+                }
+                st.session_state['is_guest'] = True
+                st.session_state['show_guest_onboarding'] = False
+                st.rerun()
+                
+        if st.button("← Voltar ao Início", use_container_width=True, key="guest_back"):
+            st.session_state['show_guest_onboarding'] = False
+            st.session_state['show_landing'] = True
+            st.session_state['is_guest'] = False
             st.rerun()
 
 def render_onboarding():
@@ -408,15 +580,16 @@ def render_main_app():
                     st.session_state[flag_key] = False
                     try:
                         from src.data.db import log_audit_event
-                        log_audit_event(
-                            user_id=st.session_state['user'].id,
-                            action="EXPORT_PDF_REPORT",
-                            entity_type="report",
-                            entity_id=str(farm_id) if farm_id else None,
-                            farm_id=str(farm_id) if farm_id else None,
-                            details={"farm_name": cfg.get("farm_name"), "city": cfg.get("city")},
-                            access_token=st.session_state.get('access_token'),
-                        )
+                        if st.session_state.get('user'):
+                            log_audit_event(
+                                user_id=st.session_state['user'].id,
+                                action="EXPORT_PDF_REPORT",
+                                entity_type="report",
+                                entity_id=str(farm_id) if farm_id else None,
+                                farm_id=str(farm_id) if farm_id else None,
+                                details={"farm_name": cfg.get("farm_name"), "city": cfg.get("city")},
+                                access_token=st.session_state.get('access_token'),
+                            )
                     except Exception:
                         pass
                     st.rerun()
@@ -663,15 +836,26 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
 CULTURAS_EM_TREINAMENTO: list[str] = []  # Todas as 5 culturas estão operacionais (v2.0)
 
 # 4. Gatilho Final
-if st.session_state.get('show_landing', not st.session_state.get('user')):
-    # Se show_landing estiver explicitamente True, ou se for o padrao (não logado e sem tentar login)
+_is_guest = st.session_state.get('is_guest', False)
+_has_active_farm = bool(st.session_state.get('active_farm'))
+_guest_with_farm = _is_guest and _has_active_farm
+
+if st.session_state.get('show_guest_onboarding'):
+    render_guest_onboarding()
+elif st.session_state.get('show_landing', not st.session_state.get('user') and not _guest_with_farm):
     if not st.session_state.get('user') and st.session_state.get('show_login', False):
         render_auth_page()
     else:
         from src.ui.components.landing import render_landing_page
         render_landing_page()
+elif _guest_with_farm:
+    # Guest user with farm set → go straight to main dashboard
+    _tipo = (st.session_state.get('active_farm') or {}).get('tipo_cultura') or ""
+    if _tipo in CULTURAS_EM_TREINAMENTO:
+        render_cultura_em_treinamento(_tipo)
+    else:
+        render_main_app()
 elif not st.session_state.get('user'):
-    # Garantia para nao logados
     render_auth_page()
 elif st.session_state.get('show_onboarding'):
     render_onboarding()

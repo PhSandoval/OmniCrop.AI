@@ -13,7 +13,8 @@ from src.models.predict import build_payload, get_prediction
 st.set_page_config(page_title="Configurações · OmniCrop AI", page_icon="src/ui/assets/logo.png", layout="wide", initial_sidebar_state="expanded")
 inject_css()
 
-if 'user' not in st.session_state or not st.session_state['user']:
+_is_guest_with_farm = st.session_state.get('is_guest') and st.session_state.get('active_farm')
+if not st.session_state.get('user') and not _is_guest_with_farm:
     st.session_state["show_landing"] = True
     st.switch_page("app.py")
     st.stop()
@@ -62,33 +63,36 @@ with col_pref:
                     "chuva_critica": deficit_lim,
                     "gda_critico": dias_calor_lim
                 }
-                try:
-                    update_farm(cfg["id"], st.session_state['user'].id, update_data_db)
+                cfg.update(update_data_db)
+                cfg["receber_alertas"] = receber_alertas
+                cfg["webhook_url"] = webhook_url
+                st.session_state['active_farm'] = cfg
+                if st.session_state.get('is_guest'):
+                    st.success("Configurações atualizadas para esta sessão demo!")
+                else:
                     try:
-                        log_audit_event(
-                            user_id=st.session_state['user'].id,
-                            action="UPDATE_ALERT_THRESHOLDS",
-                            entity_type="farm_config",
-                            entity_id=str(cfg["id"]),
-                            farm_id=str(cfg["id"]),
-                            details=update_data_db,
-                            access_token=st.session_state.get('access_token'),
-                        )
-                    except Exception:
-                        pass
-                    
-                    cfg.update(update_data_db)
-                    cfg["receber_alertas"] = receber_alertas
-                    cfg["webhook_url"] = webhook_url
-                    st.session_state['active_farm'] = cfg
-                    st.success("Configurações de sistema salvas com sucesso!")
-                except Exception as e:
-                    st.error("Erro ao salvar no banco de dados. Tente novamente.")
+                        update_farm(cfg["id"], st.session_state['user'].id, update_data_db)
+                        try:
+                            log_audit_event(
+                                user_id=st.session_state['user'].id,
+                                action="UPDATE_ALERT_THRESHOLDS",
+                                entity_type="farm_config",
+                                entity_id=str(cfg["id"]),
+                                farm_id=str(cfg["id"]),
+                                details=update_data_db,
+                                access_token=st.session_state.get('access_token'),
+                            )
+                        except Exception:
+                            pass
+                        st.success("Configurações de sistema salvas com sucesso!")
+                    except Exception as e:
+                        st.error("Erro ao salvar no banco de dados. Tente novamente.")
 
     with col_btn_test:
         if st.button("🔔 Testar Alerta Agora", use_container_width=True):
             from src.utils.daily_alerts import dispatch_alert
-            dest = webhook_url if webhook_url else st.session_state['user'].email
+            user_mail = st.session_state['user'].email if st.session_state.get('user') else "demo@omnicrop.ai"
+            dest = webhook_url if webhook_url else user_mail
             res = dispatch_alert(dest, cfg.get("farm_name", "Fazenda Modelo"), ["Alerta de Teste: Simulação de Veranico (7 dias sem chuva)"], ndvi=0.48)
             if res.get("success"):
                 st.success(f"{res.get('message')}")
@@ -97,14 +101,31 @@ with col_pref:
 
 with col_conta:
     st.markdown('<div class="sec-header">Seu Perfil</div>', unsafe_allow_html=True)
-    st.write(f"**E-mail Autenticado:**")
-    st.code(st.session_state['user'].email)
-    st.write(f"**Sessão:** Ativa e Segura (Supabase Auth)")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🚪 Sair do Sistema (Logout)", type="primary"):
-        st.session_state['user'] = None
-        st.session_state['show_login'] = False
-        st.session_state['active_farm'] = None
-        st.session_state['access_token'] = None
-        st.switch_page("app.py")
+    if st.session_state.get('is_guest'):
+        st.write("**Modo:** Convidado (Demo)")
+        st.caption("Você está testando a plataforma sem login. Os dados desta fazenda são temporários.")
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("💾 Criar Conta / Salvar Fazenda", type="primary", use_container_width=True):
+            st.session_state['guest_pending_farm'] = st.session_state.get('active_farm')
+            st.session_state['is_guest'] = False
+            st.session_state['active_farm'] = None
+            st.session_state['show_login'] = True
+            st.session_state['show_landing'] = False
+            st.switch_page("app.py")
+        if st.button("🚪 Sair do Modo Demo", use_container_width=True):
+            st.session_state['active_farm'] = None
+            st.session_state['is_guest'] = False
+            st.session_state['show_landing'] = True
+            st.switch_page("app.py")
+    else:
+        st.write(f"**E-mail Autenticado:**")
+        st.code(st.session_state['user'].email)
+        st.write(f"**Sessão:** Ativa e Segura (Supabase Auth)")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🚪 Sair do Sistema (Logout)", type="primary"):
+            st.session_state['user'] = None
+            st.session_state['show_login'] = False
+            st.session_state['active_farm'] = None
+            st.session_state['access_token'] = None
+            st.switch_page("app.py")

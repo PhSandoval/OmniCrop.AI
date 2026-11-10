@@ -107,8 +107,43 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
     </div>
     </div>'''
             st.markdown(html_str, unsafe_allow_html=True)
+
+            if st.session_state.get('is_guest'):
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown("""
+<div style="background:rgba(8,50,25,.70);border:1px solid rgba(105,240,174,.35);border-radius:12px;padding:14px;text-align:center;">
+    <div style="font-size:11px;font-weight:700;color:#69F0AE;text-transform:uppercase;letter-spacing:.10em;margin-bottom:6px;">🧪 Modo Demonstração</div>
+    <div style="font-size:11px;color:rgba(180,230,180,.80);margin-bottom:10px;line-height:1.4;">
+        Dados temporários desta sessão.<br>Crie uma conta para salvar este talhão.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+                if st.button("💾 Salvar Fazenda (Criar Conta)", use_container_width=True, key="btn_guest_register_active", type="primary"):
+                    st.session_state['guest_pending_farm'] = st.session_state.get('active_farm')
+                    st.session_state['is_guest'] = False
+                    st.session_state['active_farm'] = None
+                    st.session_state['show_login'] = True
+                    st.session_state['show_landing'] = False
+                    st.switch_page("app.py")
         else:
-            st.markdown("""
+            if st.session_state.get('is_guest'):
+                st.markdown("""
+<div style="background:rgba(8,50,25,.70);border:1px solid rgba(105,240,174,.35);border-radius:12px;padding:16px;text-align:center;">
+    <div style="font-size:11px;font-weight:700;color:#69F0AE;text-transform:uppercase;letter-spacing:.10em;margin-bottom:8px;">🧪 Modo Demonstração</div>
+    <div style="font-size:11px;color:rgba(180,230,180,.80);margin-bottom:14px;line-height:1.5;">
+        Dados temporários desta sessão.<br>Crie uma conta para salvar sua fazenda.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+                if st.button("💾 Criar Conta / Salvar Fazenda", use_container_width=True, key="btn_guest_register", type="primary"):
+                    st.session_state['guest_pending_farm'] = st.session_state.get('active_farm')
+                    st.session_state['is_guest'] = False
+                    st.session_state['active_farm'] = None
+                    st.session_state['show_login'] = True
+                    st.session_state['show_landing'] = False
+                    st.switch_page("app.py")
+            else:
+                st.markdown("""
 <div style="background:rgba(8,35,10,.55);border:1px solid rgba(100,220,100,.20);border-radius:12px;padding:16px;text-align:center;">
     <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;">Acesso Restrito</div>
     <div style="font-size:11px;color:rgba(180,230,180,.70);margin-bottom:14px;line-height:1.4;">
@@ -116,9 +151,9 @@ def render_sidebar(today: dict, resultado: dict | None) -> None:
     </div>
 </div>
 """, unsafe_allow_html=True)
-            if st.button("🔒 Fazer Login", use_container_width=True, key="btn_sidebar_login"):
-                st.session_state['show_login'] = True
-                st.rerun()
+                if st.button("🔒 Fazer Login", use_container_width=True, key="btn_sidebar_login"):
+                    st.session_state['show_login'] = True
+                    st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.caption(f"v1.0 · {datetime.now().strftime('%H:%M')}")

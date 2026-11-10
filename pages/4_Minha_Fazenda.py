@@ -26,7 +26,8 @@ st.set_page_config(
 )
 inject_css()
 
-if "user" not in st.session_state or not st.session_state["user"]:
+_is_guest_with_farm = st.session_state.get('is_guest') and st.session_state.get('active_farm')
+if not st.session_state.get("user") and not _is_guest_with_farm:
     st.session_state["show_landing"] = True
     st.switch_page("app.py")
     st.stop()
@@ -50,8 +51,13 @@ render_page_header(
     "MOTOR GEOESPACIAL (POSTGIS) · LIMITES TERRITORIAIS E GESTÃO DE TALHÕES",
 )
 
-user_id = st.session_state["user"].id
-farms = get_user_farms(user_id)
+if st.session_state.get('is_guest'):
+    user_id = None
+    farms = [st.session_state["active_farm"]]
+    st.info("🧪 **Modo Demonstração:** Inspecionando talhão de teste. Suas alterações ficam salvas durante a sessão atual.")
+else:
+    user_id = st.session_state["user"].id
+    farms = get_user_farms(user_id)
 
 if not farms:
     st.info("Você ainda não possui fazendas cadastradas.")
@@ -237,6 +243,12 @@ with col_btn1:
             "boundary_geojson": new_poly,
         }
 
+        if st.session_state.get('is_guest'):
+            selected_farm.update(update_data)
+            st.session_state["active_farm"] = selected_farm
+            st.success("✅ Limites territoriais temporários atualizados nesta sessão!")
+            st.rerun()
+
         # Atualiza no Supabase com isolamento RLS
         update_farm(selected_farm["id"], user_id, update_data)
         update_farm_boundary(selected_farm["id"], user_id, new_poly)
@@ -264,7 +276,12 @@ with col_btn1:
 
 with col_btn2:
     if st.button("🗑️ Apagar Fazenda", use_container_width=True):
-        if len(farms) == 1:
+        if st.session_state.get('is_guest'):
+            st.session_state["active_farm"] = None
+            st.session_state["is_guest"] = False
+            st.session_state["show_landing"] = True
+            st.switch_page("app.py")
+        elif len(farms) == 1:
             st.error("Você não pode apagar sua única fazenda cadastrada.")
         else:
             delete_farm(selected_farm["id"], user_id)
@@ -287,5 +304,8 @@ with col_btn2:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 if st.button("➕ Adicionar Novo Talhão (Mapear no Satélite)", use_container_width=False):
-    st.session_state["show_onboarding"] = True
+    if st.session_state.get('is_guest'):
+        st.session_state["show_guest_onboarding"] = True
+    else:
+        st.session_state["show_onboarding"] = True
     st.switch_page("app.py")
