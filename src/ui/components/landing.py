@@ -66,13 +66,126 @@ def render_landing_page():
     }
     
     .glass-label {
-        background: rgba(8, 20, 12, 0.70) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px;
+        background: rgba(10, 26, 16, 0.65) !important;
+        border: 1px solid rgba(105, 240, 174, 0.25) !important;
+        border-radius: 14px;
         padding: 12px 24px;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         display: inline-block;
+    }
+
+    /* Glassmorphism Expander (Validação Científica) */
+    div[data-testid="stExpander"] {
+        background: rgba(8, 24, 15, 0.58) !important;
+        border: 1px solid rgba(105, 240, 174, 0.25) !important;
+        border-radius: 18px !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+        overflow: hidden !important;
+        transition: all 0.3s ease !important;
+    }
+
+    div[data-testid="stExpander"]:hover {
+        border-color: rgba(105, 240, 174, 0.45) !important;
+        box-shadow: 0 14px 42px 0 rgba(0, 0, 0, 0.55), inset 0 1px 2px rgba(105, 240, 174, 0.2) !important;
+    }
+
+    div[data-testid="stExpander"] summary {
+        background: rgba(12, 34, 20, 0.70) !important;
+        border-bottom: 1px solid rgba(105, 240, 174, 0.15) !important;
+        padding: 18px 22px !important;
+        font-weight: 700 !important;
+        font-size: 15.5px !important;
+        color: #ffffff !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        transition: background 0.2s ease, color 0.2s ease !important;
+        cursor: pointer !important;
+    }
+
+    div[data-testid="stExpander"] summary:hover {
+        background: rgba(18, 48, 28, 0.85) !important;
+        color: #69F0AE !important;
+    }
+
+    div[data-testid="stExpander"] summary svg {
+        fill: #69F0AE !important;
+        color: #69F0AE !important;
+    }
+
+    div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] {
+        padding: 24px 22px !important;
+        background: transparent !important;
+    }
+
+    /* Glassmorphism Metrics Cards */
+    div[data-testid="stExpander"] div[data-testid="stMetric"] {
+        background: rgba(10, 28, 18, 0.60) !important;
+        border: 1px solid rgba(105, 240, 174, 0.18) !important;
+        border-radius: 14px !important;
+        padding: 18px 14px !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        transition: all 0.25s ease !important;
+    }
+
+    div[data-testid="stExpander"] div[data-testid="stMetric"]:hover {
+        border-color: rgba(105, 240, 174, 0.50) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 14px rgba(16, 185, 129, 0.25) !important;
+    }
+
+    div[data-testid="stExpander"] div[data-testid="stMetric"] label {
+        color: #e2e8f0 !important;
+        font-weight: 700 !important;
+        font-size: 13.5px !important;
+    }
+
+    div[data-testid="stExpander"] div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        font-size: 26px !important;
+        text-shadow: 0 0 18px rgba(105, 240, 174, 0.4) !important;
+    }
+
+    div[data-testid="stExpander"] div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
+        color: #69F0AE !important;
+        font-weight: 600 !important;
+        font-size: 12.5px !important;
+    }
+
+    /* Glassmorphism Crop Cards */
+    .glass-crop-card {
+        background: rgba(10, 28, 18, 0.60) !important;
+        border: 1px solid rgba(105, 240, 174, 0.22) !important;
+        border-radius: 14px !important;
+        padding: 14px 10px !important;
+        text-align: center !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.25s ease !important;
+    }
+
+    .glass-crop-card:hover {
+        border-color: rgba(105, 240, 174, 0.5) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 22px rgba(16, 185, 129, 0.25) !important;
+    }
+
+    /* Glassmorphism Methodology Card */
+    .glass-methodology-card {
+        background: rgba(8, 22, 14, 0.65) !important;
+        padding: 20px 24px !important;
+        border-radius: 14px !important;
+        border: 1px solid rgba(105, 240, 174, 0.22) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     }
 
     /* Estilos Premium dos Botões da Landing */
@@ -291,16 +404,23 @@ def render_landing_page():
     """, unsafe_allow_html=True)
     
     cc1, cc2, cc3, cc4, cc5 = st.columns(5)
-    with cc1: 
-        st.success("🌾 Cana-de-Açúcar (Operacional)")
-    with cc2: 
-        st.success("🌿 Soja (Operacional)")
-    with cc3: 
-        st.success("🌽 Milho (Operacional)")
-    with cc4: 
-        st.success("☕ Café (Operacional)")
-    with cc5: 
-        st.success("🐄 Pastagem (Operacional)")
+    crops_data = [
+        ("🌾 Cana-de-Açúcar", "Operacional"),
+        ("🌿 Soja", "Operacional"),
+        ("🌽 Milho", "Operacional"),
+        ("☕ Café", "Operacional"),
+        ("🐄 Pastagem", "Operacional"),
+    ]
+    for col, (crop_name, status) in zip([cc1, cc2, cc3, cc4, cc5], crops_data):
+        with col:
+            st.markdown(f"""
+            <div class="glass-crop-card">
+                <div style="font-weight: 700; color: #fff; font-size: 14.5px; margin-bottom: 4px;">{crop_name}</div>
+                <div style="font-size: 11px; color: #69F0AE; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">
+                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #69F0AE; margin-right: 5px; box-shadow: 0 0 6px #69F0AE;"></span>{status}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("📊 Validação Científica & Métricas de Acerto (Cross-Validation Temporal 2024–2026)", expanded=True):
@@ -328,14 +448,16 @@ def render_landing_page():
             st.metric(label="🐄 Pecuária", value="R² 0.9674", delta="MAE 0.0238")
             st.caption("Precisão superior a 96% na captação do vigor estival da Brachiaria.")
 
-        st.markdown("---")
+        st.markdown("<div style='height: 1px; background: rgba(105, 240, 174, 0.2); margin: 24px 0 20px 0;'></div>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
-            <h5 style="color: #38bdf8; margin-top: 0; margin-bottom: 8px;">🧠 Notas Metodológicas de Governança e Interpretação dos Indicadores:</h5>
-            <ul style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 0; padding-left: 20px;">
-                <li><b>O que é o R² (Coeficiente de Determinação)?</b> Indica a porcentagem da variação do vigor da biomassa que o modelo explica (ex: 96,7% na pecuária e 88,0% no café).</li>
-                <li><b>O que é o MAE (Erro Médio Absoluto)?</b> Erro médio na escala contínua do NDVI (0 a 1). Um MAE de ~0.02 significa desvio ínfimo de apenas 2 centésimos em relação ao satélite físico Sentinel-2/MODIS.</li>
-                <li><b>Validação Cruzada Temporal (Backtesting Out-of-Time):</b> Modelos avaliados estritamente em safras subsequentes futuras (2024–2026), garantindo ausência total de contaminação cruzada (<i>data leakage</i>) e replicabilidade em campo.</li>
+        <div class="glass-methodology-card">
+            <h5 style="color: #69F0AE; margin-top: 0; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                🧠 Notas Metodológicas de Governança e Interpretação dos Indicadores:
+            </h5>
+            <ul style="color: #cbd5e1; font-size: 13.5px; line-height: 1.7; margin-bottom: 0; padding-left: 20px;">
+                <li><b style="color: #fff;">O que é o R² (Coeficiente de Determinação)?</b> Indica a porcentagem da variação do vigor da biomassa que o modelo explica (ex: 96,7% na pecuária e 88,0% no café).</li>
+                <li><b style="color: #fff;">O que é o MAE (Erro Médio Absoluto)?</b> Erro médio na escala contínua do NDVI (0 a 1). Um MAE de ~0.02 significa desvio ínfimo de apenas 2 centésimos em relação ao satélite físico Sentinel-2/MODIS.</li>
+                <li><b style="color: #fff;">Validação Cruzada Temporal (Backtesting Out-of-Time):</b> Modelos avaliados estritamente em safras subsequentes futuras (2024–2026), garantindo ausência total de contaminação cruzada (<i>data leakage</i>) e replicabilidade em campo.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
