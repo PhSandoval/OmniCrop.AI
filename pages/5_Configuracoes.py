@@ -47,15 +47,15 @@ with col_pref:
     dias_calor_lim = st.slider("GDA Crítico (Mensal)", 0, 30, cfg.get("gda_critico", 150))
     
     st.markdown("<br>", unsafe_allow_html=True)
-    receber_alertas = st.toggle("📧 Ativar Relatório Diário por E-mail (CRON)", value=cfg.get("receber_alertas", False), help="Receba um e-mail às 06:00 caso o DSS detecte risco.")
-    webhook_url = st.text_input("🔗 Webhook Operacional (Discord, Slack ou Zapier)", 
+    receber_alertas = st.toggle("Ativar Relatório Diário por E-mail (CRON)", value=cfg.get("receber_alertas", False), help="Receba um e-mail às 06:00 caso o DSS detecte risco.")
+    webhook_url = st.text_input("Webhook Operacional (Discord, Slack ou Zapier)", 
                                 value=cfg.get("webhook_url", ""),
                                 placeholder="https://discord.com/api/webhooks/...",
                                 help="Cole uma URL de Webhook para receber alertas instantâneos no seu canal operacional.")
     
     col_btn_save, col_btn_test = st.columns([1, 1])
     with col_btn_save:
-        if st.button("💾 Salvar Preferências", type="primary", use_container_width=True):
+        if st.button("Salvar Preferências", type="primary", use_container_width=True):
             if cfg:
                 update_data_db = {
                     "alert_amarelo": ndvi_medio_lim,
@@ -89,7 +89,7 @@ with col_pref:
                         st.error("Erro ao salvar no banco de dados. Tente novamente.")
 
     with col_btn_test:
-        if st.button("🔔 Testar Alerta Agora", use_container_width=True):
+        if st.button("Testar Alerta Agora", use_container_width=True):
             from src.utils.daily_alerts import dispatch_alert
             user_mail = st.session_state['user'].email if st.session_state.get('user') else "demo@omnicrop.ai"
             dest = webhook_url if webhook_url else user_mail
@@ -105,14 +105,14 @@ with col_conta:
         st.write("**Modo:** Convidado (Demo)")
         st.caption("Você está testando a plataforma sem login. Os dados desta fazenda são temporários.")
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("💾 Criar Conta / Salvar Fazenda", type="primary", use_container_width=True):
+        if st.button("Criar Conta / Salvar Fazenda", type="primary", use_container_width=True):
             st.session_state['guest_pending_farm'] = st.session_state.get('active_farm')
             st.session_state['is_guest'] = False
             st.session_state['active_farm'] = None
             st.session_state['show_login'] = True
             st.session_state['show_landing'] = False
             st.switch_page("app.py")
-        if st.button("🚪 Sair do Modo Demo", use_container_width=True):
+        if st.button("Sair do Modo Demo", use_container_width=True):
             st.session_state['active_farm'] = None
             st.session_state['is_guest'] = False
             st.session_state['show_landing'] = True
@@ -123,7 +123,7 @@ with col_conta:
         st.write(f"**Sessão:** Ativa e Segura (Supabase Auth)")
         
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚪 Sair do Sistema (Logout)", type="primary"):
+        if st.button("Sair do Sistema (Logout)", type="primary"):
             st.session_state['user'] = None
             st.session_state['show_login'] = False
             st.session_state['active_farm'] = None

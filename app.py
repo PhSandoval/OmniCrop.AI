@@ -192,10 +192,7 @@ def render_farm_selector():
             </div>
             """, unsafe_allow_html=True)
             for f in farms:
-                from src.core.crop_config import normalize_crop_id
-                cid = normalize_crop_id(f.get("tipo_cultura"))
-                cultura_icon = {"soybean": "🫘", "coffee": "☕", "corn": "🌽", "pasture": "🐄"}.get(cid, "🌾")
-                btn_label = f"{cultura_icon} {f['farm_name']} ({f['city']})"
+                btn_label = f"{f['farm_name']} ({f['city']})"
                 if st.button(btn_label, key=f"select_farm_{f['id']}", use_container_width=True):
                     # Set active farm and override the local config
                     cfg = f.copy()
@@ -215,12 +212,12 @@ def render_farm_selector():
             </div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("➕ Cadastrar Novo Talhão", type="primary", use_container_width=True, key="btn_cadastrar_novo_talhao"):
+        if st.button("Cadastrar Novo Talhão", type="primary", use_container_width=True, key="btn_cadastrar_novo_talhao"):
             st.session_state['show_onboarding'] = True
             st.rerun()
         
         st.write("")
-        if st.button("🚪 Sair (Logout)", use_container_width=True, key="btn_logout_farm_selector"):
+        if st.button("Sair (Logout)", use_container_width=True, key="btn_logout_farm_selector"):
             st.session_state['user'] = None
             st.session_state['show_login'] = False
             st.session_state['active_farm'] = None
@@ -247,13 +244,13 @@ def render_guest_onboarding():
     col1, col2, col3 = st.columns([1, 3, 1])
     
     with col2:
-        st.markdown("<h1 style='text-align: center;'>🌱 Explorar Talhão Demo</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Explorar Talhão Demo</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 16px; margin-bottom: 20px;'>"
                     "Busque sua cidade e clique no mapa para marcar a localização exata da lavoura.</p>", unsafe_allow_html=True)
         
         # Smart Search
-        st.markdown("📍 **Como deseja encontrar sua lavoura?**")
-        tab_busca, tab_coord = st.tabs(["🏙️ Buscar por Endereço/CEP", "🧭 Inserir Coordenadas Manuais"])
+        st.markdown("**Como deseja encontrar sua lavoura?**")
+        tab_busca, tab_coord = st.tabs(["Buscar por Endereço/CEP", "Inserir Coordenadas Manuais"])
         
         with tab_busca:
             busca = st.text_input("Buscar Endereço, CEP ou Cidade:", placeholder="Ex: 14020-000 ou Avenida Paulista, SP", label_visibility="collapsed")
@@ -313,7 +310,7 @@ def render_guest_onboarding():
         if clicked_lat and clicked_lon:
             folium.Marker([clicked_lat, clicked_lon], tooltip="Nova Fazenda", icon=folium.Icon(color="green", icon="leaf")).add_to(m)
         
-        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique no ícone de 'Camadas' (canto superior direito do mapa) para alternar entre <b>Satélite</b> e mapa de <b>Ruas</b>, facilitando encontrar sua fazenda.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:14px; color:#69F0AE;'><b>Dica:</b> Clique no ícone de 'Camadas' (canto superior direito do mapa) para alternar entre <b>Satélite</b> e mapa de <b>Ruas</b>, facilitando encontrar sua fazenda.</p>", unsafe_allow_html=True)
         
         map_data = st_folium(m, height=500, use_container_width=True, key="guest_map")
         
@@ -326,14 +323,14 @@ def render_guest_onboarding():
                 st.rerun()
                 
         if clicked_lat and clicked_lon:
-            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {clicked_lat:.6f} | Longitude {clicked_lon:.6f}")
+            st.success(f"Ponto de Monitoramento Capturado: Latitude {clicked_lat:.6f} | Longitude {clicked_lon:.6f}")
         
         col_f, col_a = st.columns([3, 1])
         fazenda = col_f.text_input("Nome do Talhão Demo:", placeholder="Ex: Meu Talhão Demo", key="guest_fazenda")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100, key="guest_area_ha")
         
         CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pastagem"]
-        tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS, key="guest_tipo_cultura")
+        tipo_cultura = st.selectbox("Selecione a Cultura Principal", CULTURAS, key="guest_tipo_cultura")
         
         if st.button("Explorar Talhão →", type="primary", use_container_width=True, key="guest_save"):
             if not clicked_lat or not clicked_lon:
@@ -385,13 +382,13 @@ def render_onboarding():
     col1, col2, col3 = st.columns([1, 3, 1])
     
     with col2:
-        st.markdown("<h1 style='text-align: center;'>🌱 Mapear Novo Talhão</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Mapear Novo Talhão</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: rgba(180,230,180,.8); font-size: 16px; margin-bottom: 20px;'>"
                     "Busque sua cidade e clique no mapa para marcar a localização exata da lavoura.</p>", unsafe_allow_html=True)
         
         # Smart Search
-        st.markdown("📍 **Como deseja encontrar sua lavoura?**")
-        tab_busca, tab_coord = st.tabs(["🏙️ Buscar por Endereço/CEP", "🧭 Inserir Coordenadas Manuais"])
+        st.markdown("**Como deseja encontrar sua lavoura?**")
+        tab_busca, tab_coord = st.tabs(["Buscar por Endereço/CEP", "Inserir Coordenadas Manuais"])
         
         with tab_busca:
             busca = st.text_input("Buscar Endereço, CEP ou Cidade:", placeholder="Ex: 14020-000 ou Avenida Paulista, SP", label_visibility="collapsed")
@@ -451,7 +448,7 @@ def render_onboarding():
         if clicked_lat and clicked_lon:
             folium.Marker([clicked_lat, clicked_lon], tooltip="Nova Fazenda", icon=folium.Icon(color="green", icon="leaf")).add_to(m)
         
-        st.markdown("<p style='font-size:14px; color:#69F0AE;'>👉 <b>DICA:</b> Clique no ícone de 'Camadas' (canto superior direito do mapa) para alternar entre <b>Satélite</b> e mapa de <b>Ruas</b>, facilitando encontrar sua fazenda.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:14px; color:#69F0AE;'><b>Dica:</b> Clique no ícone de 'Camadas' (canto superior direito do mapa) para alternar entre <b>Satélite</b> e mapa de <b>Ruas</b>, facilitando encontrar sua fazenda.</p>", unsafe_allow_html=True)
         
         map_data = st_folium(m, height=500, use_container_width=True)
         
@@ -464,16 +461,16 @@ def render_onboarding():
                 st.rerun()
                 
         if clicked_lat and clicked_lon:
-            st.success(f"📍 Ponto de Monitoramento Capturado: Latitude {clicked_lat:.6f} | Longitude {clicked_lon:.6f}")
+            st.success(f"Ponto de Monitoramento Capturado: Latitude {clicked_lat:.6f} | Longitude {clicked_lon:.6f}")
         
         col_f, col_a = st.columns([3, 1])
         fazenda = col_f.text_input("Nome do Novo Talhão:", placeholder="Ex: Talhão Sul")
         area_ha = col_a.number_input("Área (ha):", min_value=1, value=100)
         
         CULTURAS = ["Cana-de-Açúcar", "Soja", "Milho", "Café", "Pastagem"]
-        tipo_cultura = st.selectbox("🌾 Selecione a Cultura Principal", CULTURAS)
+        tipo_cultura = st.selectbox("Selecione a Cultura Principal", CULTURAS)
         
-        if st.button("Salvar Fazenda 🚀", type="primary", use_container_width=True):
+        if st.button("Salvar Fazenda", type="primary", use_container_width=True):
             if not fazenda:
                 st.error("Dê um nome para o talhão!")
             elif not clicked_lat or not clicked_lon:
@@ -545,7 +542,7 @@ def render_main_app():
 
     if pdf_key not in st.session_state:
         st.button(
-            "📄 Solicitar Relatório à IA (Gerar PDF)", 
+            "Solicitar Relatório à IA (Gerar PDF)", 
             type="primary", 
             key=f"btn_gerar_pdf_{cfg.get('id', 'default')}",
             on_click=lambda: st.session_state.update({flag_key: True})
@@ -601,7 +598,7 @@ def render_main_app():
                     st.session_state[flag_key] = False
     else:
         st.download_button(
-            label="⬇️ PDF Pronto! Baixar Arquivo",
+            label="Baixar Relatório em PDF",
             data=st.session_state[pdf_key],
             file_name=f"Relatorio_{cfg.get('farm_name', 'Fazenda')}.pdf".replace(" ", "_"),
             mime="application/pdf",
@@ -611,16 +608,16 @@ def render_main_app():
             st.session_state.pop(pdf_key, None)
             st.session_state.pop(flag_key, None)
             
-        st.button("🔄 Refazer Relatório", key=f"btn_reset_pdf_{cfg.get('id', 'default')}", on_click=reset_pdf)
+        st.button("Refazer Relatório", key=f"btn_reset_pdf_{cfg.get('id', 'default')}", on_click=reset_pdf)
     
     st.markdown("<br>", unsafe_allow_html=True)
 
-    with st.expander("🤔 Dicionário Agronômico: O que significam essas siglas?"):
+    with st.expander("Dicionário Agronômico: O que significam essas siglas?"):
         st.markdown('''
         O **OmniCrop AI** atua como um **Satélite Virtual** (um *DSS* - Sistema de Suporte à Decisão). 
         Ele utiliza Inteligência Artificial para ler o clima e prever a saúde da sua lavoura, ajudando você a tomar decisões mesmo de longe.
         
-        **📖 Dicionário Leigo de Termos do Agro:**
+        **Dicionário de Termos do Agro:**
         - **NDVI (Índice de Vigor Vegetativo):** Uma "nota de saúde" de 0 a 1 que o satélite dá para a planta. 
           * Valores altos (próximos a 1) significam cana verde, alta e crescendo saudável. 
           * Valores baixos (abaixo de 0.4) indicam que a planta está seca, estressada ou já madura e pronta para ser cortada.
@@ -697,28 +694,28 @@ def render_main_app():
             # Renderiza barra de progresso
             st.progress(porcentagem, text=f'Progresso das Ações Diárias ({porcentagem}%)')
             if porcentagem == 100:
-                st.success('✅ Todas as ações de mitigação foram validadas para este talhão hoje!')
+                st.success('Todas as ações de mitigação foram validadas para este talhão hoje!')
                 
             st.markdown("<br>", unsafe_allow_html=True)
             
             # Renderiza 3 tarefas dependendo do contexto
             if "Pronto p/ Corte" in status_titulo or "Critico" in status_titulo:
-                t1 = st.checkbox('🚜 Liberar Frente de Corte Mecanizado', key=k1)
+                t1 = st.checkbox('Liberar frente de corte mecanizado', key=k1)
                 st.caption(f'Trafegabilidade excelente devido ao baixo acúmulo de apenas {chuva_30}mm de chuva recente.')
                 
-                t2 = st.checkbox('🚁 Agendar Voo de Drone Pré-Colheita', key=k2)
+                t2 = st.checkbox('Agendar voo de drone pré-colheita', key=k2)
                 st.caption('Necessário para mapear as linhas de plantio e configurar piloto automático (evita pisoteio da soqueira).')
                 
-                t3 = st.checkbox('🔥 Alertar Brigada de Incêndio', key=k3)
+                t3 = st.checkbox('Alertar brigada de incêndio', key=k3)
                 st.caption(f'Risco crítico de fogo devido à palhada seca e umidade do solo perigosamente baixa ({umidade}).')
             else:
-                t1 = st.checkbox('💧 Acionar Programa de Irrigação', key=k1)
+                t1 = st.checkbox('Acionar programa de irrigação', key=k1)
                 st.caption('Verifique o módulo Simulador para calcular a lâmina exata em milímetros que maximiza o vigor sem desperdício.')
                 
-                t2 = st.checkbox('🧪 Programar Adubação de Cobertura', key=k2)
+                t2 = st.checkbox('Programar adubação de cobertura', key=k2)
                 st.caption('Recomenda-se aplicar fertilizante nitrogenado antes da próxima chuva para garantir incorporação no solo e evitar volatilização.')
                 
-                t3 = st.checkbox('🌱 Inspecionar Pragas (Broca-da-Cana)', key=k3)
+                t3 = st.checkbox('Inspecionar pragas (Broca-da-Cana)', key=k3)
                 st.caption('Fase de alto vigor vegetativo é o prato principal para pragas. Desloque um técnico para amostragem destrutiva.')
 
             st.caption("Inteligência Agronômica baseada na Matriz de Fases de Safra")
@@ -798,7 +795,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
         border-radius: 10px; padding: 14px 28px;
         font-size: 13px; color: rgba(180,230,180,0.85); margin-bottom: 36px;
     ">
-        🚀 <strong>OmniCrop AI v2.0</strong> — Multi-Cultura · Disponível em breve
+        <strong>OmniCrop AI v2.0</strong> — Multi-Cultura · Disponível em breve
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -812,7 +809,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
             active_name = st.session_state.get('active_farm', {}).get('farm_name', farm_names[0])
             active_idx = next((i for i, n in enumerate(farm_names) if n == active_name), 0)
 
-            chosen = st.selectbox("🔄 Trocar de Fazenda", farm_names, index=active_idx,
+            chosen = st.selectbox("Trocar de Fazenda", farm_names, index=active_idx,
                                   key="switch_farm_treinamento")
             if chosen != active_name:
                 selected_farm = next(f for f in farms if f.get("farm_name") == chosen)
@@ -822,7 +819,7 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
                 st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚪 Sair (Logout)", use_container_width=True, key="logout_treinamento"):
+        if st.button("Sair (Logout)", use_container_width=True, key="logout_treinamento"):
             st.session_state['user'] = None
             st.session_state['show_login'] = False
             st.session_state['active_farm'] = None

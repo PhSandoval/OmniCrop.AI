@@ -181,7 +181,7 @@ with col6:
 
 # 7. Camada Gold - Governança de Dados Medallion (Data Lake Azure)
 st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown('<div class="sec-header" style="font-size: 1.2rem;">🏛️ Governança de Dados · Camada Gold (Data Lake Azure)</div>', unsafe_allow_html=True)
+st.markdown('<div class="sec-header" style="font-size: 1.2rem;">Governança de Dados · Camada Gold (Data Lake Azure)</div>', unsafe_allow_html=True)
 st.caption("Métricas executivas e sumários consolidados processados pela arquitetura Medalhão (Bronze ➔ Silver ➔ Gold).")
 
 from src.data.ingest_azure import transform_to_gold, load_latest_gold_kpis

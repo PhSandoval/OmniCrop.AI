@@ -63,7 +63,7 @@ payload_sim = payload_hoje.copy()
 
 with col_ctrl:
     st.markdown('<div class="sec-header">Parâmetros da Simulação</div>', unsafe_allow_html=True)
-    st.info(f"⛅ **Previsão Real (Próximos 15 dias):**\n- **Chuva Esperada:** {chuva_15d_futura:.1f} mm\n- **Calor (GDA) Esperado:** {gda_15d_futuro:.1f}")
+    st.info(f"**Previsão Real (Próximos 15 dias):**\n- **Chuva Esperada:** {chuva_15d_futura:.1f} mm\n- **Calor (GDA) Esperado:** {gda_15d_futuro:.1f}")
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "Plantio" in cenario:
@@ -105,7 +105,7 @@ with col_ctrl:
             bonus_ndvi = 0.12 * (dose / 200)
             
         custo_adubacao = dose * preco_kg
-        st.caption(f"💰 Custo Estimado do Fertilizante: **R$ {custo_adubacao:,.2f} / hectare**")
+        st.caption(f"Custo Estimado do Fertilizante: **R$ {custo_adubacao:,.2f} / hectare**")
             
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
@@ -118,11 +118,11 @@ with col_ctrl:
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro + (dose_mat * 1.5))
         
         custo_mat = dose_mat * 4.20
-        st.caption(f"💰 Custo Estimado do Defensivo + Aplicação Aérea: **R$ {custo_mat:,.2f} / hectare**")
+        st.caption(f"Custo Estimado do Defensivo + Aplicação Aérea: **R$ {custo_mat:,.2f} / hectare**")
 
     elif "Colheita" in cenario:
         st.write("Decisão: Qual o melhor dia para agendar a frente de colheita?")
-        st.info("🚜 A colheita requer solo seco para evitar atolamento de maquinário e compactação. O assistente avalia a previsão diária (próximos 15 dias) em busca de janelas contínuas de seca.")
+        st.info("A colheita requer solo seco para evitar atolamento de maquinário e compactação. O assistente avalia a previsão diária (próximos 15 dias) em busca de janelas contínuas de seca.")
         
         best_day = None
         consecutive_dry = 0
@@ -136,9 +136,9 @@ with col_ctrl:
                 consecutive_dry = 0
                 
         if best_day:
-            st.success(f"📅 **Janela Ideal Identificada:** Agende o corte para **{best_day.strftime('%d/%m/%Y')}** (previsão de 3+ dias consecutivos de solo seco).")
+            st.success(f"**Janela Ideal Identificada:** Agende o corte para **{best_day.strftime('%d/%m/%Y')}** (previsão de 3+ dias consecutivos de solo seco).")
         else:
-            st.error("⛈️ **Sem Janela Segura:** Chuvas frequentes nos próximos 15 dias impossibilitam a trafegabilidade. Não coloque máquinas no campo!")
+            st.error("**Sem Janela Segura:** Chuvas frequentes nos próximos 15 dias impossibilitam a trafegabilidade. Não coloque máquinas no campo!")
 
         payload_sim["chuva_acumulada_30d"] = float(today.get("chuva_acumulada_30d", 0) + chuva_15d_futura)
         payload_sim["GDA_mensal"] = float(today.get("GDA_mensal", 0) + gda_15d_futuro)
@@ -185,7 +185,7 @@ with col_out:
         from src.models.predict import explain_prediction_delta, plot_xai_waterfall
         xai_res = explain_prediction_delta(payload_hoje, payload_sim)
 
-        with st.expander("🔍 Explicabilidade da Inteligência Artificial (XAI · Por que o vigor mudou?)", expanded=True):
+        with st.expander("Explicabilidade da Inteligência Artificial (XAI · Por que o vigor mudou?)", expanded=True):
             st.caption(f"**Interpretabilidade da Decisão:** {xai_res['narrativa']}")
             fig_xai = plot_xai_waterfall(xai_res)
             st.plotly_chart(fig_xai, use_container_width=True, config={"displayModeBar": False})
@@ -250,18 +250,18 @@ with col_out:
             st.markdown("<br>", unsafe_allow_html=True)
             if best_irr > 0:
                 st.markdown(f"<div style='padding:15px; border-radius:8px; border:1px solid #4CAF50; background:rgba(76,175,80,0.1); color:#A5D6A7;'>"
-                            f"💡 <b>Ponto Ótimo de Irrigação (IA):</b> Para maximizar o vigor e evitar desperdício de bombeamento, aplique exatamente <b>{best_irr} mm</b> (teto alcançável: NDVI {best_ndvi:.3f})."
+                            f"<b>Ponto Ótimo de Irrigação (IA):</b> Para maximizar o vigor e evitar desperdício de bombeamento, aplique exatamente <b>{best_irr} mm</b> (teto alcançável: NDVI {best_ndvi:.3f})."
                             f"</div>", unsafe_allow_html=True)
             else:
                 st.markdown(f"<div style='padding:15px; border-radius:8px; border:1px solid #4CAF50; background:rgba(76,175,80,0.1); color:#A5D6A7;'>"
-                            f"💡 <b>Ponto Ótimo de Irrigação (IA):</b> Economize energia! A chuva natural projetada já atinge o teto máximo de vigor para os próximos 15 dias (NDVI {best_ndvi:.3f}). Nenhuma irrigação adicional é recomendada."
+                            f"<b>Ponto Ótimo de Irrigação (IA):</b> Economize energia! A chuva natural projetada já atinge o teto máximo de vigor para os próximos 15 dias (NDVI {best_ndvi:.3f}). Nenhuma irrigação adicional é recomendada."
                             f"</div>", unsafe_allow_html=True)
 
         if "Irrigação" in cenario and payload_sim["chuva_acumulada_30d"] > 250:
             st.error("⚠️ **Risco de Alagamento (Waterlogging)**: Volume excessivo de água pode causar sufocamento radicular e queda brusca de vigor.")
             
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("💬 Consultar Assistente de Manejo sobre este Cenário", use_container_width=True):
+        if st.button("Consultar Assistente de Manejo sobre este Cenário", use_container_width=True):
             st.switch_page("pages/6_Assistente_de_Manejo.py")
     else:
         st.error("Erro na projeção local.")

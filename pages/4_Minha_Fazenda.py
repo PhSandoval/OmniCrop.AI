@@ -54,14 +54,14 @@ render_page_header(
 if st.session_state.get('is_guest'):
     user_id = None
     farms = [st.session_state["active_farm"]]
-    st.info("🧪 **Modo Demonstração:** Inspecionando talhão de teste. Suas alterações ficam salvas durante a sessão atual.")
+    st.info("**Modo Demonstração:** Inspecionando talhão de teste. Suas alterações ficam salvas durante a sessão atual.")
 else:
     user_id = st.session_state["user"].id
     farms = get_user_farms(user_id)
 
 if not farms:
     st.info("Você ainda não possui fazendas cadastradas.")
-    if st.button("➕ Cadastrar Novo Talhão (Mapa)", use_container_width=True):
+    if st.button("Cadastrar Novo Talhão (Mapa)", use_container_width=True):
         st.session_state["show_onboarding"] = True
         st.switch_page("app.py")
     st.stop()
@@ -87,7 +87,7 @@ selected_safe = ensure_farm_boundary(selected_farm)
 # ── 3. Motor Geoespacial: Mapa Interativo com Limites PostGIS ────────
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(
-    '<div class="sec-header">📍 Mapa Geoespacial de Satélite (Esri World Imagery + PostGIS WGS84)</div>',
+    '<div class="sec-header">Mapa Geoespacial de Satélite (Esri World Imagery + PostGIS WGS84)</div>',
     unsafe_allow_html=True,
 )
 
@@ -168,7 +168,7 @@ with col1:
     if curr_cult not in culturas:
         culturas.append(curr_cult)
     new_cult = st.selectbox(
-        "🌾 Cultura Agrícola do Talhão",
+        "Cultura Agrícola do Talhão",
         culturas,
         index=culturas.index(curr_cult),
         help="Define os parâmetros biológicos (Temperatura Base para GDA e Kc) e o modelo preditivo associado a este talhão.",
@@ -178,14 +178,14 @@ with col1:
     new_crop_id = crop_info.crop_id
 
     st.info(
-        f"🌱 **Parâmetros Fisiológicos ({crop_info.name}):**\n"
+        f"**Parâmetros Fisiológicos ({crop_info.name}):**\n"
         f"- Temperatura Base de Crescimento (Tb): `{crop_info.base_temp_celsius}°C`\n"
         f"- Coeficiente de Cultura Médio (Kc FAO 56): `{crop_info.kc_default}`\n"
         f"- *{crop_info.description}*"
     )
 
     st.caption(
-        f"📍 **Coordenadas Fixas de Satélite:** Latitude `{selected_farm.get('lat', 0):.6f}` | Longitude `{selected_farm.get('lon', 0):.6f}`"
+        f"**Coordenadas Fixas de Satélite:** Latitude `{selected_farm.get('lat', 0):.6f}` | Longitude `{selected_farm.get('lon', 0):.6f}`"
     )
 
 with col2:
@@ -224,7 +224,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 col_btn1, col_btn2, _ = st.columns([1.5, 1, 2])
 
 with col_btn1:
-    if st.button("💾 Salvar Alterações e Limites PostGIS", type="primary", use_container_width=True):
+    if st.button("Salvar Alterações e Limites PostGIS", type="primary", use_container_width=True):
         # Regenera o polígono com as novas especificações de área e orientação
         new_poly = generate_parcel_polygon(
             lat=float(selected_farm.get("lat", -21.1704)),
@@ -246,7 +246,7 @@ with col_btn1:
         if st.session_state.get('is_guest'):
             selected_farm.update(update_data)
             st.session_state["active_farm"] = selected_farm
-            st.success("✅ Limites territoriais temporários atualizados nesta sessão!")
+            st.success("Limites territoriais temporários atualizados nesta sessão!")
             st.rerun()
 
         # Atualiza no Supabase com isolamento RLS
@@ -271,11 +271,11 @@ with col_btn1:
             st.session_state["active_farm"] = selected_farm
             save_config(selected_farm)
 
-        st.success("✅ Limites territoriais e dados cadastrais atualizados com sucesso!")
+        st.success("Limites territoriais e dados cadastrais atualizados com sucesso!")
         st.rerun()
 
 with col_btn2:
-    if st.button("🗑️ Apagar Fazenda", use_container_width=True):
+    if st.button("Apagar Fazenda", use_container_width=True):
         if st.session_state.get('is_guest'):
             st.session_state["active_farm"] = None
             st.session_state["is_guest"] = False
@@ -303,7 +303,7 @@ with col_btn2:
             st.rerun()
 
 st.markdown("<hr>", unsafe_allow_html=True)
-if st.button("➕ Adicionar Novo Talhão (Mapear no Satélite)", use_container_width=False):
+if st.button("Adicionar Novo Talhão (Mapear no Satélite)", use_container_width=False):
     if st.session_state.get('is_guest'):
         st.session_state["show_guest_onboarding"] = True
     else:

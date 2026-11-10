@@ -261,12 +261,12 @@ def render_landing_page():
         else:
             nav_col1, nav_col2 = st.columns([1.1, 0.9], gap="small")
             with nav_col1:
-                if st.button("🚀 Experimentar", use_container_width=True, type="primary", key="nav_guest"):
+                if st.button("Experimentar", use_container_width=True, type="primary", key="nav_guest"):
                     st.session_state['show_guest_onboarding'] = True
                     st.session_state['show_landing'] = False
                     st.rerun()
             with nav_col2:
-                if st.button("🔑 Entrar", use_container_width=True, key="nav_login"):
+                if st.button("Entrar", use_container_width=True, key="nav_login"):
                     st.session_state['show_login'] = True
                     st.session_state['show_landing'] = False
                     st.rerun()
@@ -297,18 +297,18 @@ def render_landing_page():
         if _has_dashboard:
             _, col_btn_dash, _ = st.columns([1, 2, 1])
             with col_btn_dash:
-                if st.button("🚀 Ir para o Dashboard", use_container_width=True, type="primary"):
+                if st.button("Ir para o Dashboard", use_container_width=True, type="primary"):
                     st.session_state['show_landing'] = False
                     st.rerun()
         else:
             col_b1, col_b2 = st.columns([1.15, 1.0], gap="medium")
             with col_b1:
-                if st.button("🚀 Experimentar Grátis", use_container_width=True, type="primary", key="hero_guest"):
+                if st.button("Experimentar Grátis", use_container_width=True, type="primary", key="hero_guest"):
                     st.session_state['show_guest_onboarding'] = True
                     st.session_state['show_landing'] = False
                     st.rerun()
             with col_b2:
-                if st.button("🔑 Já sou cliente / Entrar", use_container_width=True, key="hero_login"):
+                if st.button("Já sou cliente / Entrar", use_container_width=True, key="hero_login"):
                     st.session_state['show_login'] = True
                     st.session_state['show_landing'] = False
                     st.rerun()
@@ -361,7 +361,7 @@ def render_landing_page():
     # SEÇÃO: RESILIÊNCIA CLIMÁTICA (EL NIÑO)
     st.markdown('''
     <div style="background: rgba(30, 10, 10, 0.75); border: 1px solid rgba(239, 83, 80, 0.35); border-radius: 16px; padding: 32px; margin-bottom: 0px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
-        <h3 style='color: #EF5350; font-weight: 700; margin-top: 0; margin-bottom: 12px;'>🌍 Previsão à Prova de El Niño</h3>
+        <h3 style='color: #EF5350; font-weight: 700; margin-top: 0; margin-bottom: 12px;'>Previsão à Prova de El Niño</h3>
         <p style='color: rgba(255,255,255,0.85); font-size: 15.5px; line-height: 1.6; margin-bottom: 0;'>
             O clima extremo quebra as médias históricas. O <b>OmniCrop AI</b> é o primeiro sistema que ensina o oceano à Inteligência Artificial. Nossa plataforma ingere o <strong>Índice ENSO (Oceanic Niño Index)</strong> em tempo real. Se o algoritmo detectar um El Niño forte ou La Niña, ele ajusta os <i>Lags</i> de umidade e alerta o agricultor para mitigar a seca com antecedência.
         </p>
@@ -384,13 +384,13 @@ def render_landing_page():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.info("📍 **1. Mapeamento**\n\nAdicione a sua fazenda com um clique. O sistema regista as coordenadas e conecta-se aos satélites instantaneamente.")
+        st.info("**1. Mapeamento**\n\nAdicione a sua fazenda com um clique. O sistema registra as coordenadas e conecta-se aos satélites instantaneamente.")
     with col2:
-        st.warning("☁️ **2. Monitoramento**\n\nColeta automática e contínua de dados de chuva, temperatura e radiação solar da sua região.")
+        st.warning("**2. Monitoramento**\n\nColeta automática e contínua de dados de chuva, temperatura e radiação solar da sua região.")
     with col3:
-        st.success("🧠 **3. Análise da IA**\n\nO nosso Satélite Virtual calcula a saúde da planta cruzando o clima com a biologia da cultura.")
+        st.success("**3. Análise da IA**\n\nO nosso Satélite Virtual calcula a saúde da planta cruzando o clima com a biologia da cultura.")
     with col4:
-        st.error("📊 **4. Ação e Decisão**\n\nReceba alertas de risco hídrico, simule cenários e descarregue relatórios automáticos.")
+        st.error("**4. Ação e Decisão**\n\nReceba alertas de risco hídrico, simule cenários e descarregue relatórios automáticos.")
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("---")
@@ -405,11 +405,11 @@ def render_landing_page():
     
     cc1, cc2, cc3, cc4, cc5 = st.columns(5)
     crops_data = [
-        ("🌾 Cana-de-Açúcar", "Operacional"),
-        ("🌿 Soja", "Operacional"),
-        ("🌽 Milho", "Operacional"),
-        ("☕ Café", "Operacional"),
-        ("🐄 Pastagem", "Operacional"),
+        ("Cana-de-Açúcar", "Operacional"),
+        ("Soja", "Operacional"),
+        ("Milho", "Operacional"),
+        ("Café", "Operacional"),
+        ("Pastagem", "Operacional"),
     ]
     for col, (crop_name, status) in zip([cc1, cc2, cc3, cc4, cc5], crops_data):
         with col:
@@ -423,7 +423,7 @@ def render_landing_page():
             """, unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("📊 Validação Científica & Métricas de Acerto (Cross-Validation Temporal 2024–2026)", expanded=True):
+    with st.expander("Validação Científica & Métricas de Acurácia (Cross-Validation Temporal 2024–2026)", expanded=True):
         st.markdown("""
         <p style='color: #cbd5e1; font-size: 14px;'>
         Métricas de acurácia obtidas no conjunto de teste independente (out-of-time test set) utilizando o algoritmo 
@@ -433,26 +433,26 @@ def render_landing_page():
 
         m_c1, m_c2, m_c3, m_c4, m_c5 = st.columns(5)
         with m_c1:
-            st.metric(label="🌾 Cana-de-Açúcar", value="MAE 0.0217", delta="RMSE 0.0315")
+            st.metric(label="Cana-de-Açúcar", value="MAE 0.0217", delta="RMSE 0.0315")
             st.caption("Alta precisão no monitoramento do ciclo semi-perene e acúmulo de ATR.")
         with m_c2:
-            st.metric(label="🌿 Soja", value="R² 0.8685", delta="MAE 0.0557")
+            st.metric(label="Soja", value="R² 0.8685", delta="MAE 0.0557")
             st.caption("Forte correlação no pico vegetativo das fases reprodutivas R1 a R5.")
         with m_c3:
-            st.metric(label="🌽 Milho", value="R² 0.7053", delta="MAE 0.1022")
+            st.metric(label="Milho", value="R² 0.7053", delta="MAE 0.1022")
             st.caption("Robustez frente à alta volatilidade no pendoamento VT-R1.")
         with m_c4:
-            st.metric(label="☕ Café", value="R² 0.8801", delta="MAE 0.0254")
+            st.metric(label="Café", value="R² 0.8801", delta="MAE 0.0254")
             st.caption("Estabilidade excelente para dossel contínuo de culturas perenes.")
         with m_c5:
-            st.metric(label="🐄 Pastagem", value="R² 0.9674", delta="MAE 0.0238")
+            st.metric(label="Pastagem", value="R² 0.9674", delta="MAE 0.0238")
             st.caption("Precisão superior a 96% na captação do vigor estival da Brachiaria.")
 
         st.markdown("<div style='height: 1px; background: rgba(105, 240, 174, 0.2); margin: 24px 0 20px 0;'></div>", unsafe_allow_html=True)
         st.markdown("""
         <div class="glass-methodology-card">
             <h5 style="color: #69F0AE; margin-top: 0; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                🧠 Notas Metodológicas de Governança e Interpretação dos Indicadores:
+                Notas Metodológicas de Governança e Interpretação dos Indicadores:
             </h5>
             <ul style="color: #cbd5e1; font-size: 13.5px; line-height: 1.7; margin-bottom: 0; padding-left: 20px;">
                 <li><b style="color: #fff;">O que é o R² (Coeficiente de Determinação)?</b> Indica a porcentagem da variação do vigor da biomassa que o modelo explica (ex: 96,7% na pecuária e 88,0% no café).</li>

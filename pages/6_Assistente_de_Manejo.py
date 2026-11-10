@@ -128,18 +128,18 @@ def render_copilot():
     opcoes_cenario = []
     if sim_salva:
         opcoes_cenario.append(
-            f"✨ Última Simulação ({sim_salva.get('cenario', 'Personalizada')})"
+            f"Última Simulação ({sim_salva.get('cenario', 'Personalizada')})"
         )
     opcoes_cenario.extend([
-        "⛅ Previsão Natural (15 dias futuros)",
-        "💧 Irrigação de Salvamento (+40 mm)",
-        "🌿 Aplicação de Maturador Químico",
-        "🌱 Adubação de Cobertura (+Nitrato)",
-        "🚜 Janela Operacional de Colheita",
+        "Previsão Natural (15 dias futuros)",
+        "Irrigação de Salvamento (+40 mm)",
+        "Aplicação de Maturador Químico",
+        "Adubação de Cobertura (+Nitrato)",
+        "Janela Operacional de Colheita",
     ])
 
     cenario_selecionado = st.selectbox(
-        "🎯 Cenário Agronômico para Grounding da IA:",
+        "Cenário Agronômico para Grounding da IA:",
         opcoes_cenario,
         index=0,
         help="O assistente analisa e fundamenta as recomendações nas métricas exatas deste cenário.",
@@ -151,7 +151,7 @@ def render_copilot():
         else datetime.now().month
     )
 
-    if cenario_selecionado.startswith("✨ Última Simulação") and sim_salva:
+    if cenario_selecionado.startswith("Última Simulação") and sim_salva:
         payload_sim = sim_salva["payload_sim"]
         resultado_sim = sim_salva["resultado_sim"]
         xai_res = sim_salva["xai"]
@@ -330,12 +330,12 @@ def render_copilot():
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <div>
                 <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#69F0AE; font-weight:700;">
-                    🌱 Contexto Grounded Ativo:
+                    Contexto Grounded Ativo:
                 </span>
                 <span style="color:#FFF; font-weight:600; font-size:13px; margin-left:6px;">{cenario_nome}</span>
             </div>
             <div style="font-size:12px; color:#CBD5E1;">
-                🎯 <b>Vigor Simulado:</b> {ndvi_base:.3f} ➔ <b>{ndvi_proj:.3f}</b> ({delta:+.3f}) | 🔍 <b>Top Driver XAI:</b> <span style="color:#69F0AE; font-weight:600;">{top_driver}</span>
+                <b>Vigor Simulado:</b> {ndvi_base:.3f} ➔ <b>{ndvi_proj:.3f}</b> ({delta:+.3f}) | <b>Top Driver XAI:</b> <span style="color:#69F0AE; font-weight:600;">{top_driver}</span>
             </div>
         </div>
     </div>
@@ -345,7 +345,7 @@ def render_copilot():
 
     # ── 5. Auditoria de Dados e XAI Waterfall (Transparência) ─────────
     with st.expander(
-        "🔍 Transparência de Dados e Decomposição Matemática XAI (Auditoria de Grounding)",
+        "Transparência de Dados e Decomposição Matemática XAI (Auditoria de Grounding)",
         expanded=False,
     ):
         x_col1, x_col2 = st.columns([1.2, 0.8], gap="medium")
@@ -358,7 +358,7 @@ def render_copilot():
                 config={"displayModeBar": False},
             )
         with x_col2:
-            st.markdown("**📊 Telemetria da Camada Ouro (Gold KPIs):**")
+            st.markdown("**Telemetria da Camada Ouro (Gold KPIs):**")
             st.write({
                 "Balanço Hídrico Líquido": f"{balanco_hidrico:+.1f} mm",
                 "Chuva Total (Janela)": f"{chuva_total_w:.1f} mm",
@@ -369,7 +369,7 @@ def render_copilot():
                 "Diretriz Oficial DSS": dss.get("status_title", ""),
             })
             st.info(
-                f"💡 **Recomendação DSS:** {dss.get('mensagem_recomendacao', '')}"
+                f"**Recomendação DSS:** {dss.get('mensagem_recomendacao', '')}"
             )
 
     # ── 6. Montagem do Contexto Oculto (RAG Grounded Prompt) ──────────
@@ -399,10 +399,10 @@ def render_copilot():
     )
     p_col1, p_col2, p_col3, p_col4 = st.columns(4)
 
-    p1 = f"💧 Com balanço de {balanco_hidrico:+.1f} mm e {dias_sem_chuva}d de veranico, devo irrigar?"
-    p2 = f"🔍 Explique o impacto do '{top_driver}' no NDVI ({delta:+.3f})"
-    p3 = f"🚜 As condições de solo e chuva permitem a colheita agora?"
-    p4 = f"📋 Faça um diagnóstico agronômico executivo completo da fazenda"
+    p1 = f"Com balanço de {balanco_hidrico:+.1f} mm e {dias_sem_chuva}d de veranico, devo irrigar?"
+    p2 = f"Explique o impacto do '{top_driver}' no NDVI ({delta:+.3f})"
+    p3 = f"As condições de solo e chuva permitem a colheita agora?"
+    p4 = f"Faça um diagnóstico agronômico executivo completo da fazenda"
 
     prompt_acionado = None
     with p_col1:
@@ -423,8 +423,8 @@ def render_copilot():
         st.session_state["mensagens_chat"] = [{
             "role": "assistant",
             "content": f"Olá! Sou o **OmniCrop AI**, seu consultor agronômico sênior. Conectei a telemetria da fazenda **{cfg.get('farm_name', 'sua fazenda')}** com a Camada Ouro e os modelos preditivos.\n\n"
-            f"📊 **Telemetria de Campo:** Balanço Hídrico de **{balanco_hidrico:+.1f} mm** com **{dias_sem_chuva} dias sem chuva** (Risco de Estresse: **{risco_estresse}**).\n"
-            f"🌾 **Vigor Vegetativo (NDVI):** Atual de **{ndvi_base:.3f}** com projeção de **{ndvi_proj:.3f}** ({delta_pct:+.1f}%) no cenário *{cenario_nome}*.\n\n"
+            f"**Telemetria de Campo:** Balanço Hídrico de **{balanco_hidrico:+.1f} mm** com **{dias_sem_chuva} dias sem chuva** (Risco de Estresse: **{risco_estresse}**).\n"
+            f"**Vigor Vegetativo (NDVI):** Atual de **{ndvi_base:.3f}** com projeção de **{ndvi_proj:.3f}** ({delta_pct:+.1f}%) no cenário *{cenario_nome}*.\n\n"
             f"Qual decisão de manejo você deseja avaliar hoje? Selecione um dos botões acima ou faça sua pergunta!",
         }]
 
@@ -439,7 +439,7 @@ def render_copilot():
     if not api_key:
         st.markdown("<br>", unsafe_allow_html=True)
         st.info(
-            "🔑 **Google Gemini API Key não detectada:** Você pode inserir sua chave temporária abaixo para ativar o streaming do modelo `gemini-3.6-flash`, ou usar a análise autônoma grounded."
+            "**Google Gemini API Key não detectada:** Você pode inserir sua chave temporária abaixo para ativar o streaming do modelo `gemini-3.6-flash`, ou usar a análise autônoma grounded."
         )
         c_k1, c_k2 = st.columns([3, 1])
         with c_k1:
@@ -473,7 +473,7 @@ def render_copilot():
             if not api_key:
                 # Resposta Grounded Autônoma via DSS + XAI se a API do Gemini não tiver chave
                 resposta_offline = (
-                    f"### 🌾 Diagnóstico Técnico Grounded · OmniCrop AI\n\n"
+                    f"### Diagnóstico Técnico Grounded · OmniCrop AI\n\n"
                     f"**1. Análise Hídrica (Camada Ouro):**\n"
                     f"- Balanço Hídrico Líquido: **{balanco_hidrico:+.1f} mm** ({'Déficit' if balanco_hidrico < 0 else 'Superávit'})\n"
                     f"- Veranico Atual: **{dias_sem_chuva} dias consecutivos** sem precipitação significativa.\n"
@@ -484,7 +484,7 @@ def render_copilot():
                     f"- Justificativa Matemática: *{xai_narrativa}*\n\n"
                     f"**3. Parecer do Sistema Especialista (DSS):**\n"
                     f"- **{dss.get('status_title', 'Status')}**: {dss.get('mensagem_recomendacao', '')}\n\n"
-                    f"**🎯 Plano de Ação Imediato (Recomendação do Agrônomo):**\n"
+                    f"**Plano de Ação Imediato (Recomendação do Agrônomo):**\n"
                     f"- Monitorar o ponto de murcha permanente do solo nas próximas 48h.\n"
                     f"- Adequar a escala de maquinário e defensivos à janela termohídrica ({temp_max_w:.1f}°C de máx).\n\n"
                     f"*(Dica: Insira sua Google Gemini API Key acima para dialogar livremente e em tempo real com o modelo 3.6 Flash.)*"
@@ -561,7 +561,7 @@ def render_copilot():
     st.markdown("<br>", unsafe_allow_html=True)
     c_spc, c_clr = st.columns([5, 1])
     with c_clr:
-        if st.button("🗑️ Limpar Chat", use_container_width=True):
+        if st.button("Limpar Chat", use_container_width=True):
             st.session_state["mensagens_chat"] = []
             st.rerun()
 
