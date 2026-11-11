@@ -103,7 +103,14 @@ def insert_farm(user_id, farm_name, city, lat, lon, tipo_cultura="Cana-de-Açúc
         "tipo_cultura": tipo_cultura,
         "crop_id": resolved_crop_id
     }
-    return supabase.table("fazendas").insert(data).execute()
+    try:
+        return supabase.table("fazendas").insert(data).execute()
+    except Exception as e:
+        if "crop_id" in str(e) and "crop_id" in data:
+            data_no_crop = dict(data)
+            data_no_crop.pop("crop_id", None)
+            return supabase.table("fazendas").insert(data_no_crop).execute()
+        raise
 
 def update_farm_boundary(farm_id, user_id, boundary_geojson, access_token=None):
     supabase = get_supabase(access_token)
@@ -121,7 +128,14 @@ def update_farm(farm_id, user_id, update_data, access_token=None):
     if "tipo_cultura" in payload and "crop_id" not in payload:
         from src.core.crop_config import normalize_crop_id
         payload["crop_id"] = normalize_crop_id(payload["tipo_cultura"])
-    return supabase.table("fazendas").update(payload).eq("id", farm_id).eq("user_id", user_id).execute()
+    try:
+        return supabase.table("fazendas").update(payload).eq("id", farm_id).eq("user_id", user_id).execute()
+    except Exception as e:
+        if "crop_id" in str(e) and "crop_id" in payload:
+            payload_no_crop = dict(payload)
+            payload_no_crop.pop("crop_id", None)
+            return supabase.table("fazendas").update(payload_no_crop).eq("id", farm_id).eq("user_id", user_id).execute()
+        raise
 
 def delete_farm(farm_id, user_id, access_token=None):
     supabase = get_supabase(access_token)

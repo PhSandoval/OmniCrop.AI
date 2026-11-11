@@ -243,6 +243,80 @@ def test_update_and_delete_farm(mock_get_sb):
     mock_table.delete.assert_called()
 
 
+@patch("src.data.db.get_supabase")
+def test_insert_farm_crop_id_schema_fallback(mock_get_sb):
+    """Valida fallback gracioso quando a coluna crop_id não existe no schema do Supabase."""
+    from src.data.db import insert_farm
+
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+    mock_get_sb.return_value = mock_client
+
+    # 1. Falha com PGRST204 / crop_id e recupera retirando crop_id
+    call_count = 0
+    def mock_insert_side_effect(data):
+        nonlocal call_count
+        call_count += 1
+        mock_exec = MagicMock()
+        if "crop_id" in data:
+            mock_exec.execute.side_effect = Exception("PGRST204: Could not find the 'crop_id' column of 'fazendas'")
+        else:
+            mock_exec.execute.return_value = MagicMock(data=[data])
+        return mock_exec
+
+    mock_table.insert.side_effect = mock_insert_side_effect
+
+    res = insert_farm("u1", "Fazenda Teste", "Campinas", -22.9, -47.0, tipo_cultura="Milho")
+    assert res.data[0]["tipo_cultura"] == "Milho"
+    assert "crop_id" not in res.data[0]
+    assert call_count == 2
+
+    # 2. Outra exceção qualquer sem 'crop_id' é re-lançada
+    mock_table.insert.side_effect = None
+    mock_table.insert.return_value.execute.side_effect = RuntimeError("Database connection lost")
+    with pytest.raises(RuntimeError, match="Database connection lost"):
+        insert_farm("u1", "Fazenda Teste", "Campinas", -22.9, -47.0)
+
+
+@patch("src.data.db.get_supabase")
+def test_update_farm_crop_id_schema_fallback(mock_get_sb):
+    """Valida fallback gracioso em update_farm quando a coluna crop_id não existe no schema."""
+    from src.data.db import update_farm
+
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+    mock_get_sb.return_value = mock_client
+
+    # 1. Falha com crop_id e recupera retirando crop_id
+    call_count = 0
+    def mock_update_side_effect(payload):
+        nonlocal call_count
+        call_count += 1
+        mock_query = MagicMock()
+        if "crop_id" in payload:
+            mock_query.eq.return_value.eq.return_value.execute.side_effect = Exception("Could not find the 'crop_id' column")
+        else:
+            mock_query.eq.return_value.eq.return_value.execute.return_value = MagicMock(data=[payload])
+        return mock_query
+
+    mock_table.update.side_effect = mock_update_side_effect
+
+    res = update_farm("f1", "u1", {"tipo_cultura": "Café", "area_ha": 50.0})
+    assert res.data[0]["tipo_cultura"] == "Café"
+    assert "crop_id" not in res.data[0]
+    assert call_count == 2
+
+    # 2. Outra exceção qualquer sem 'crop_id' é re-lançada
+    mock_table.update.side_effect = None
+    mock_query_err = MagicMock()
+    mock_query_err.eq.return_value.eq.return_value.execute.side_effect = ValueError("Fatal update error")
+    mock_table.update.return_value = mock_query_err
+    with pytest.raises(ValueError, match="Fatal update error"):
+        update_farm("f1", "u1", {"area_ha": 80.0})
+
+
 def test_get_credential_hierarchy_and_exception(monkeypatch):
     """Valida recuperação segura de credenciais do Supabase e fallback de sessão."""
     from src.data.db import _get_credential, get_supabase

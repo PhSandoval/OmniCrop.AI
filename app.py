@@ -194,14 +194,13 @@ def render_farm_selector():
             for f in farms:
                 btn_label = f"{f['farm_name']} ({f['city']})"
                 if st.button(btn_label, key=f"select_farm_{f['id']}", use_container_width=True):
-                    # Set active farm and override the local config
+                    # Set active farm in session
                     cfg = f.copy()
+                    from src.core.crop_config import normalize_crop_id
+                    cfg["crop_id"] = normalize_crop_id(cfg.get("crop_id") or cfg.get("tipo_cultura", "sugarcane"))
                     st.session_state['active_farm'] = cfg
                     st.session_state['farm_name'] = cfg['farm_name']
                     st.session_state['city'] = cfg['city']
-                    
-                    from src.utils.farm_config import save_config
-                    save_config(cfg) # Sync with local config so pages can read it
                     st.rerun()
             st.markdown("<hr>", unsafe_allow_html=True)
             
@@ -813,9 +812,9 @@ def render_cultura_em_treinamento(tipo_cultura: str) -> None:
                                   key="switch_farm_treinamento")
             if chosen != active_name:
                 selected_farm = next(f for f in farms if f.get("farm_name") == chosen)
+                from src.core.crop_config import normalize_crop_id
+                selected_farm["crop_id"] = normalize_crop_id(selected_farm.get("crop_id") or selected_farm.get("tipo_cultura", "sugarcane"))
                 st.session_state['active_farm'] = selected_farm
-                from src.utils.farm_config import save_config
-                save_config(selected_farm)
                 st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
