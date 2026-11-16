@@ -347,3 +347,29 @@ def test_generate_pdf_report_exception_fallbacks(sample_payload, sample_resultad
         assert isinstance(pdf_bytes, bytes)
         assert len(pdf_bytes) > 1000
         assert pdf_bytes.startswith(b"%PDF")
+
+
+def test_generate_pdf_report_status_derivation_and_alerts(sample_payload):
+    """Valida derivação de status para faixas moderada e baixa e formatação de alertas operacionais."""
+    # 1. NDVI moderado (entre 0.50 e 0.70) sem status_geral
+    res_mod = {
+        "ndvi_previsto": 0.58,
+        "fase_fenologica": "Desenvolvimento Vegetativo",
+        "confiabilidade_modelo": "Média",
+        "fatores_de_risco_identificados": ["Atenção à janela de adubação"],
+    }
+    pdf_mod = generate_pdf_report("Talhão Mod", "Franca", sample_payload, res_mod)
+    assert isinstance(pdf_mod, bytes)
+    assert len(pdf_mod) > 1000
+
+    # 2. NDVI baixo (< 0.50) com status_geral '-' e alerta crítico
+    res_baixo = {
+        "ndvi_previsto": 0.38,
+        "fase_fenologica": "Estresse Vegetativo",
+        "confiabilidade_modelo": "Baixa",
+        "status_geral": "-",
+        "fatores_de_risco_identificados": ["ALERTA HÍDRICO: Déficit crítico"],
+    }
+    pdf_baixo = generate_pdf_report("Talhão Baixo", "Barretos", sample_payload, res_baixo)
+    assert isinstance(pdf_baixo, bytes)
+    assert len(pdf_baixo) > 1000

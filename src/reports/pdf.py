@@ -22,9 +22,6 @@ def _clean_text(text: str | None) -> str:
         "”": '"',
         "‘": "'",
         "’": "'",
-        "²": "2",
-        "³": "3",
-        "°": "o",
         "✨": "*",
         "⚠️": "[!]",
         "🔴": "[CRITICO]",
@@ -68,86 +65,102 @@ def _fig_to_tmp_png(fig, width=900, height=260) -> str | None:
 # ── Classe PDF Corporativa com Identidade Visual OmniCrop AI ────────────────
 class OmniCropPDF(FPDF):
     def header(self):
-        self.set_fill_color(22, 160, 133)  # Verde OmniCrop #16A085
-        self.rect(0, 0, 210, 25, style="F")
-        self.set_y(6)
-        self.set_font("helvetica", "B", 15)
+        # Header banner em Verde Floresta / Deep Emerald Institucional
+        self.set_fill_color(19, 62, 43)
+        self.rect(0, 0, 210, 24, style="F")
+        # Linha de destaque agronômico (#2ECC71)
+        self.set_fill_color(46, 204, 113)
+        self.rect(0, 23.2, 210, 0.8, style="F")
+        self.set_y(5.5)
+        self.set_font("helvetica", "B", 13.5)
         self.set_text_color(255, 255, 255)
         self.cell(
             0,
-            7,
-            "RELATÓRIO EXECUTIVO - OMNICROP AI",
+            6,
+            "OMNICROP AI · RELATÓRIO TÉCNICO EXECUTIVO",
             new_x="LMARGIN",
             new_y="NEXT",
             align="C",
         )
-        self.set_font("helvetica", "I", 8)
+        self.set_font("helvetica", "I", 7.8)
+        self.set_text_color(200, 235, 215)
         self.cell(
             0,
             4,
-            "Inteligência Agronômica · Camada Ouro (Gold KPIs) & Explicabilidade XAI",
+            "Inteligência Agronômica Preditiva · Camada Ouro (Gold KPIs) & Explicabilidade XAI",
             new_x="LMARGIN",
             new_y="NEXT",
             align="C",
         )
-        self.ln(8)
+        self.ln(6)
 
     def footer(self):
-        self.set_y(-14)
-        self.set_font("helvetica", "I", 8)
-        self.set_text_color(140, 140, 140)
+        self.set_y(-12)
+        self.set_font("helvetica", "I", 7.5)
+        self.set_text_color(130, 140, 135)
         self.cell(
             0,
-            10,
-            f"Página {self.page_no()}/{{nb}} · OmniCrop AI · Decisão Agronômica Baseada em Dados",
+            6,
+            f"Página {self.page_no()}/{{nb}} · OmniCrop AI · Decisão Agronômica Baseada em Dados e MLOps",
             align="C",
         )
 
     def section_title(self, number: str, title: str, r: int, g: int, b: int):
         """Barra de título com preenchimento colorido institucional."""
-        self.set_font("helvetica", "B", 11)
+        self.set_font("helvetica", "B", 9.5)
         self.set_text_color(255, 255, 255)
         self.set_fill_color(r, g, b)
         self.cell(
             190,
-            8,
+            7,
             f"  {number}. {_clean_text(title)}",
             new_x="LMARGIN",
             new_y="NEXT",
             align="L",
             fill=True,
         )
-        self.ln(2)
+        self.ln(1.5)
 
     def kpi_card_row(
         self,
         labels: list[str],
         values: list[str],
         val_colors: list[tuple[int, int, int]] | None = None,
+        widths: list[float] | None = None,
     ):
-        """Linha de cards KPI: rótulo cinza no topo, valor em negrito embaixo."""
+        """Linha de cards KPI: rótulo no topo, valor com auto-ajuste de fonte embaixo."""
         n = max(len(labels), 1)
-        w = 190.0 / n
+        if not widths or len(widths) != n:
+            widths = [190.0 / n] * n
 
         # Linha de rótulos
-        self.set_font("helvetica", "B", 7)
-        self.set_text_color(90, 90, 90)
-        self.set_fill_color(238, 242, 245)
-        for label in labels:
-            self.cell(w, 6, _clean_text(label), border=1, align="C", fill=True)
-        self.ln(6)
+        self.set_font("helvetica", "B", 7.0)
+        self.set_text_color(85, 95, 90)
+        self.set_fill_color(243, 246, 244)
+        self.set_draw_color(210, 222, 218)
+        for i, label in enumerate(labels):
+            self.cell(widths[i], 5.5, _clean_text(label), border=1, align="C", fill=True)
+        self.ln(5.5)
 
         # Linha de valores
-        self.set_font("helvetica", "B", 10)
         self.set_fill_color(255, 255, 255)
+        self.set_draw_color(210, 222, 218)
         for i, value in enumerate(values):
+            val_str = _clean_text(str(value))
+            # Auto-escala dinâmica da fonte para prevenir truncamentos e vazamentos
+            font_sz = 9.5
+            self.set_font("helvetica", "B", font_sz)
+            while self.get_string_width(val_str) > (widths[i] - 3.5) and font_sz > 6.5:
+                font_sz -= 0.5
+                self.set_font("helvetica", "B", font_sz)
+
             if val_colors and i < len(val_colors) and val_colors[i] is not None:
                 cr, cg, cb = val_colors[i]
                 self.set_text_color(cr, cg, cb)
             else:
-                self.set_text_color(30, 30, 30)
+                self.set_text_color(30, 35, 32)
             self.cell(
-                w, 8, _clean_text(str(value)), border=1, align="C", fill=True
+                widths[i], 7.5, val_str, border=1, align="C", fill=True
             )
         self.ln(8)
 
@@ -347,24 +360,34 @@ def generate_pdf_report(
     # 3. Inicialização do Documento PDF
     pdf = OmniCropPDF()
     pdf.alias_nb_pages()
-    pdf.set_auto_page_break(auto=True, margin=18)
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
     # ── IDENTIFICAÇÃO DO TALHÃO ──────────────────────────────────────────────
-    pdf.set_font("helvetica", "B", 13)
-    pdf.set_text_color(44, 62, 80)
-    pdf.cell(0, 7, f"Talhão: {_clean_text(farm_name)}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("helvetica", "B", 12)
+    pdf.set_text_color(25, 45, 35)
+    pdf.cell(100, 6, f"Talhão: {_clean_text(farm_name)}", new_x="RIGHT")
 
-    pdf.set_font("helvetica", "", 9)
-    pdf.set_text_color(100, 100, 100)
-    pdf.cell(95, 5, f"Localização: {_clean_text(city)}")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(110, 120, 115)
     pdf.cell(
-        95,
-        5,
+        90,
+        6,
         f"Emitido em: {datetime.now().strftime('%d/%m/%Y  %H:%M')}",
         new_x="LMARGIN",
         new_y="NEXT",
         align="R",
+    )
+
+    crop_display = resultado.get("crop_name") or resultado.get("crop_id") or "Cana-de-Açúcar"
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(90, 100, 95)
+    pdf.cell(
+        0,
+        4,
+        f"Localização: {_clean_text(city)} · Cultura: {_clean_text(crop_display)}",
+        new_x="LMARGIN",
+        new_y="NEXT",
     )
     pdf.ln(3)
 
@@ -382,8 +405,8 @@ def generate_pdf_report(
             )
             chart_path = _fig_to_tmp_png(fig, width=900, height=250)
             if chart_path:
-                pdf.set_font("helvetica", "B", 9)
-                pdf.set_text_color(22, 160, 133)
+                pdf.set_font("helvetica", "B", 8.5)
+                pdf.set_text_color(22, 120, 85)
                 pdf.cell(
                     0,
                     5,
@@ -402,7 +425,7 @@ def generate_pdf_report(
             pass
 
     # ── 1. BALANÇO HÍDRICO & CAMADA OURO ─────────────────────────────────────
-    pdf.section_title("1", "BALANÇO HÍDRICO & CAMADA OURO (KPIs EXECUTIVOS)", 41, 128, 185)
+    pdf.section_title("1", "BALANÇO HÍDRICO & CAMADA OURO (KPIs EXECUTIVOS)", 27, 85, 110)
 
     balanco_val = float(gold_kpis.get("balanco_hidrico_mm", 0.0))
     dias_sem_chuva_val = int(gold_kpis.get("dias_sem_chuva", 0))
@@ -410,9 +433,9 @@ def generate_pdf_report(
     risco_estresse_val = str(gold_kpis.get("risco_estresse_hidrico", "BAIXO"))
 
     # Cores dinâmicas dos KPIs executivos
-    cor_balanco = (39, 174, 96) if balanco_val >= 0 else ((192, 57, 43) if balanco_val < -25 else (211, 84, 0))
-    cor_veranico = (192, 57, 43) if dias_sem_chuva_val >= 6 else ((211, 84, 0) if dias_sem_chuva_val >= 4 else (39, 174, 96))
-    cor_risco = (192, 57, 43) if risco_estresse_val == "CRÍTICO" else ((211, 84, 0) if risco_estresse_val == "MODERADO" else (39, 174, 96))
+    cor_balanco = (39, 150, 85) if balanco_val >= 0 else ((192, 57, 43) if balanco_val < -25 else (211, 84, 0))
+    cor_veranico = (192, 57, 43) if dias_sem_chuva_val >= 6 else ((211, 84, 0) if dias_sem_chuva_val >= 4 else (39, 150, 85))
+    cor_risco = (192, 57, 43) if risco_estresse_val == "CRÍTICO" else ((211, 84, 0) if risco_estresse_val == "MODERADO" else (39, 150, 85))
 
     pdf.kpi_card_row(
         ["Balanço Hídrico Líquido", "Dias sem Chuva (Veranico)", "GDA Acumulado", "Risco de Estresse"],
@@ -422,9 +445,9 @@ def generate_pdf_report(
             f"{gda_total_val:.1f}",
             risco_estresse_val,
         ],
-        val_colors=[cor_balanco, cor_veranico, (44, 62, 80), cor_risco],
+        val_colors=[cor_balanco, cor_veranico, (30, 35, 32), cor_risco],
     )
-    pdf.ln(1)
+    pdf.ln(0.5)
 
     pdf.kpi_card_row(
         ["Chuva 30d", "Chuva 60d", "Chuva 90d", "Evapotransp. (ET0)"],
@@ -435,101 +458,122 @@ def generate_pdf_report(
             f"{gold_kpis.get('et0_total_mm', payload.get('et0_acumulada_30d', 42.0)):.1f} mm",
         ],
     )
-    pdf.ln(1)
+    pdf.ln(0.5)
 
     pdf.kpi_card_row(
         ["Temp. Média", "Temp. Máxima", "Temp. Mínima", "Radiação Média"],
         [
-            f"{payload.get('t_mean', 0):.1f} oC",
-            f"{payload.get('t_max', gold_kpis.get('temp_max_media_c', 0)):.1f} oC",
-            f"{payload.get('t_min', gold_kpis.get('temp_min_media_c', 0)):.1f} oC",
-            f"{payload.get('radiacao_solar_mean', 0):.0f} W/m2",
+            f"{payload.get('t_mean', 0):.1f} °C",
+            f"{payload.get('t_max', gold_kpis.get('temp_max_media_c', 0)):.1f} °C",
+            f"{payload.get('t_min', gold_kpis.get('temp_min_media_c', 0)):.1f} °C",
+            f"{payload.get('radiacao_solar_mean', 0):.0f} W/m²",
         ],
     )
-    pdf.ln(2)
+    pdf.ln(1)
 
     # Diretriz Operacional da Camada Ouro
     rec_gold_txt = str(gold_kpis.get("recomendacao_manejo", "Condições hídricas favoráveis."))
-    pdf.set_fill_color(240, 244, 248)
-    pdf.set_draw_color(41, 128, 185)
-    pdf.set_text_color(30, 50, 75)
-    pdf.set_font("helvetica", "B", 8)
-    pdf.cell(190, 5, f"  Diretriz Operacional (Camada Ouro):", border="LTR", new_x="LMARGIN", new_y="NEXT", fill=True)
-    pdf.set_font("helvetica", "", 8)
-    pdf.multi_cell(190, 4, f"  {_clean_text(rec_gold_txt)}", border="LBR", fill=True)
-    pdf.ln(4)
+    pdf.set_fill_color(244, 248, 251)
+    pdf.set_draw_color(180, 205, 220)
+    pdf.set_text_color(20, 50, 75)
+    pdf.set_font("helvetica", "B", 7.5)
+    pdf.cell(190, 4.5, f"  Diretriz Operacional (Camada Ouro):", border="LTR", new_x="LMARGIN", new_y="NEXT", fill=True)
+    pdf.set_font("helvetica", "", 7.5)
+    pdf.multi_cell(190, 4.0, f"  {_clean_text(rec_gold_txt)}", border="LBR", fill=True)
+    pdf.ln(3)
 
     # ── 2. INTELIGÊNCIA PREDITIVA & EXPLICABILIDADE XAI ───────────────────────
-    pdf.section_title("2", "INTELIGÊNCIA PREDITIVA & EXPLICABILIDADE XAI", 39, 174, 96)
+    pdf.section_title("2", "INTELIGÊNCIA PREDITIVA & EXPLICABILIDADE XAI", 25, 95, 65)
 
     ndvi_val = float(resultado.get("ndvi_previsto", 0.0))
     fase = str(resultado.get("fase_fenologica", "-"))
     conf_raw = str(resultado.get("confiabilidade_modelo", "Alta"))
     conf = conf_raw.split("(")[0].strip()
-    status = str(resultado.get("status_geral", "-"))
 
-    cor_status = (39, 174, 96) if "Normal" in status or "Ideal" in status else ((192, 57, 43) if "Crítico" in status or "Risco" in status else (211, 84, 0))
+    raw_status = resultado.get("status_geral") or resultado.get("status_vigor")
+    if not raw_status or raw_status == "-":
+        if ndvi_val >= 0.70:
+            status = "Vigor Elevado (Ideal)"
+        elif ndvi_val >= 0.50:
+            status = "Vigor Médio"
+        else:
+            status = "Vigor Sob Atenção"
+    else:
+        status = str(raw_status)
+
+    cor_status = (
+        (25, 125, 65)
+        if any(w in status for w in ["Normal", "Ideal", "Alto", "Saudável"])
+        else ((192, 57, 43) if any(w in status for w in ["Crítico", "Atenção", "Risco"]) else (211, 84, 0))
+    )
 
     pdf.kpi_card_row(
         ["NDVI Projetado", "Fase Fenológica", "Confiabilidade", "Status Geral"],
         [f"{ndvi_val:.3f}", fase, conf, status],
-        val_colors=[(39, 174, 96), (44, 62, 80), (44, 62, 80), cor_status],
+        val_colors=[(25, 125, 65), (25, 45, 35), (25, 45, 35), cor_status],
+        widths=[36.0, 78.0, 36.0, 40.0],
     )
-    pdf.ln(2)
+    pdf.ln(1)
 
     # Box Explicabilidade XAI
     top_driver = str(xai_res.get("top_driver", "Chuva Recente (30d)"))
     contributions = xai_res.get("contributions", {})
     narrativa_xai = str(xai_res.get("narrativa", "Vigor vegetativo consistente com o histórico agronômico."))
 
-    pdf.set_fill_color(245, 252, 248)
-    pdf.set_draw_color(39, 174, 96)
-    pdf.set_text_color(20, 80, 45)
-    pdf.set_font("helvetica", "B", 8)
-    pdf.cell(190, 5, f"  Explicabilidade Matemática do Modelo (XAI Waterfall & SHAP):", border="LTR", new_x="LMARGIN", new_y="NEXT", fill=True)
+    pdf.set_fill_color(246, 252, 249)
+    pdf.set_draw_color(165, 205, 185)
+    pdf.set_text_color(15, 75, 40)
+    pdf.set_font("helvetica", "B", 7.5)
+    pdf.cell(190, 4.5, f"  Explicabilidade Matemática do Modelo (XAI Waterfall & SHAP):", border="LTR", new_x="LMARGIN", new_y="NEXT", fill=True)
 
-    pdf.set_font("helvetica", "", 8)
-    pdf.set_text_color(40, 50, 40)
-    pdf.cell(190, 4, f"  * Fator Dominante (Top Driver): {_clean_text(top_driver)}", border="LR", new_x="LMARGIN", new_y="NEXT", fill=True)
+    pdf.set_font("helvetica", "", 7.5)
+    pdf.set_text_color(35, 45, 38)
+    pdf.cell(190, 4.0, f"  * Fator Dominante (Top Driver): {_clean_text(top_driver)}", border="LR", new_x="LMARGIN", new_y="NEXT", fill=True)
 
     if contributions:
         contrib_items = [f"{k}: {v:+.4f} NDVI" for k, v in list(contributions.items())[:4]]
-        pdf.cell(190, 4, f"  * Contribuições Marginais: {_clean_text(' | '.join(contrib_items))}", border="LR", new_x="LMARGIN", new_y="NEXT", fill=True)
+        pdf.multi_cell(
+            190,
+            4.0,
+            f"  * Contribuições Marginais: {_clean_text(' | '.join(contrib_items))}",
+            border="LR",
+            fill=True,
+        )
 
-    pdf.multi_cell(190, 4, f"  * {_clean_text(narrativa_xai)}", border="LBR", fill=True)
-    pdf.ln(4)
+    pdf.multi_cell(190, 4.0, f"  * {_clean_text(narrativa_xai)}", border="LBR", fill=True)
+    pdf.ln(3)
 
     # ── 3. ALERTAS OPERACIONAIS (DSS) ─────────────────────────────────────────
-    pdf.section_title("3", "ALERTAS ATIVOS - SISTEMA DE SUPORTE À DECISÃO (DSS)", 230, 126, 34)
+    pdf.section_title("3", "ALERTAS ATIVOS - SISTEMA DE SUPORTE À DECISÃO (DSS)", 145, 75, 20)
 
     alertas = resultado.get("fatores_de_risco_identificados", [])
 
     if not alertas:
-        pdf.set_fill_color(232, 248, 240)
-        pdf.set_text_color(39, 174, 96)
-        pdf.set_draw_color(39, 174, 96)
-        pdf.set_font("helvetica", "B", 9)
-        pdf.cell(190, 7, "  [OK]  Nenhum risco crítico identificado nas condições operacionais avaliadas.", border=1, new_x="LMARGIN", new_y="NEXT", fill=True)
+        pdf.set_fill_color(240, 250, 244)
+        pdf.set_text_color(20, 110, 55)
+        pdf.set_draw_color(150, 210, 175)
+        pdf.set_font("helvetica", "B", 8)
+        pdf.multi_cell(190, 6, "  [OK]  Nenhum risco crítico identificado nas condições operacionais avaliadas.", border=1, fill=True)
     else:
         for alerta in alertas:
             is_critico = any(w in alerta for w in ["Déficit", "Crítico", "Risco", "Alerta", "Volatilização", "Lixiviação", "Podridão"])
             if is_critico:
-                pdf.set_fill_color(253, 235, 232)
-                pdf.set_text_color(192, 57, 43)
-                pdf.set_draw_color(192, 57, 43)
-                pdf.set_font("helvetica", "B", 8)
+                pdf.set_fill_color(254, 242, 240)
+                pdf.set_text_color(175, 40, 30)
+                pdf.set_draw_color(235, 170, 160)
+                pdf.set_font("helvetica", "B", 7.5)
             else:
-                pdf.set_fill_color(254, 249, 231)
-                pdf.set_text_color(183, 128, 23)
-                pdf.set_draw_color(241, 196, 15)
-                pdf.set_font("helvetica", "", 8)
-            pdf.cell(190, 6, f"  - {_clean_text(alerta)}", border=1, new_x="LMARGIN", new_y="NEXT", fill=True)
+                pdf.set_fill_color(255, 251, 235)
+                pdf.set_text_color(160, 105, 15)
+                pdf.set_draw_color(235, 210, 140)
+                pdf.set_font("helvetica", "", 7.5)
+            pdf.multi_cell(190, 4.8, f"  - {_clean_text(alerta)}", border=1, fill=True)
             pdf.ln(1)
 
-    pdf.ln(4)
+    pdf.ln(3)
 
     # ── 4. PARECER DO AGRÔNOMO (IA GENERATIVA - GEMINI GROUNDED) ─────────────
-    pdf.section_title("4", "PARECER DO AGRÔNOMO (IA GENERATIVA - GEMINI)", 142, 68, 173)
+    pdf.section_title("4", "PARECER DO AGRÔNOMO (IA GENERATIVA - GEMINI)", 68, 52, 100)
 
     resolved_api_key = _resolve_gemini_key(gemini_api_key)
     parecer_texto = _get_agronomic_opinion(
@@ -543,11 +587,11 @@ def generate_pdf_report(
         api_key=resolved_api_key,
     )
 
-    pdf.set_fill_color(245, 240, 252)
-    pdf.set_draw_color(142, 68, 173)
-    pdf.set_text_color(60, 30, 80)
-    pdf.set_font("helvetica", "I", 9)
-    pdf.multi_cell(190, 5, f'"{_clean_text(parecer_texto)}"', border=1, fill=True)
+    pdf.set_fill_color(249, 247, 253)
+    pdf.set_draw_color(195, 180, 220)
+    pdf.set_text_color(45, 30, 68)
+    pdf.set_font("helvetica", "I", 8.0)
+    pdf.multi_cell(190, 4.3, f'"{_clean_text(parecer_texto)}"', border=1, fill=True)
 
     return bytes(pdf.output())
 
